@@ -3839,10 +3839,20 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
             const isImage = ['png', 'jpg', 'jpeg', 'webp', 'bmp'].includes(origExt);
             
             if ((isVideo || isAudio) && targetFormat !== 'custom' && !targetFormat.startsWith('decode_')) {
-                // Client-side local conversion via FFmpeg.wasm v0.9.x
+                // Client-side local conversion via FFmpeg.wasm v0.9.x + coi-serviceworker
                 let ffmpeg;
                 let fetchFile;
                 try {
+                    // coi-serviceworker enables SharedArrayBuffer on GitHub Pages
+                    // by injecting COOP/COEP headers via a service worker
+                    await new Promise((resolve, reject) => {
+                        if (window.crossOriginIsolated) return resolve();
+                        const s = document.createElement('script');
+                        s.src = 'https://unpkg.com/coi-serviceworker@0.1.7/coi-serviceworker.min.js';
+                        s.onload = resolve;
+                        s.onerror = reject;
+                        document.head.appendChild(s);
+                    });
                     // Load ffmpeg.min.js as a script tag (sets window.FFmpeg)
                     await new Promise((resolve, reject) => {
                         if (window.FFmpeg && window.FFmpeg.createFFmpeg) return resolve();
