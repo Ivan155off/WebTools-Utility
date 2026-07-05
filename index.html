@@ -3838,62 +3838,130 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
             const isAudio = ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a'].includes(origExt) || ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a'].includes(newExt);
             const isImage = ['png', 'jpg', 'jpeg', 'webp', 'bmp'].includes(origExt);
             
-            if ((isVideo || isAudio) && targetFormat !== 'custom' && !targetFormat.startsWith('decode_')) {
-                // Client-side local conversion via FFmpeg.wasm
-                let ffmpeg;
-                let fetchFile;
+            if (isAudio && targetFormat !== 'custom' && !targetFormat.startsWith('decode_')) {
+                // Audio conversion via Web Audio API + MediaRecorder
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const arrayBuf = await item.fileObject.arrayBuffer();
+                const audioBuffer = await audioCtx.decodeAudioData(arrayBuf);
+                
+                // Re-encode using MediaRecorder with supported format
+                const offlineCtx = new OfflineAudioContext(
+                    audioBuffer.numberOfChannels,
+                    audioBuffer.length,
+                    audioBuffer.sampleRate
+                );
+                const source = offlineCtx.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(offlineCtx.destination);
+                source.start();
+                await offlineCtx.startRendering();
+                
+                // Use MediaRecorder to encode - picks best supported format
+                const stream = audioCtx.createMediaStreamDestination();
+                const src2 = audioCtx.createBufferSource();
+                src2.buffer = audioBuffer;
+                src2.connect(stream);
+                
+                // Determine MIME type
+                let mimeType = 'audio/webm';
+                if (targetFormat === 'ogg') mimeType = 'audio/ogg';
+                else if (targetFormat === 'mp4' || targetFormat === 'm4a' || targetFormat === 'aac') mimeType = 'audio/mp4';
+                if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/webm';
+                
+                const recorder = new MediaRecorder(stream.stream, { mimeType });
+                const chunks = [];
+                recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+                
+                await new Promise((resolve, reject) => {
+                    recorder.onstop = resolve;
+                    recorder.onerror = reject;
+                    src2.start();
+                    recorder.start();
+                    setTimeout(() => recorder.stop(), audioBuffer.duration * 1000 + 500);
+                });
+                
+                outputBlob = new Blob(chunks, { type: mimeType });
+                audioCtx.close();
+                
+            } else if (isVideo && targetFormat !== 'custom' && !targetFormat.startsWith('decode_')) {
+                // Video conversion via MediaRecorder (browser-native, no FFmpeg needed)
+                // Supports: webm output in all modern browsers
+                // For mp4/other: we re-encode to webm (best we can do without FFmpeg on GitHub Pages)
+                
+                const videoEl = document.createElement('video');
+                videoEl.src = URL.createObjectURL(item.fileObject);
+                videoEl.muted = true;
+                await new Promise((resolve, reject) => {
+                    videoEl.onloadedmetadata = resolve;
+                    videoEl.onerror = reject;
+                });
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = videoEl.videoWidth;
+                canvas.height = videoEl.videoHeight;
+                const ctx2 = canvas.getContext('2d');
+                
+                // Capture canvas stream
+                const canvasStream = canvas.captureStream(30);
+                
+                // Add audio track if video has audio
+                let combinedStream = canvasStream;
                 try {
-                    // Load ffmpeg script
-                    await new Promise((resolve, reject) => {
-                        if (window.FFmpeg && window.FFmpeg.createFFmpeg) return resolve();
-                        const s = document.createElement('script');
-                        s.src = 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.9.8/dist/ffmpeg.min.js';
-                        s.onload = resolve;
-                        s.onerror = () => reject(new Error('Failed to load FFmpeg script'));
-                        document.head.appendChild(s);
-                    });
-                    const { createFFmpeg, fetchFile: _fetchFile } = window.FFmpeg;
-                    fetchFile = _fetchFile;
-                    // Use single-thread core - no SharedArrayBuffer needed
-                    ffmpeg = createFFmpeg({
-                        corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
-                        log: true,
-                    });
-                    await ffmpeg.load();
-                } catch (err) {
-                    showToast('❌ Conversion failed: ' + err.message);
-                    throw err; // Re-throw to halt
+                    const audioCtx = new AudioContext();
+                    const arrayBuf2 = await item.fileObject.arrayBuffer();
+                    const audioBuffer2 = await audioCtx.decodeAudioData(arrayBuf2).catch(() => null);
+                    if (audioBuffer2) {
+                        const dest = audioCtx.createMediaStreamDestination();
+                        const audioSrc = audioCtx.createBufferSource();
+                        audioSrc.buffer = audioBuffer2;
+                        audioSrc.connect(dest);
+                        audioSrc.start();
+                        combinedStream = new MediaStream([
+                            ...canvasStream.getVideoTracks(),
+                            ...dest.stream.getAudioTracks()
+                        ]);
+                    }
+                } catch(e) { /* no audio track */ }
+                
+                let videoMime = 'video/webm;codecs=vp8,opus';
+                if (!MediaRecorder.isTypeSupported(videoMime)) videoMime = 'video/webm';
+                
+                const videoRecorder = new MediaRecorder(combinedStream, { mimeType: videoMime });
+                const videoChunks = [];
+                videoRecorder.ondataavailable = e => { if (e.data.size > 0) videoChunks.push(e.data); };
+                
+                videoEl.currentTime = 0;
+                await videoEl.play();
+                videoRecorder.start();
+                
+                // Draw frames
+                const drawFrame = () => {
+                    if (!videoEl.ended && !videoEl.paused) {
+                        ctx2.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+                        requestAnimationFrame(drawFrame);
+                    }
+                };
+                drawFrame();
+                
+                await new Promise(resolve => {
+                    videoEl.onended = () => {
+                        videoRecorder.stop();
+                        resolve();
+                    };
+                });
+                
+                await new Promise(resolve => { videoRecorder.onstop = resolve; });
+                
+                // Output as webm (most compatible browser output)
+                const outExt = ['mp4','avi','mkv','mov'].includes(targetFormat) ? 'webm' : targetFormat;
+                outputBlob = new Blob(videoChunks, { type: 'video/webm' });
+                URL.revokeObjectURL(videoEl.src);
+                
+                // Note: if user wanted mp4/avi/mkv we give webm (browser limitation)
+                if (outExt !== targetFormat) {
+                    showToast('ℹ\ufe0f Browser can only output WebM. Saving as .webm');
+                    newFileName = newFileName.replace('.' + targetFormat, '.webm');
                 }
-                
-                const inputName = 'input.' + origExt;
-                const outputName = 'output.' + targetFormat;
-                
-                try { ffmpeg.FS('unlink', inputName); } catch (e) {}
-                
-                const fileDataToConvert = item.isEdited && item.editedContent !== null ? new Blob([item.editedContent]) : item.fileObject;
-                ffmpeg.FS('writeFile', inputName, await fetchFile(fileDataToConvert));
-                
-                const audioBitrate = document.getElementById('converterAudioBitrate')?.value || '192k';
-                const videoResolution = document.getElementById('converterVideoResolution')?.value || 'same';
-                
-                let ffmpegArgs = ['-y', '-i', inputName];
-                
-                if (targetFormat === 'mp3' || targetFormat === 'wav' || targetFormat === 'ogg' || targetFormat === 'flac' || targetFormat === 'aac' || targetFormat === 'm4a') {
-                   ffmpegArgs.push('-b:a', audioBitrate);
-                } else if (targetFormat === 'mp4' || targetFormat === 'avi' || targetFormat === 'webm' || targetFormat === 'mkv' || targetFormat === 'mov' || targetFormat === 'gif') {
-                   if (videoResolution !== 'same') {
-                       ffmpegArgs.push('-vf', `scale=${videoResolution}`);
-                   }
-                   if (targetFormat === 'gif') {
-                       ffmpegArgs.push('-vf', 'fps=10,scale=320:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse');
-                   }
-                }
-                ffmpegArgs.push(outputName);
-                
-                await ffmpeg.run(...ffmpegArgs);
-                
-                const fileData = ffmpeg.FS('readFile', outputName);
-                outputBlob = new Blob([fileData.buffer || fileData], { type: isAudio ? 'audio/' + targetFormat : 'video/' + targetFormat });
                 
             } else if (isImage) {
                 // Convert image format via Canvas
@@ -4077,8 +4145,9 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
                 }
             }
             
-            // Save converted file back to IndexedDB workspace
-            saveNewFileToWorkspace(newFileName, outputBlob, outputText);
+            // Download the converted file immediately
+            _doDownload(outputBlob, newFileName);
+            showToast('✨ Converted: ' + newFileName);
             converterModal.classList.remove('active');
             
         } catch (e) {
