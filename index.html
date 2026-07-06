@@ -3846,50 +3846,53 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
             const isImage = ['png', 'jpg', 'jpeg', 'webp', 'bmp'].includes(origExt);
             
             if (isAudio && targetFormat !== 'custom' && !targetFormat.startsWith('decode_')) {
-                // Audio conversion via Web Audio API + MediaRecorder
+                // Audio conversion via MediaRecorder (browser-native)
+                // Create an audio element and capture its output stream
+                const audioEl = document.createElement('audio');
+                audioEl.src = URL.createObjectURL(item.fileObject);
+                audioEl.preload = 'auto';
+                await new Promise((resolve, reject) => {
+                    audioEl.oncanplaythrough = resolve;
+                    audioEl.onerror = () => reject(new Error('Cannot decode audio file. Format may not be supported by your browser.'));
+                    setTimeout(reject, 10000, new Error('Audio load timeout'));
+                });
+                
+                // Capture audio stream from element
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const arrayBuf = await item.fileObject.arrayBuffer();
-                const audioBuffer = await audioCtx.decodeAudioData(arrayBuf);
+                const source = audioCtx.createMediaElementSource(audioEl);
+                const dest = audioCtx.createMediaStreamDestination();
+                source.connect(dest);
+                source.connect(audioCtx.destination);
                 
-                // Re-encode using MediaRecorder with supported format
-                const offlineCtx = new OfflineAudioContext(
-                    audioBuffer.numberOfChannels,
-                    audioBuffer.length,
-                    audioBuffer.sampleRate
-                );
-                const source = offlineCtx.createBufferSource();
-                source.buffer = audioBuffer;
-                source.connect(offlineCtx.destination);
-                source.start();
-                await offlineCtx.startRendering();
-                
-                // Use MediaRecorder to encode - picks best supported format
-                const stream = audioCtx.createMediaStreamDestination();
-                const src2 = audioCtx.createBufferSource();
-                src2.buffer = audioBuffer;
-                src2.connect(stream);
-                
-                // Determine MIME type
-                let mimeType = 'audio/webm';
-                if (targetFormat === 'ogg') mimeType = 'audio/ogg';
-                else if (targetFormat === 'mp4' || targetFormat === 'm4a' || targetFormat === 'aac') mimeType = 'audio/mp4';
+                // Pick best supported MIME
+                let mimeType = 'audio/webm;codecs=opus';
                 if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/webm';
+                if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/ogg;codecs=opus';
+                if (!MediaRecorder.isTypeSupported(mimeType)) throw new Error('Your browser does not support audio recording');
                 
-                const recorder = new MediaRecorder(stream.stream, { mimeType });
+                const recorder = new MediaRecorder(dest.stream, { mimeType });
                 const chunks = [];
                 recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
                 
-                await new Promise((resolve, reject) => {
-                    recorder.onstop = resolve;
-                    recorder.onerror = reject;
-                    src2.start();
-                    recorder.start();
-                    setTimeout(() => recorder.stop(), audioBuffer.duration * 1000 + 500);
+                audioEl.currentTime = 0;
+                recorder.start(100);
+                await audioEl.play();
+                
+                await new Promise(resolve => {
+                    audioEl.onended = () => { recorder.stop(); resolve(); };
                 });
+                await new Promise(resolve => { recorder.onstop = resolve; });
+                
+                // Output ext note
+                const actualExt = mimeType.includes('ogg') ? 'ogg' : 'webm';
+                if (actualExt !== targetFormat) {
+                    newFileName = newFileName.replace('.' + targetFormat, '.' + actualExt);
+                    showToast('ℹ️ Browser output: .' + actualExt + ' (best available)');
+                }
                 
                 outputBlob = new Blob(chunks, { type: mimeType });
-                // Note: don't close audioCtx immediately - let GC handle it
-                setTimeout(() => audioCtx.close(), 1000);
+                URL.revokeObjectURL(audioEl.src);
+                audioCtx.close();
                 
             } else if (isVideo && targetFormat !== 'custom' && !targetFormat.startsWith('decode_')) {
                 // Video conversion via MediaRecorder (browser-native, no FFmpeg needed)
@@ -3996,8 +3999,12 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
                 const qSlider = document.getElementById('converterImgQuality');
                 if (qSlider) quality = parseInt(qSlider.value) / 100;
                 
-                const blob = await new Promise(resolve => canvas.toBlob(resolve, mimeType, quality));
-                outputBlob = blob;
+                outputBlob = await new Promise((resolve, reject) => {
+                    canvas.toBlob(blob => {
+                        if (blob) resolve(blob);
+                        else reject(new Error('Image conversion failed'));
+                    }, mimeType, quality);
+                });
                 URL.revokeObjectURL(imgUrl);
                 
             } else if (targetFormat === 'bat') {
