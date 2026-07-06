@@ -2183,7 +2183,9 @@ function renderAudioPlayer(url, name) {
     aud.addEventListener('pause', () => { playB.textContent='▶'; wrap.classList.remove('aud-playing'); });
     aud.addEventListener('ended', () => { playB.textContent='↺'; wrap.classList.remove('aud-playing'); });
     
-    playB.addEventListener('click', () => { if (aud.ended) aud.currentTime = 0; aud.paused ? aud.play() : aud.pause(); });
+    playB.addEventListener('click', () => { if (aud.ended) { aud.currentTime = 0; } aud.paused ? aud.play().catch(()=>{}) : aud.pause(); });
+    // Prevent autoplay
+    aud.autoplay = false;
     muteB.addEventListener('click', () => { aud.muted = !aud.muted; muteB.textContent = aud.muted ? '🔇' : '🔊'; });
     volR.addEventListener('input', () => { aud.volume = parseFloat(volR.value); });
     trackEl.addEventListener('click', e => { const r = trackEl.getBoundingClientRect(); aud.currentTime = ((e.clientX - r.left) / r.width) * aud.duration; });
@@ -3846,53 +3848,56 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
             const isImage = ['png', 'jpg', 'jpeg', 'webp', 'bmp'].includes(origExt);
             
             if (isAudio && targetFormat !== 'custom' && !targetFormat.startsWith('decode_')) {
-                // Audio conversion via MediaRecorder (browser-native)
-                // Create an audio element and capture its output stream
-                const audioEl = document.createElement('audio');
-                audioEl.src = URL.createObjectURL(item.fileObject);
-                audioEl.preload = 'auto';
+                // Audio conversion via hidden audio element + MediaRecorder
+                // This approach works with MP3, WAV, OGG etc. without decoding issues
+                const hiddenAud = document.createElement('audio');
+                hiddenAud.style.display = 'none';
+                hiddenAud.src = URL.createObjectURL(item.fileObject);
+                document.body.appendChild(hiddenAud);
+                
                 await new Promise((resolve, reject) => {
-                    audioEl.oncanplaythrough = resolve;
-                    audioEl.onerror = () => reject(new Error('Cannot decode audio file. Format may not be supported by your browser.'));
-                    setTimeout(reject, 10000, new Error('Audio load timeout'));
+                    hiddenAud.oncanplaythrough = resolve;
+                    hiddenAud.onerror = () => reject(new Error('Cannot load audio: format not supported by browser'));
+                    setTimeout(() => reject(new Error('Audio load timeout')), 15000);
                 });
                 
-                // Capture audio stream from element
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const source = audioCtx.createMediaElementSource(audioEl);
-                const dest = audioCtx.createMediaStreamDestination();
-                source.connect(dest);
-                source.connect(audioCtx.destination);
+                const actx = new (window.AudioContext || window.webkitAudioContext)();
+                const src = actx.createMediaElementSource(hiddenAud);
+                const dest = actx.createMediaStreamDestination();
+                src.connect(dest);
+                // Don't connect to speakers - silent conversion
                 
-                // Pick best supported MIME
                 let mimeType = 'audio/webm;codecs=opus';
                 if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/webm';
                 if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/ogg;codecs=opus';
-                if (!MediaRecorder.isTypeSupported(mimeType)) throw new Error('Your browser does not support audio recording');
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    document.body.removeChild(hiddenAud);
+                    throw new Error('Browser does not support audio recording');
+                }
                 
                 const recorder = new MediaRecorder(dest.stream, { mimeType });
                 const chunks = [];
                 recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
                 
-                audioEl.currentTime = 0;
-                recorder.start(100);
-                await audioEl.play();
+                hiddenAud.currentTime = 0;
+                recorder.start(200);
+                await hiddenAud.play();
                 
                 await new Promise(resolve => {
-                    audioEl.onended = () => { recorder.stop(); resolve(); };
+                    hiddenAud.onended = () => { recorder.stop(); resolve(); };
                 });
                 await new Promise(resolve => { recorder.onstop = resolve; });
                 
-                // Output ext note
+                document.body.removeChild(hiddenAud);
+                URL.revokeObjectURL(hiddenAud.src);
+                actx.close();
+                
                 const actualExt = mimeType.includes('ogg') ? 'ogg' : 'webm';
                 if (actualExt !== targetFormat) {
                     newFileName = newFileName.replace('.' + targetFormat, '.' + actualExt);
-                    showToast('ℹ️ Browser output: .' + actualExt + ' (best available)');
+                    showToast('ℹ️ Saved as .' + actualExt + ' (browser limitation)');
                 }
-                
                 outputBlob = new Blob(chunks, { type: mimeType });
-                URL.revokeObjectURL(audioEl.src);
-                audioCtx.close();
                 
             } else if (isVideo && targetFormat !== 'custom' && !targetFormat.startsWith('decode_')) {
                 // Video conversion via MediaRecorder (browser-native, no FFmpeg needed)
@@ -3999,12 +4004,8 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
                 const qSlider = document.getElementById('converterImgQuality');
                 if (qSlider) quality = parseInt(qSlider.value) / 100;
                 
-                outputBlob = await new Promise((resolve, reject) => {
-                    canvas.toBlob(blob => {
-                        if (blob) resolve(blob);
-                        else reject(new Error('Image conversion failed'));
-                    }, mimeType, quality);
-                });
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, mimeType, quality));
+                outputBlob = blob;
                 URL.revokeObjectURL(imgUrl);
                 
             } else if (targetFormat === 'bat') {
@@ -4176,12 +4177,14 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
             return;
         }
         
+        // Create a proper File object so .name works everywhere
+        const file = new File([blob], filename, { type: blob.type || 'application/octet-stream', lastModified: Date.now() });
         const record = {
             name: filename,
-            size: blob.size,
-            type: blob.type || 'application/octet-stream',
-            lastModified: Date.now(),
-            fileObject: blob
+            size: file.size,
+            type: file.type,
+            lastModified: file.lastModified,
+            fileObject: file
         };
         
         if (contentString !== null) {
