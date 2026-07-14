@@ -48,325 +48,137 @@
       gtag('config', 'G-3NRPS789V3');
     </script>
 
+
     <!-- JSZip Official CDN (Ensures static 3-file bundle runs perfectly) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <!-- FFmpeg.wasm is loaded dynamically on demand (avoids CDN blocking) -->
 
 <style>
-/* ══════════════════════════════════════════════════
-   P2P QuickShare v2 – Animated Code Slots + Multi-file
-   ══════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   P2P QuickShare v2 — Animated Code Slots + Multi-file
+   ═══════════════════════════════════════════════════════ */
 
-/* Animated code display (sender side) */
 .p2p-code-display {
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: 8px;
+  font-size: 30px; font-weight: 800; letter-spacing: 8px;
   color: var(--accent, #10b981);
   font-family: 'JetBrains Mono', monospace;
   background: rgba(16,185,129,0.08);
   border: 1.5px solid rgba(16,185,129,0.25);
-  padding: 12px 24px;
-  border-radius: 12px;
+  padding: 12px 24px; border-radius: 12px;
   display: inline-block;
   animation: p2pCodePulse 2.4s ease-in-out infinite;
-  user-select: all;
-  cursor: pointer;
+  user-select: all; cursor: pointer;
 }
 @keyframes p2pCodePulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.0); }
-  50%       { box-shadow: 0 0 0 8px rgba(16,185,129,0.12); }
+  0%,100%{ box-shadow:0 0 0 0 rgba(16,185,129,0); }
+  50%    { box-shadow:0 0 0 8px rgba(16,185,129,0.13); }
 }
 
-/* Animated code INPUT slots (receiver side) */
-.p2p-code-input-wrapper {
-  display: flex;
-  justify-content: center;
-  margin: 4px 0 0;
-}
-.p2p-code-slots {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  justify-content: center;
-}
+/* Animated receive code slots */
+.p2p-code-input-wrapper { display:flex; justify-content:center; margin:4px 0 0; }
+.p2p-code-slots { display:flex; gap:7px; align-items:center; justify-content:center; }
 .p2p-slot {
-  width: 44px;
-  height: 52px;
-  border-radius: 10px;
-  border: 2px solid var(--border, rgba(255,255,255,0.12));
-  background: rgba(255,255,255,0.04);
-  color: var(--text-light, #fff);
-  font-size: 22px;
-  font-weight: 700;
-  font-family: 'JetBrains Mono', monospace;
-  text-align: center;
-  text-transform: uppercase;
-  outline: none;
-  transition: border-color 0.2s, background 0.2s, transform 0.15s, box-shadow 0.2s;
-  caret-color: transparent;
+  width:46px; height:54px; border-radius:10px;
+  border:2px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.04);
+  color:#fff; font-size:22px; font-weight:700;
+  font-family:'JetBrains Mono',monospace;
+  text-align:center; text-transform:uppercase;
+  outline:none; caret-color:transparent;
+  transition:border-color 0.18s,background 0.18s,transform 0.15s,box-shadow 0.18s;
 }
 .p2p-slot:focus {
-  border-color: var(--accent, #10b981);
-  background: rgba(16,185,129,0.08);
-  box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
-  transform: scale(1.06);
+  border-color:var(--accent,#10b981);
+  background:rgba(16,185,129,0.08);
+  box-shadow:0 0 0 3px rgba(16,185,129,0.16);
+  transform:scale(1.07);
 }
 .p2p-slot.filled {
-  border-color: var(--accent, #10b981);
-  color: var(--accent, #10b981);
-  background: rgba(16,185,129,0.07);
-  animation: slotPop 0.18s cubic-bezier(0.34,1.56,0.64,1);
+  border-color:var(--accent,#10b981);
+  color:var(--accent,#10b981);
+  background:rgba(16,185,129,0.07);
+  animation:slotPop 0.18s cubic-bezier(0.34,1.56,0.64,1);
 }
-@keyframes slotPop {
-  0%   { transform: scale(0.88); }
-  100% { transform: scale(1); }
-}
-.p2p-slot-sep {
-  font-size: 18px;
-  color: var(--text-muted, rgba(255,255,255,0.25));
-  user-select: none;
-  padding: 0 2px;
-}
-@media (max-width: 400px) {
-  .p2p-slot { width: 38px; height: 46px; font-size: 18px; }
-  .p2p-code-display { font-size: 22px; letter-spacing: 5px; padding: 10px 16px; }
-}
+@keyframes slotPop { from{transform:scale(0.86)} to{transform:scale(1)} }
+.p2p-slot-sep { font-size:18px; color:rgba(255,255,255,0.22); padding:0 2px; user-select:none; }
 
-/* File queue rows */
+/* File queue */
 .p2p-queue-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 13px;
-  animation: fadeSlideIn 0.18s ease;
+  display:flex; align-items:center; gap:8px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:8px; padding:8px 10px; font-size:13px;
+  animation:fadeSlideIn 0.18s ease;
 }
-@keyframes fadeSlideIn {
-  from { opacity:0; transform:translateY(-6px); }
-  to   { opacity:1; transform:none; }
-}
-.p2p-queue-icon { font-size: 16px; flex-shrink:0; }
-.p2p-queue-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-light,#fff); }
-.p2p-queue-size { font-size:11px; color:var(--text-muted,rgba(255,255,255,0.4)); flex-shrink:0; }
+@keyframes fadeSlideIn{ from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+.p2p-queue-icon{ font-size:16px;flex-shrink:0; }
+.p2p-queue-name{ flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff; }
+.p2p-queue-size{ font-size:11px;color:rgba(255,255,255,0.4);flex-shrink:0; }
 .p2p-queue-rm {
-  background: rgba(239,68,68,0.12);
-  border: none;
-  color: #ef4444;
-  border-radius: 6px;
-  width: 24px; height: 24px;
-  cursor: pointer;
-  font-size: 15px;
-  line-height: 1;
-  display: flex; align-items:center; justify-content:center;
-  transition: background 0.15s;
-  flex-shrink:0;
+  background:rgba(239,68,68,0.12); border:none; color:#ef4444;
+  border-radius:6px; width:24px;height:24px; cursor:pointer;
+  font-size:15px; display:flex;align-items:center;justify-content:center;
+  transition:background 0.15s; flex-shrink:0;
 }
-.p2p-queue-rm:hover { background: rgba(239,68,68,0.28); }
+.p2p-queue-rm:hover{ background:rgba(239,68,68,0.28); }
 
 /* File picker dropdown */
 .p2p-picker-opt {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 10px;
-  font-size: 13px;
-  border-radius: 7px;
-  cursor: pointer;
-  transition: background 0.12s;
-  color: var(--text-light,#fff);
+  display:flex;align-items:center;gap:8px;padding:9px 10px;
+  font-size:13px;border-radius:7px;cursor:pointer;
+  transition:background 0.12s;color:#fff;
 }
-.p2p-picker-opt:hover { background: rgba(255,255,255,0.08); }
+.p2p-picker-opt:hover{ background:rgba(255,255,255,0.08); }
 
 /* Progress rows */
 .p2p-progress-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto auto;
-  gap: 3px 8px;
-  background: rgba(255,255,255,0.03);
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 12px;
-  margin-bottom: 4px;
+  display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;
+  gap:3px 8px;background:rgba(255,255,255,0.03);border-radius:8px;
+  padding:8px 10px;font-size:12px;margin-bottom:4px;
 }
-.p2p-prog-name {
-  grid-column: 1;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  color: var(--text-light,#fff);
-}
-.p2p-prog-pct {
-  grid-column: 2; grid-row: 1/3;
-  align-self: center;
-  font-size: 12px;
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--accent,#10b981);
-  min-width: 36px;
-  text-align: right;
-}
-.p2p-prog-track {
-  grid-column: 1;
-  height: 5px;
-  border-radius: 99px;
-  background: rgba(255,255,255,0.08);
-  overflow: hidden;
-}
-.p2p-prog-fill {
-  height: 100%;
-  background: var(--accent,#10b981);
-  border-radius: 99px;
-  transition: width 0.15s linear;
-}
+.p2p-prog-name{ grid-column:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff; }
+.p2p-prog-pct{ grid-column:2;grid-row:1/3;align-self:center;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--accent,#10b981);min-width:36px;text-align:right; }
+.p2p-prog-track{ grid-column:1;height:5px;border-radius:99px;background:rgba(255,255,255,0.08);overflow:hidden; }
+.p2p-prog-fill{ height:100%;background:var(--accent,#10b981);border-radius:99px;transition:width 0.15s linear; }
 
 /* Peers badge */
 .p2p-peers-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(16,185,129,0.12);
-  border: 1px solid rgba(16,185,129,0.25);
-  border-radius: 20px;
-  padding: 4px 12px;
-  font-size: 12px;
-  color: var(--accent,#10b981);
-  font-weight: 600;
-  margin-bottom: 6px;
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);
+  border-radius:20px;padding:4px 12px;font-size:12px;
+  color:var(--accent,#10b981);font-weight:600;margin-bottom:6px;
 }
 
-/* ══════════════════════════════════════════════════
-   MOBILE OPTIMIZATIONS
-   ══════════════════════════════════════════════════ */
-@media (max-width: 700px) {
-  /* Fix header on mobile */
-  .app-header {
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 8px 12px;
+/* ═══════════════════════════════════════
+   MOBILE OPTIMISATIONS
+   ═══════════════════════════════════════ */
+@media (max-width:700px){
+  .app-header{ flex-wrap:wrap;gap:6px;padding:8px 12px; }
+  .header-controls{ gap:6px; }
+  .control-btn{ font-size:12px;padding:6px 10px; }
+  .workspace{ flex-direction:column; }
+  .sidebar-panels{
+    width:100%!important;max-width:100%!important;min-width:0!important;
+    border-right:none!important;border-bottom:1px solid rgba(255,255,255,0.08);
+    max-height:200px;overflow-y:auto;
   }
-  .header-controls {
-    gap: 6px;
-  }
-  .control-btn {
-    font-size: 12px;
-    padding: 6px 10px;
-  }
-
-  /* Stack workspace vertically */
-  .workspace {
-    flex-direction: column;
-  }
-  .sidebar-panels {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    border-right: none !important;
-    border-bottom: 1px solid var(--border, rgba(255,255,255,0.08));
-    max-height: 220px;
-    overflow-y: auto;
-  }
-  .ads-sidebar {
-    display: none !important;
-  }
-  .main-viewer {
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  /* Images - fit to screen */
-  .viewer-content-wrapper img {
-    max-width: 100% !important;
-    max-height: 60vh !important;
-    object-fit: contain !important;
-    display: block;
-    margin: 0 auto;
-  }
-
-  /* Viewer panel header on mobile - fix button overflow */
-  .panel-header {
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 8px 10px;
-  }
-  .header-right {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-  }
-  .header-right .control-btn {
-    font-size: 11px;
-    padding: 5px 8px;
-  }
-
-  /* P2P modal on mobile */
-  .p2p-modal {
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  .p2p-body {
-    padding: 0 4px;
-  }
-
-  /* Receive view layout */
-  #p2pReceiveView {
-    padding: 0;
-  }
-  #p2pConnectBtn {
-    width: 100%;
-    margin-top: 10px;
-  }
-
-  /* Drop zone on mobile */
-  .drop-box-huge {
-    min-height: 180px;
-    padding: 20px;
-  }
-  .drop-title-huge {
-    font-size: 18px;
-  }
-
-  /* Modal boxes on mobile */
-  .modal-box {
-    max-width: 95vw !important;
-    width: 95vw !important;
-    margin: 10px;
-    max-height: 85vh;
-    overflow-y: auto;
-  }
-
-  /* Media player on mobile */
-  .media-player-wrapper video,
-  .media-player-wrapper audio {
-    max-width: 100%;
-  }
-
-  /* PDF embed */
-  #pdfViewer {
-    min-height: 50vh;
-  }
+  .ads-sidebar{ display:none!important; }
+  .panel-header{ flex-wrap:wrap;gap:6px;padding:8px 10px; }
+  .header-right{ display:flex;flex-wrap:wrap;gap:5px; }
+  .header-right .control-btn{ font-size:11px;padding:5px 8px; }
+  .p2p-modal{ max-height:90vh;overflow-y:auto; }
+  .p2p-body{ padding:0 4px; }
+  .drop-box-huge{ min-height:180px;padding:20px; }
+  .drop-title-huge{ font-size:18px; }
+  .modal-box{ max-width:95vw!important;width:95vw!important;margin:10px;max-height:85vh;overflow-y:auto; }
+  .p2p-slot{ width:38px;height:46px;font-size:18px; }
+  .p2p-code-display{ font-size:22px;letter-spacing:5px;padding:10px 16px; }
 }
 
-/* ══════════════════════════════════════════════════
-   PDF / DOC viewer improvements
-   ══════════════════════════════════════════════════ */
-#pdfViewer {
-  width: 100%;
-  height: 100%;
-  min-height: 400px;
-  border: none;
-  display: block;
-}
-
-/* Image viewer – max width fix */
-.viewer-content-wrapper img.rendered-image {
-  max-width: 100%;
-  max-height: calc(100vh - 200px);
-  object-fit: contain;
-  display: block;
-  margin: auto;
+/* PDF / Image viewer fixes */
+#pdfViewer{ width:100%;height:100%;min-height:400px;border:none;display:block; }
+.viewer-content-wrapper img.rendered-image{
+  max-width:100%;max-height:calc(100vh - 200px);object-fit:contain;display:block;margin:auto;
 }
 </style>
 </head>
@@ -686,35 +498,26 @@
     <div class="p2p-body">
       <!-- Send View -->
       <div class="p2p-view" id="p2pSendView">
-        <p class="p2p-help-text" style="margin-bottom:10px;">Select files below, then share the code or QR. Multiple receivers supported.</p>
-
-        <!-- Multi-file selector -->
-        <div id="p2pFileQueueList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:140px;overflow-y:auto;"></div>
-        <button class="modal-btn" id="p2pAddFilesBtn" style="width:100%;margin-bottom:8px;background:rgba(255,255,255,0.06);border:1px dashed var(--border);font-size:13px;">
-          ＋ Add Files from Workspace
-        </button>
-        <!-- Hidden file picker dropdown overlay -->
-        <div id="p2pFilePickerDropdown" style="display:none;position:relative;z-index:10;background:var(--bg-panel,#1a1a2e);border:1px solid var(--border);border-radius:10px;padding:6px;max-height:160px;overflow-y:auto;margin-bottom:8px;"></div>
-
+        <p class="p2p-help-text" style="margin-bottom:10px;">Add files from workspace. Multiple receivers can connect simultaneously.</p>
+        <div id="p2pFileQueueList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;max-height:140px;overflow-y:auto;"></div>
+        <button class="modal-btn" id="p2pAddFilesBtn" style="width:100%;margin-bottom:8px;background:rgba(255,255,255,0.05);border:1px dashed rgba(255,255,255,0.18);font-size:13px;">＋ Add Files from Workspace</button>
+        <div id="p2pFilePickerDropdown" style="display:none;background:var(--bg-panel,#1a1a2e);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:6px;max-height:160px;overflow-y:auto;margin-bottom:8px;"></div>
         <button class="modal-btn btn-accent" id="p2pStartBroadcastBtn" style="margin-top:4px;width:100%;">🚀 Start Sharing</button>
         <div id="p2pSenderPanel" style="display:none;margin-top:16px;text-align:center;">
-          <div style="font-size:12px;color:var(--c-muted);margin-bottom:8px;opacity:0.8;">Share this code or QR with receivers:</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:10px;">Share this code or QR with receivers:</div>
           <div id="p2pMyCode" class="p2p-code-display"></div>
           <div style="margin-top:12px;">
             <canvas id="p2pQRCanvas" width="148" height="148" style="border-radius:8px;background:#fff;padding:5px;"></canvas>
           </div>
-          <!-- Receivers list -->
           <div id="p2pPeersList" style="margin-top:10px;text-align:left;"></div>
-          <!-- Per-file send progress -->
           <div id="p2pSendProgressList" style="margin-top:8px;text-align:left;"></div>
-          <div id="p2pSendStatus" style="margin-top:8px;font-size:13px;color:var(--c-muted);">⏳ Waiting for receivers...</div>
+          <div id="p2pSendStatus" style="margin-top:8px;font-size:13px;color:rgba(255,255,255,0.5);">⏳ Waiting for receivers…</div>
           <button id="p2pStopBtn" class="modal-btn" style="margin-top:12px;width:100%;background:var(--c-danger,#ef4444);">✖ Stop Sharing</button>
         </div>
       </div>
       <!-- Receive View -->
       <div class="p2p-view" id="p2pReceiveView" style="display:none;">
         <p class="p2p-help-text" style="margin-bottom:14px;">Enter the 6-character code from the sender:</p>
-        <!-- Animated code input -->
         <div class="p2p-code-input-wrapper">
           <div class="p2p-code-slots" id="p2pCodeSlots">
             <input class="p2p-slot" maxlength="1" data-idx="0" inputmode="text" autocomplete="off" spellcheck="false">
@@ -725,13 +528,11 @@
             <input class="p2p-slot" maxlength="1" data-idx="4" inputmode="text" autocomplete="off" spellcheck="false">
             <input class="p2p-slot" maxlength="1" data-idx="5" inputmode="text" autocomplete="off" spellcheck="false">
           </div>
-          <!-- hidden combined input for compatibility -->
           <input id="p2pCodeInput" type="text" maxlength="6" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;" autocomplete="off">
         </div>
-        <button id="p2pConnectBtn" class="modal-btn btn-accent" style="width:100%;margin-top:12px;padding:12px;">🔗 Connect &amp; Receive</button>
-        <div id="p2pReceiveStatus" style="margin-top:14px;font-size:13px;color:var(--c-muted);text-align:center;min-height:20px;"></div>
-        <!-- Per-file receive progress -->
-        <div id="p2pReceiveProgressList" style="margin-top:8px;display:flex;flex-direction:column;gap:8px;"></div>
+        <button id="p2pConnectBtn" class="modal-btn btn-accent" style="width:100%;margin-top:14px;padding:12px;">🔗 Connect &amp; Receive</button>
+        <div id="p2pReceiveStatus" style="margin-top:14px;font-size:13px;color:rgba(255,255,255,0.5);text-align:center;min-height:20px;"></div>
+        <div id="p2pReceiveProgressList" style="margin-top:8px;display:flex;flex-direction:column;gap:6px;"></div>
         <div id="p2pIncomingFilesList" style="margin-top:8px;"></div>
       </div>
     </div>
@@ -3469,7 +3270,7 @@ window.addEventListener('keydown', e => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════
-//  P2P QUICKSHARE SYSTEM v2 - Multi-File + Multi-Device WebRTC/PeerJS
+//  P2P QUICKSHARE v2 — Multi-File + Multi-Device  (256KB chunks, pipelined)
 // ═══════════════════════════════════════════════════════════════════════
 
 function _loadScript(src) {
@@ -3483,177 +3284,157 @@ function _loadScript(src) {
 
 // ── State ──
 let _peer = null;
-let _peerConns = {};       // peerId → conn (multi-device sender)
-let _p2pSendQueue = [];    // [{fileItem, id}, ...] – files to send
-let _p2pSendingFileIds = new Set();
-const CHUNK_SIZE = 256 * 1024; // 256 KB – faster than 64 KB
+let _peerConns = {};
+let _p2pSendQueue = [];
+const P2P_CHUNK = 256 * 1024; // 256 KB – 4× faster than 64 KB
 
 function _genCode() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    return 'WT' + Array.from({length:4}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+    const ch = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    return 'WT' + Array.from({length:4}, () => ch[Math.floor(Math.random()*ch.length)]).join('');
 }
-
 async function _drawQR(text, canvas) {
     try {
         await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js');
         canvas.style.display = 'none';
         const div = document.createElement('div');
         div.id = 'p2pQRDiv';
-        div.style.cssText = 'display:inline-block;background:#fff;padding:5px;border-radius:8px;margin-top:10px;';
+        div.style.cssText = 'display:inline-block;background:#fff;padding:5px;border-radius:8px;margin-top:8px;';
         const old = document.getElementById('p2pQRDiv');
         if (old) old.remove();
         canvas.parentNode.insertBefore(div, canvas.nextSibling);
-        new QRCode(div, { text, width:148, height:148, correctLevel: QRCode.CorrectLevel.M });
-    } catch(e) { console.warn('QR failed', e); }
+        new QRCode(div, {text, width:148, height:148, correctLevel:QRCode.CorrectLevel.M});
+    } catch(e) { console.warn('QR:', e); }
 }
 
-// ── Modal open/close ──
+// ── Open/close modal ──
 p2pShareToggle.addEventListener('click', () => {
     p2pShareModal.classList.add('active');
     _renderSendQueue();
     _initCodeSlots();
 });
 p2pCloseBtn.addEventListener('click', () => p2pShareModal.classList.remove('active'));
-p2pShareModal.addEventListener('click', e => { if (e.target === p2pShareModal) p2pShareModal.classList.remove('active'); });
+p2pShareModal.addEventListener('click', e => { if (e.target===p2pShareModal) p2pShareModal.classList.remove('active'); });
 
 p2pTabSend.addEventListener('click', () => {
     p2pTabSend.classList.add('active'); p2pTabReceive.classList.remove('active');
-    p2pSendView.style.display = 'block'; p2pReceiveView.style.display = 'none';
+    p2pSendView.style.display='block'; p2pReceiveView.style.display='none';
 });
 p2pTabReceive.addEventListener('click', () => {
     p2pTabReceive.classList.add('active'); p2pTabSend.classList.remove('active');
-    p2pReceiveView.style.display = 'block'; p2pSendView.style.display = 'none';
+    p2pReceiveView.style.display='block'; p2pSendView.style.display='none';
     _initCodeSlots();
 });
 
-// ── Animated Code Slots (receive) ──
+// ── Animated receive-code slots ──
 function _initCodeSlots() {
     const slots = document.querySelectorAll('.p2p-slot');
     if (!slots.length) return;
     slots.forEach((slot, i) => {
-        slot.value = '';
-        slot.classList.remove('filled');
-        // Key handler
-        slot.oninput = (e) => {
-            const v = slot.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        slot.value = ''; slot.classList.remove('filled');
+        slot.oninput = () => {
+            const v = slot.value.replace(/[^a-zA-Z0-9]/g,'').toUpperCase();
             slot.value = v ? v[0] : '';
+            slot.classList.toggle('filled', !!slot.value);
             if (slot.value) {
-                slot.classList.add('filled');
-                const next = document.querySelector(`.p2p-slot[data-idx="${i+1}"]`);
-                if (next) next.focus();
-            } else {
-                slot.classList.remove('filled');
+                const nx = document.querySelector(`.p2p-slot[data-idx="${i+1}"]`);
+                if (nx) nx.focus();
             }
-            _syncSlotsToHidden();
+            _syncSlots();
         };
-        slot.onkeydown = (e) => {
-            if (e.key === 'Backspace' && !slot.value) {
-                const prev = document.querySelector(`.p2p-slot[data-idx="${i-1}"]`);
-                if (prev) { prev.value = ''; prev.classList.remove('filled'); prev.focus(); }
-                _syncSlotsToHidden();
-            } else if (e.key === 'Enter') {
-                _syncSlotsToHidden();
-                _p2pConnect();
-            }
+        slot.onkeydown = e => {
+            if (e.key==='Backspace' && !slot.value) {
+                const pv = document.querySelector(`.p2p-slot[data-idx="${i-1}"]`);
+                if (pv) { pv.value=''; pv.classList.remove('filled'); pv.focus(); _syncSlots(); }
+            } else if (e.key==='Enter') { _syncSlots(); _p2pConnect(); }
         };
-        slot.onpaste = (e) => {
+        slot.onpaste = e => {
             e.preventDefault();
-            const text = (e.clipboardData || window.clipboardData).getData('text').replace(/[^a-zA-Z0-9]/g,'').toUpperCase().slice(0,6);
-            [...text].forEach((ch, j) => {
+            const t = (e.clipboardData||window.clipboardData).getData('text').replace(/[^a-zA-Z0-9]/g,'').toUpperCase().slice(0,6);
+            [...t].forEach((ch,j) => {
                 const s = document.querySelector(`.p2p-slot[data-idx="${j}"]`);
-                if (s) { s.value = ch; s.classList.add('filled'); }
+                if (s) { s.value=ch; s.classList.add('filled'); }
             });
-            _syncSlotsToHidden();
-            const lastFilled = Math.min(text.length, 5);
-            const last = document.querySelector(`.p2p-slot[data-idx="${lastFilled}"]`);
+            _syncSlots();
+            const last = document.querySelector(`.p2p-slot[data-idx="${Math.min(t.length,5)}"]`);
             if (last) last.focus();
         };
     });
-    // auto-fill from URL
+    // Auto-fill from URL
     const urlCode = new URLSearchParams(window.location.search).get('p2p');
     if (urlCode) {
-        [...urlCode.toUpperCase().slice(0,6)].forEach((ch, j) => {
+        [...urlCode.toUpperCase().slice(0,6)].forEach((ch,j) => {
             const s = document.querySelector(`.p2p-slot[data-idx="${j}"]`);
-            if (s) { s.value = ch; s.classList.add('filled'); }
+            if (s) { s.value=ch; s.classList.add('filled'); }
         });
-        _syncSlotsToHidden();
+        _syncSlots();
     }
 }
-function _syncSlotsToHidden() {
-    const slots = document.querySelectorAll('.p2p-slot');
-    const val = [...slots].map(s=>s.value).join('');
+function _syncSlots() {
+    const v = [...document.querySelectorAll('.p2p-slot')].map(s=>s.value).join('');
     const h = document.getElementById('p2pCodeInput');
-    if (h) h.value = val;
+    if (h) h.value = v;
 }
 
-// ── Send Queue ──
+// ── Send queue ──
 function _renderSendQueue() {
     const list = document.getElementById('p2pFileQueueList');
     if (!list) return;
     list.innerHTML = '';
+    if (!_p2pSendQueue.length) {
+        list.innerHTML = '<div style="font-size:12px;color:rgba(255,255,255,0.35);text-align:center;padding:8px 0;">No files added yet</div>';
+        return;
+    }
     _p2pSendQueue.forEach((item, i) => {
-        const sz = item.fileItem.size > 1048576 ? (item.fileItem.size/1048576).toFixed(1)+' MB' : Math.round(item.fileItem.size/1024)+' KB';
+        const sz = item.size > 1048576 ? (item.size/1048576).toFixed(1)+' MB' : Math.round(item.size/1024)+' KB';
         const row = document.createElement('div');
         row.className = 'p2p-queue-row';
-        row.innerHTML = `<span class="p2p-queue-icon">${getFileIcon(item.fileItem.name)}</span>
-          <span class="p2p-queue-name">${item.fileItem.displayName || item.fileItem.name}</span>
-          <span class="p2p-queue-size">${sz}</span>
-          <button class="p2p-queue-rm" data-idx="${i}" title="Remove">×</button>`;
+        row.innerHTML = `<span class="p2p-queue-icon">${getFileIcon(item.name)}</span><span class="p2p-queue-name">${item.displayName||item.name}</span><span class="p2p-queue-size">${sz}</span><button class="p2p-queue-rm" data-i="${i}">×</button>`;
         row.querySelector('.p2p-queue-rm').onclick = () => { _p2pSendQueue.splice(i,1); _renderSendQueue(); };
         list.appendChild(row);
     });
-    if (!_p2pSendQueue.length) {
-        list.innerHTML = '<div style="font-size:12px;color:var(--c-muted);text-align:center;padding:8px 0;opacity:0.6;">No files added yet</div>';
-    }
 }
 
-// File picker dropdown
-document.getElementById('p2pAddFilesBtn').addEventListener('click', (e) => {
+// File picker
+document.getElementById('p2pAddFilesBtn').addEventListener('click', e => {
     e.stopPropagation();
     const dd = document.getElementById('p2pFilePickerDropdown');
-    if (dd.style.display !== 'none') { dd.style.display = 'none'; return; }
+    if (dd.style.display !== 'none') { dd.style.display='none'; return; }
     dd.innerHTML = '';
-    const available = (activeFilesCache || []).filter(f => !_p2pSendQueue.find(q => q.fileItem.id === f.id));
-    if (!available.length) { dd.innerHTML = '<div style="padding:10px;font-size:12px;color:var(--c-muted);">All files already added</div>'; }
+    const available = (activeFilesCache||[]).filter(f => !_p2pSendQueue.find(q=>q.id===f.id));
+    if (!available.length) {
+        dd.innerHTML = '<div style="padding:10px;font-size:12px;color:rgba(255,255,255,0.4);">All files already added</div>';
+    }
     available.forEach(file => {
-        const sz = file.size > 1048576 ? (file.size/1048576).toFixed(1)+' MB' : Math.round(file.size/1024)+' KB';
+        const sz = file.size>1048576 ? (file.size/1048576).toFixed(1)+' MB' : Math.round(file.size/1024)+' KB';
         const opt = document.createElement('div');
         opt.className = 'p2p-picker-opt';
-        opt.innerHTML = `<span>${getFileIcon(file.name)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${file.displayName||file.name}</span><span style="font-size:11px;color:var(--c-muted)">${sz}</span>`;
-        opt.onclick = (ev) => {
+        opt.innerHTML = `<span>${getFileIcon(file.name)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${file.displayName||file.name}</span><span style="font-size:11px;color:rgba(255,255,255,0.35)">${sz}</span>`;
+        opt.onclick = ev => {
             ev.stopPropagation();
-            if (!_p2pSendQueue.find(q=>q.fileItem.id===file.id)) {
-                _p2pSendQueue.push({ fileItem: file });
-            }
+            if (!_p2pSendQueue.find(q=>q.id===file.id)) _p2pSendQueue.push(file);
             _renderSendQueue();
-            dd.style.display = 'none';
+            dd.style.display='none';
         };
         dd.appendChild(opt);
     });
-    dd.style.display = 'block';
+    dd.style.display='block';
 });
 document.addEventListener('click', () => {
     const dd = document.getElementById('p2pFilePickerDropdown');
-    if (dd) dd.style.display = 'none';
+    if (dd) dd.style.display='none';
 });
 
 // ── SENDER ──
 document.getElementById('p2pStartBroadcastBtn').addEventListener('click', async () => {
     if (!_p2pSendQueue.length) { showToast('⚠️ Add at least one file first'); return; }
-
     document.getElementById('p2pStartBroadcastBtn').disabled = true;
+    document.getElementById('p2pSendStatus').textContent = '⌛ Initialising…';
     document.getElementById('p2pSenderPanel').style.display = 'block';
-    document.getElementById('p2pSendStatus').textContent = '⌛ Initialising...';
 
-    try {
-        await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js');
-    } catch(e) {
-        showToast('❌ Failed to load PeerJS library');
-        document.getElementById('p2pStartBroadcastBtn').disabled = false;
-        return;
-    }
+    try { await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'); }
+    catch(e) { showToast('❌ Failed to load PeerJS'); document.getElementById('p2pStartBroadcastBtn').disabled=false; return; }
 
-    if (_peer) { try { _peer.destroy(); } catch(e){} }
+    if (_peer) { try{_peer.destroy();}catch(e){} }
     _peerConns = {};
 
     const code = _genCode();
@@ -3662,151 +3443,96 @@ document.getElementById('p2pStartBroadcastBtn').addEventListener('click', async 
     _drawQR(shareUrl, document.getElementById('p2pQRCanvas'));
 
     _peer = new Peer(code, {
-        host: '0.peerjs.com', port: 443, secure: true, path: '/',
-        config: { iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:global.stun.twilio.com:3478' }
-        ]}
+        host:'0.peerjs.com', port:443, secure:true, path:'/',
+        config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}
     });
-
-    _peer.on('open', () => {
-        document.getElementById('p2pSendStatus').textContent = '⏳ Waiting for receivers…';
-    });
-
+    _peer.on('open', () => { document.getElementById('p2pSendStatus').textContent='⏳ Waiting for receivers…'; });
     _peer.on('error', err => {
-        document.getElementById('p2pSendStatus').textContent = '❌ ' + err.type;
-        showToast('❌ P2P: ' + err.type);
-        document.getElementById('p2pStartBroadcastBtn').disabled = false;
+        document.getElementById('p2pSendStatus').textContent='❌ '+err.type;
+        showToast('❌ P2P: '+err.type);
+        document.getElementById('p2pStartBroadcastBtn').disabled=false;
     });
-
     _peer.on('connection', conn => {
-        const peerId = conn.peer;
-        _peerConns[peerId] = conn;
-        _updatePeersList();
+        const pid = conn.peer;
+        _peerConns[pid] = conn;
+        _updatePeersBadge();
         showToast('✅ New receiver connected!');
-
         conn.on('open', async () => {
-            document.getElementById('p2pSendStatus').textContent = '📤 Sending ' + _p2pSendQueue.length + ' file(s)…';
-            await _sendAllFiles(conn, peerId);
+            document.getElementById('p2pSendStatus').textContent='📤 Sending '+_p2pSendQueue.length+' file(s)…';
+            await _sendAllFiles(conn, pid);
         });
-        conn.on('close', () => {
-            delete _peerConns[peerId];
-            _updatePeersList();
-        });
-        conn.on('error', err => {
-            showToast('⚠️ Receiver error: ' + (err.message || err));
-        });
+        conn.on('close', () => { delete _peerConns[pid]; _updatePeersBadge(); });
+        conn.on('error', err => showToast('⚠️ Receiver error: '+(err.message||err)));
     });
 });
 
-function _updatePeersList() {
+function _updatePeersBadge() {
     const el = document.getElementById('p2pPeersList');
     if (!el) return;
-    const count = Object.keys(_peerConns).length;
-    el.innerHTML = count ? `<div class="p2p-peers-badge">👥 ${count} receiver${count>1?'s':''} connected</div>` : '';
+    const n = Object.keys(_peerConns).length;
+    el.innerHTML = n ? `<div class="p2p-peers-badge">👥 ${n} receiver${n>1?'s':''} connected</div>` : '';
 }
 
 async function _sendAllFiles(conn, peerId) {
-    const progressList = document.getElementById('p2pSendProgressList');
-    // Build progress rows
-    progressList.innerHTML = '';
+    const plist = document.getElementById('p2pSendProgressList');
+    plist.innerHTML = '';
+    // Create progress rows up front
     _p2pSendQueue.forEach((item, idx) => {
         const row = document.createElement('div');
         row.className = 'p2p-progress-row';
-        row.id = `p2pSendRow_${peerId}_${idx}`;
-        const name = item.fileItem.displayName || item.fileItem.name;
-        row.innerHTML = `
-          <div class="p2p-prog-name">${getFileIcon(name)} ${name}</div>
-          <div class="p2p-prog-track"><div class="p2p-prog-fill" id="p2pSF_${peerId}_${idx}"></div></div>
-          <div class="p2p-prog-pct" id="p2pSP_${peerId}_${idx}">0%</div>`;
-        progressList.appendChild(row);
+        row.id = `psrow_${peerId}_${idx}`;
+        const nm = item.displayName||item.name;
+        row.innerHTML = `<div class="p2p-prog-name">${getFileIcon(nm)} ${nm}</div><div class="p2p-prog-track"><div class="p2p-prog-fill" id="psf_${peerId}_${idx}" style="width:0%"></div></div><div class="p2p-prog-pct" id="psp_${peerId}_${idx}">0%</div>`;
+        plist.appendChild(row);
     });
 
-    // Send files sequentially (most reliable over WebRTC DC)
-    for (let idx = 0; idx < _p2pSendQueue.length; idx++) {
+    for (let idx=0; idx<_p2pSendQueue.length; idx++) {
         const item = _p2pSendQueue[idx];
-        const file = item.fileItem.fileObject;
-        const name = item.fileItem.displayName || item.fileItem.name;
-        const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-        const fillEl = document.getElementById(`p2pSF_${peerId}_${idx}`);
-        const pctEl  = document.getElementById(`p2pSP_${peerId}_${idx}`);
-
-        conn.send({ type: 'meta', name, size: file.size, mime: file.type, totalChunks, fileIndex: idx, totalFiles: _p2pSendQueue.length });
-
-        // Parallel chunk pipeline: read N chunks ahead then send
-        await new Promise((resolve) => {
-            let sendIdx = 0;
-            let bytesSent = 0;
-            const PIPELINE = 4; // send up to 4 chunks in parallel read pipeline
-
-            function trySend() {
-                while (sendIdx < totalChunks) {
-                    const i = sendIdx++;
-                    const slice = file.slice(i * CHUNK_SIZE, (i+1) * CHUNK_SIZE);
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        if (!reader.result) return;
-                        conn.send({ type: 'chunk', fileIndex: idx, index: i, data: reader.result });
-                        bytesSent += reader.result.byteLength;
-                        const pct = Math.min(100, Math.round(bytesSent / file.size * 100));
-                        if (fillEl) fillEl.style.width = pct + '%';
-                        if (pctEl) pctEl.textContent = pct + '%';
-                        if (bytesSent >= file.size) {
-                            conn.send({ type: 'done', fileIndex: idx });
-                            if (fillEl) fillEl.style.width = '100%';
-                            if (pctEl) pctEl.textContent = '✅';
-                            resolve();
+        const file = item.fileObject;
+        const nm   = item.displayName||item.name;
+        const total = Math.ceil(file.size/P2P_CHUNK);
+        const fillEl = document.getElementById(`psf_${peerId}_${idx}`);
+        const pctEl  = document.getElementById(`psp_${peerId}_${idx}`);
+        conn.send({type:'meta', name:nm, size:file.size, mime:file.type, totalChunks:total, fileIndex:idx, totalFiles:_p2pSendQueue.length});
+        await new Promise(resolve => {
+            const PIPE = 6;
+            let nextRead = 0, bytesSent = 0, doneCount = 0;
+            function kick() {
+                for (let b=0; b<PIPE && nextRead<total; b++) {
+                    const i = nextRead++;
+                    const slice = file.slice(i*P2P_CHUNK, (i+1)*P2P_CHUNK);
+                    const rd = new FileReader();
+                    rd.onload = () => {
+                        conn.send({type:'chunk', fileIndex:idx, index:i, data:rd.result});
+                        bytesSent += (rd.result?.byteLength||0);
+                        doneCount++;
+                        const pct = Math.min(100,Math.round(bytesSent/file.size*100));
+                        if (fillEl) fillEl.style.width=pct+'%';
+                        if (pctEl)  pctEl.textContent=pct+'%';
+                        if (doneCount===total) {
+                            setTimeout(()=>{ conn.send({type:'done',fileIndex:idx}); if(fillEl)fillEl.style.width='100%'; if(pctEl)pctEl.textContent='✅'; resolve(); },60);
+                        } else if (doneCount % PIPE === 0) {
+                            setTimeout(kick,0);
                         }
                     };
-                    reader.readAsArrayBuffer(slice);
-                    if (sendIdx % PIPELINE !== 0) continue;
-                    break; // yield between bursts
+                    rd.readAsArrayBuffer(slice);
                 }
             }
-            // Kick off in bursts
-            function burst() {
-                for (let b=0; b<PIPELINE && sendIdx<totalChunks; b++) {
-                    const i = sendIdx++;
-                    const slice = file.slice(i * CHUNK_SIZE, (i+1) * CHUNK_SIZE);
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        conn.send({ type: 'chunk', fileIndex: idx, index: i, data: reader.result });
-                        bytesSent += (reader.result ? reader.result.byteLength : 0);
-                        const pct = Math.min(100, Math.round(bytesSent / file.size * 100));
-                        if (fillEl) fillEl.style.width = pct + '%';
-                        if (pctEl) pctEl.textContent = pct + '%';
-                        if (i === totalChunks - 1) {
-                            // last chunk
-                            setTimeout(() => {
-                                conn.send({ type: 'done', fileIndex: idx });
-                                if (fillEl) fillEl.style.width = '100%';
-                                if (pctEl) pctEl.textContent = '✅';
-                                resolve();
-                            }, 80);
-                        } else if (i % PIPELINE === PIPELINE-1) {
-                            setTimeout(burst, 0);
-                        }
-                    };
-                    reader.readAsArrayBuffer(slice);
-                }
-            }
-            burst();
+            kick();
         });
-        // small gap between files
-        await new Promise(r => setTimeout(r, 60));
+        await new Promise(r=>setTimeout(r,40));
     }
-
-    document.getElementById('p2pSendStatus').textContent = `✅ All ${_p2pSendQueue.length} file(s) sent!`;
+    document.getElementById('p2pSendStatus').textContent=`✅ All ${_p2pSendQueue.length} file(s) sent!`;
     showToast('✅ All files sent!');
 }
 
 document.getElementById('p2pStopBtn').addEventListener('click', () => {
-    if (_peer) { try { _peer.destroy(); } catch(e){} _peer = null; }
+    if (_peer) { try{_peer.destroy();}catch(e){} _peer=null; }
     _peerConns = {};
-    document.getElementById('p2pSenderPanel').style.display = 'none';
-    document.getElementById('p2pStartBroadcastBtn').disabled = false;
-    document.getElementById('p2pSendProgressList').innerHTML = '';
-    document.getElementById('p2pPeersList').innerHTML = '';
+    document.getElementById('p2pSenderPanel').style.display='none';
+    document.getElementById('p2pStartBroadcastBtn').disabled=false;
+    document.getElementById('p2pSendProgressList').innerHTML='';
+    document.getElementById('p2pPeersList').innerHTML='';
     showToast('⏹ Sharing stopped');
 });
 
@@ -3814,127 +3540,69 @@ document.getElementById('p2pStopBtn').addEventListener('click', () => {
 document.getElementById('p2pConnectBtn').addEventListener('click', _p2pConnect);
 
 async function _p2pConnect() {
-    _syncSlotsToHidden();
-    const code = (document.getElementById('p2pCodeInput').value || '').trim().toUpperCase();
-    if (code.length < 6) { showToast('⚠️ Enter all 6 characters of the code'); return; }
-    
+    _syncSlots();
+    const code=(document.getElementById('p2pCodeInput').value||'').trim().toUpperCase();
+    if (code.length<6) { showToast('⚠️ Enter all 6 characters'); return; }
     const statusEl = document.getElementById('p2pReceiveStatus');
-    statusEl.textContent = '🔗 Connecting…';
-
-    try {
-        await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js');
-    } catch(e) { showToast('❌ Failed to load PeerJS'); return; }
-
-    if (_peer) { try { _peer.destroy(); } catch(e){} }
-
-    const myId = 'recv-' + Math.random().toString(36).slice(2,10);
+    statusEl.textContent='🔗 Connecting…';
+    try { await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'); }
+    catch(e) { showToast('❌ Failed to load PeerJS'); return; }
+    if (_peer) { try{_peer.destroy();}catch(e){} }
+    const myId='recv-'+Math.random().toString(36).slice(2,10);
     _peer = new Peer(myId, {
-        host: '0.peerjs.com', port: 443, secure: true, path: '/',
-        config: { iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:global.stun.twilio.com:3478' }
-        ]}
+        host:'0.peerjs.com', port:443, secure:true, path:'/',
+        config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}
     });
-
     _peer.on('open', () => {
-        statusEl.textContent = '🔗 Reaching sender…';
-        const conn = _peer.connect(code, { reliable: true, serialization: 'binary' });
-
-        // Per-file receive state
-        let fileStates = {}; // fileIndex → {meta, chunks, received}
-
-        conn.on('open', () => {
-            statusEl.textContent = '✅ Connected! Waiting for files…';
-        });
-
+        statusEl.textContent='🔗 Reaching sender…';
+        const conn = _peer.connect(code, {reliable:true, serialization:'binary'});
+        let states = {};
+        conn.on('open', () => { statusEl.textContent='✅ Connected! Waiting for files…'; });
         conn.on('data', data => {
-            const progressList = document.getElementById('p2pReceiveProgressList');
-
-            if (data.type === 'meta') {
-                const fi = data.fileIndex;
-                fileStates[fi] = { meta: data, chunks: new Array(data.totalChunks), received: 0 };
-
-                // Create progress row if not exists
-                if (!document.getElementById(`p2pRecvRow_${fi}`)) {
-                    const row = document.createElement('div');
-                    row.className = 'p2p-progress-row';
-                    row.id = `p2pRecvRow_${fi}`;
-                    row.innerHTML = `
-                      <div class="p2p-prog-name">${getFileIcon(data.name)} ${data.name}</div>
-                      <div class="p2p-prog-track"><div class="p2p-prog-fill" id="p2pRF_${fi}"></div></div>
-                      <div class="p2p-prog-pct" id="p2pRP_${fi}">0%</div>`;
-                    progressList.appendChild(row);
+            const plist = document.getElementById('p2pReceiveProgressList');
+            if (data.type==='meta') {
+                const fi=data.fileIndex;
+                states[fi]={meta:data, chunks:new Array(data.totalChunks), got:0};
+                if (!document.getElementById(`prrow_${fi}`)) {
+                    const row=document.createElement('div');
+                    row.className='p2p-progress-row'; row.id=`prrow_${fi}`;
+                    row.innerHTML=`<div class="p2p-prog-name">${getFileIcon(data.name)} ${data.name}</div><div class="p2p-prog-track"><div class="p2p-prog-fill" id="prf_${fi}" style="width:0%"></div></div><div class="p2p-prog-pct" id="prp_${fi}">0%</div>`;
+                    plist.appendChild(row);
                 }
-                statusEl.textContent = `📥 Receiving ${data.fileIndex+1}/${data.totalFiles}: ${data.name}`;
-
-            } else if (data.type === 'chunk') {
-                const fi = data.fileIndex;
-                const st = fileStates[fi];
-                if (!st) return;
-                st.chunks[data.index] = data.data;
-                st.received++;
-                const pct = Math.min(100, Math.round(st.received / st.meta.totalChunks * 100));
-                const fillEl = document.getElementById(`p2pRF_${fi}`);
-                const pctEl  = document.getElementById(`p2pRP_${fi}`);
-                if (fillEl) fillEl.style.width = pct + '%';
-                if (pctEl)  pctEl.textContent = pct + '%';
-
-            } else if (data.type === 'done') {
-                const fi = data.fileIndex;
-                const st = fileStates[fi];
-                if (!st) return;
-                const blob = new Blob(st.chunks.filter(Boolean), { type: st.meta.mime || 'application/octet-stream' });
-                const file = new File([blob], st.meta.name, { type: st.meta.mime });
-                saveMultipleFiles([file]);
-                showToast('✅ Received: ' + st.meta.name);
-                const fillEl = document.getElementById(`p2pRF_${fi}`);
-                const pctEl  = document.getElementById(`p2pRP_${fi}`);
-                if (fillEl) { fillEl.style.width='100%'; fillEl.style.background='#22c55e'; }
-                if (pctEl)  pctEl.textContent = '✅';
-
-                // Check if all done
-                const allDone = Object.keys(fileStates).length === (st.meta.totalFiles || 1) &&
-                    Object.values(fileStates).every(s => {
-                        return s.chunks.filter(Boolean).length >= s.meta.totalChunks;
-                    });
-                if (allDone) {
-                    statusEl.textContent = '✅ All files received and saved!';
-                    if (_peer) { try { _peer.destroy(); } catch(e){} _peer = null; }
-                } else {
-                    statusEl.textContent = `✅ ${fi+1}/${st.meta.totalFiles} files done…`;
-                }
+                statusEl.textContent=`📥 Receiving ${data.fileIndex+1}/${data.totalFiles}: ${data.name}`;
+            } else if (data.type==='chunk') {
+                const fi=data.fileIndex, st=states[fi]; if(!st)return;
+                st.chunks[data.index]=data.data; st.got++;
+                const pct=Math.min(100,Math.round(st.got/st.meta.totalChunks*100));
+                const f=document.getElementById(`prf_${fi}`), p=document.getElementById(`prp_${fi}`);
+                if(f) f.style.width=pct+'%'; if(p) p.textContent=pct+'%';
+            } else if (data.type==='done') {
+                const fi=data.fileIndex, st=states[fi]; if(!st)return;
+                const blob=new Blob(st.chunks.filter(Boolean),{type:st.meta.mime||'application/octet-stream'});
+                saveMultipleFiles([new File([blob],st.meta.name,{type:st.meta.mime})]);
+                showToast('✅ Received: '+st.meta.name);
+                const f=document.getElementById(`prf_${fi}`), p=document.getElementById(`prp_${fi}`);
+                if(f){f.style.width='100%';f.style.background='#22c55e';} if(p)p.textContent='✅';
+                const allDone = Object.keys(states).length===st.meta.totalFiles &&
+                    Object.values(states).every(s=>s.got>=s.meta.totalChunks);
+                statusEl.textContent = allDone ? '✅ All files received!' : `✅ ${fi+1}/${st.meta.totalFiles} done…`;
+                if (allDone && _peer) { try{_peer.destroy();}catch(e){} _peer=null; }
             }
         });
-
-        conn.on('error', err => {
-            statusEl.textContent = '❌ ' + (err.message || err);
-        });
-        conn.on('close', () => {
-            if (statusEl.textContent.startsWith('✅')) return;
-            statusEl.textContent = '⚠️ Connection closed by sender.';
-        });
+        conn.on('error', err => { statusEl.textContent='❌ '+(err.message||err); });
+        conn.on('close', () => { if(!statusEl.textContent.startsWith('✅')) statusEl.textContent='⚠️ Connection closed.'; });
     });
-
     _peer.on('error', err => {
-        const msg = err.type === 'peer-unavailable' ? 'Sender not found. Check the code.' : (err.message || err.type);
-        document.getElementById('p2pReceiveStatus').textContent = '❌ ' + msg;
-        showToast('❌ ' + msg);
+        const msg=err.type==='peer-unavailable'?'Sender not found. Check the code.':(err.message||err.type);
+        document.getElementById('p2pReceiveStatus').textContent='❌ '+msg;
+        showToast('❌ '+msg);
     });
 }
 
-// Auto-open receive tab and fill code from URL
-(function() {
-    const u = new URLSearchParams(window.location.search).get('p2p');
-    if (u) {
-        p2pTabReceive.click();
-        setTimeout(() => {
-            [...u.toUpperCase().slice(0,6)].forEach((ch, j) => {
-                const s = document.querySelector(`.p2p-slot[data-idx="${j}"]`);
-                if (s) { s.value = ch; s.classList.add('filled'); }
-            });
-            _syncSlotsToHidden();
-        }, 100);
-    }
+// Auto open receive tab from URL
+(function(){
+    const u=new URLSearchParams(window.location.search).get('p2p');
+    if(u){ p2pTabReceive.click(); setTimeout(_initCodeSlots,120); }
 })();
 
 
@@ -4215,19 +3883,18 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
                 { val: 'custom', label: 'Custom Extension...' }
             ];
         } else if (isAudio || isVideo) {
-            // Show maintenance notice
-            converterDropdownOptions.innerHTML = '';
+            // Show maintenance notice immediately
             converterSelectedValue.textContent = '🛠️ Under maintenance';
             converterExtraOptions.style.display = 'flex';
-            converterExtraOptions.innerHTML = `<div style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);border-radius:10px;padding:14px 16px;display:flex;gap:10px;align-items:flex-start;">
-              <span style="font-size:22px;flex-shrink:0;">🛠️</span>
+            converterExtraOptions.innerHTML = `<div style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);border-radius:10px;padding:14px 16px;display:flex;gap:10px;align-items:flex-start;width:100%;box-sizing:border-box;">
+              <span style="font-size:24px;flex-shrink:0;line-height:1">🛠️</span>
               <div>
-                <div style="font-weight:600;color:#fbbf24;font-size:13px;margin-bottom:4px;">Тимчасово не працює</div>
-                <div style="font-size:12px;color:var(--text-main);line-height:1.5;">Конвертація аудіо та відео наразі на технічних роботах. Функція буде відновлена найближчим часом.</div>
+                <div style="font-weight:700;color:#fbbf24;font-size:13px;margin-bottom:5px;">Тимчасово не працює</div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.65);line-height:1.55">Конвертація аудіо та відео наразі на технічних роботах. Функція буде відновлена найближчим часом.<br><br>Ви все ще можете грати аудіо/відео та завантажувати файли без конвертації.</div>
               </div>
             </div>`;
             converterConvertBtn.disabled = true;
-            converterConvertBtn.style.opacity = '0.4';
+            converterConvertBtn.style.opacity = '0.35';
             converterModal.classList.add('active');
             return;
         } else if (isText) {
@@ -4438,10 +4105,10 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
             const isImage = ['png', 'jpg', 'jpeg', 'webp', 'bmp'].includes(origExt);
             
             if ((isAudio || isVideo) && targetFormat !== 'custom' && !targetFormat.startsWith('decode_')) {
-                // Audio/Video conversion is temporarily unavailable
+                // Audio/Video conversion — temporarily under maintenance
                 converterModal.classList.remove('active');
-                throw new Error('🛠️ Audio & video conversion is temporarily under maintenance. Check back soon!');
-                
+                throw new Error('🛠️ Audio & video conversion is temporarily unavailable (under maintenance). Check back soon!');
+
             } else if (isImage) {
                 // Convert image format via Canvas
                 const imgUrl = URL.createObjectURL(item.fileObject);
