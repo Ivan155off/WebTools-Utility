@@ -48,9 +48,139 @@
       gtag('config', 'G-3NRPS789V3');
     </script>
 
+
     <!-- JSZip Official CDN (Ensures static 3-file bundle runs perfectly) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <!-- FFmpeg.wasm is loaded dynamically on demand (avoids CDN blocking) -->
+
+<style>
+/* ═══════════════════════════════════════════════════════
+   P2P QuickShare v2 — Animated Code Slots + Multi-file
+   ═══════════════════════════════════════════════════════ */
+
+.p2p-code-display {
+  font-size: 30px; font-weight: 800; letter-spacing: 8px;
+  color: var(--accent, #10b981);
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(16,185,129,0.08);
+  border: 1.5px solid rgba(16,185,129,0.25);
+  padding: 12px 24px; border-radius: 12px;
+  display: inline-block;
+  animation: p2pCodePulse 2.4s ease-in-out infinite;
+  user-select: all; cursor: pointer;
+}
+@keyframes p2pCodePulse {
+  0%,100%{ box-shadow:0 0 0 0 rgba(16,185,129,0); }
+  50%    { box-shadow:0 0 0 8px rgba(16,185,129,0.13); }
+}
+
+/* Animated receive code slots */
+.p2p-code-input-wrapper { display:flex; justify-content:center; margin:4px 0 0; }
+.p2p-code-slots { display:flex; gap:7px; align-items:center; justify-content:center; }
+.p2p-slot {
+  width:46px; height:54px; border-radius:10px;
+  border:2px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.04);
+  color:#fff; font-size:22px; font-weight:700;
+  font-family:'JetBrains Mono',monospace;
+  text-align:center; text-transform:uppercase;
+  outline:none; caret-color:transparent;
+  transition:border-color 0.18s,background 0.18s,transform 0.15s,box-shadow 0.18s;
+}
+.p2p-slot:focus {
+  border-color:var(--accent,#10b981);
+  background:rgba(16,185,129,0.08);
+  box-shadow:0 0 0 3px rgba(16,185,129,0.16);
+  transform:scale(1.07);
+}
+.p2p-slot.filled {
+  border-color:var(--accent,#10b981);
+  color:var(--accent,#10b981);
+  background:rgba(16,185,129,0.07);
+  animation:slotPop 0.18s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes slotPop { from{transform:scale(0.86)} to{transform:scale(1)} }
+.p2p-slot-sep { font-size:18px; color:rgba(255,255,255,0.22); padding:0 2px; user-select:none; }
+
+/* File queue */
+.p2p-queue-row {
+  display:flex; align-items:center; gap:8px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:8px; padding:8px 10px; font-size:13px;
+  animation:fadeSlideIn 0.18s ease;
+}
+@keyframes fadeSlideIn{ from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+.p2p-queue-icon{ font-size:16px;flex-shrink:0; }
+.p2p-queue-name{ flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff; }
+.p2p-queue-size{ font-size:11px;color:rgba(255,255,255,0.4);flex-shrink:0; }
+.p2p-queue-rm {
+  background:rgba(239,68,68,0.12); border:none; color:#ef4444;
+  border-radius:6px; width:24px;height:24px; cursor:pointer;
+  font-size:15px; display:flex;align-items:center;justify-content:center;
+  transition:background 0.15s; flex-shrink:0;
+}
+.p2p-queue-rm:hover{ background:rgba(239,68,68,0.28); }
+
+/* File picker dropdown */
+.p2p-picker-opt {
+  display:flex;align-items:center;gap:8px;padding:9px 10px;
+  font-size:13px;border-radius:7px;cursor:pointer;
+  transition:background 0.12s;color:#fff;
+}
+.p2p-picker-opt:hover{ background:rgba(255,255,255,0.08); }
+
+/* Progress rows */
+.p2p-progress-row {
+  display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;
+  gap:3px 8px;background:rgba(255,255,255,0.03);border-radius:8px;
+  padding:8px 10px;font-size:12px;margin-bottom:4px;
+}
+.p2p-prog-name{ grid-column:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff; }
+.p2p-prog-pct{ grid-column:2;grid-row:1/3;align-self:center;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--accent,#10b981);min-width:36px;text-align:right; }
+.p2p-prog-track{ grid-column:1;height:5px;border-radius:99px;background:rgba(255,255,255,0.08);overflow:hidden; }
+.p2p-prog-fill{ height:100%;background:var(--accent,#10b981);border-radius:99px;transition:width 0.15s linear; }
+
+/* Peers badge */
+.p2p-peers-badge {
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);
+  border-radius:20px;padding:4px 12px;font-size:12px;
+  color:var(--accent,#10b981);font-weight:600;margin-bottom:6px;
+}
+
+/* ═══════════════════════════════════════
+   MOBILE OPTIMISATIONS
+   ═══════════════════════════════════════ */
+@media (max-width:700px){
+  .app-header{ flex-wrap:wrap;gap:6px;padding:8px 12px; }
+  .header-controls{ gap:6px; }
+  .control-btn{ font-size:12px;padding:6px 10px; }
+  .workspace{ flex-direction:column; }
+  .sidebar-panels{
+    width:100%!important;max-width:100%!important;min-width:0!important;
+    border-right:none!important;border-bottom:1px solid rgba(255,255,255,0.08);
+    max-height:200px;overflow-y:auto;
+  }
+  .ads-sidebar{ display:none!important; }
+  .panel-header{ flex-wrap:wrap;gap:6px;padding:8px 10px; }
+  .header-right{ display:flex;flex-wrap:wrap;gap:5px; }
+  .header-right .control-btn{ font-size:11px;padding:5px 8px; }
+  .p2p-modal{ max-height:90vh;overflow-y:auto; }
+  .p2p-body{ padding:0 4px; }
+  .drop-box-huge{ min-height:180px;padding:20px; }
+  .drop-title-huge{ font-size:18px; }
+  .modal-box{ max-width:95vw!important;width:95vw!important;margin:10px;max-height:85vh;overflow-y:auto; }
+  .p2p-slot{ width:38px;height:46px;font-size:18px; }
+  .p2p-code-display{ font-size:22px;letter-spacing:5px;padding:10px 16px; }
+}
+
+/* PDF / Image viewer fixes */
+#pdfViewer{ width:100%;height:100%;min-height:400px;border:none;display:block; }
+.viewer-content-wrapper img.rendered-image{
+  max-width:100%;max-height:calc(100vh - 200px);object-fit:contain;display:block;margin:auto;
+}
+</style>
 </head>
 <body>
 <div class="app-container">
@@ -79,32 +209,22 @@
     </div>
     <div class="settings-dropdown" id="settingsDropdown">
       <div class="settings-title">GLOBAL SETTINGS</div>
-      <div class="settings-row"><span data-i18n="setting_light_theme">Light Theme</span>
+      <div class="settings-row"><span>Light Theme</span>
         <label class="switch"><input type="checkbox" id="themeThemeToggle"><span class="slider"></span></label>
       </div>
-      <div class="settings-row"><span data-i18n="setting_disable_anim">Disable Animations</span>
+      <div class="settings-row"><span>Disable Animations</span>
         <label class="switch"><input type="checkbox" id="animationsToggle"><span class="slider"></span></label>
       </div>
-      <div class="settings-row"><span data-i18n="setting_scrollbar">Custom Scrollbar</span>
+      <div class="settings-row"><span>Custom Scrollbar</span>
         <label class="switch"><input type="checkbox" id="scrollbarToggle" checked><span class="slider"></span></label>
       </div>
-      <div class="settings-row"><span data-i18n="setting_force_hex">Force Hex Mode</span>
+      <div class="settings-row"><span>Force Hex Mode</span>
         <label class="switch"><input type="checkbox" id="forceHexToggle"><span class="slider"></span></label>
       </div>
       <div class="settings-divider"></div>
-      <div class="settings-lang-label" data-i18n="setting_language">Language</div>
-      <div class="settings-lang-grid" id="langGrid">
-        <button class="lang-btn active" data-lang="en">&#127468;&#127463; EN</button>
-        <button class="lang-btn" data-lang="uk">&#127482;&#127462; UA</button>
-        <button class="lang-btn" data-lang="ru">&#127479;&#127482; RU</button>
-        <button class="lang-btn" data-lang="de">&#127465;&#127466; DE</button>
-        <button class="lang-btn" data-lang="fr">&#127467;&#127479; FR</button>
-        <button class="lang-btn" data-lang="es">&#127466;&#127480; ES</button>
-      </div>
-      <div class="settings-divider"></div>
       <div class="settings-footer-links">
-        <button class="settings-link-btn" id="openPrivacyBtn" data-i18n="nav_privacy">Privacy Policy</button>
-        <button class="settings-link-btn" id="openTermsBtn" data-i18n="nav_terms">Terms of Use</button>
+        <button class="settings-link-btn" id="openPrivacyBtn">Privacy Policy</button>
+        <button class="settings-link-btn" id="openTermsBtn">Terms of Use</button>
       </div>
     </div>
   </header>
@@ -366,56 +486,54 @@
 
 <!-- P2P Share Modal -->
 <div class="modal-overlay" id="p2pShareModal">
-  <div class="modal-box glass-modal p2p-modal">
+  <div class="modal-box glass-modal p2p-modal" style="max-width:560px;width:95%;">
     <div class="p2p-header">
-      <div class="p2p-title">&#128225; P2P QuickShare</div>
-      <button class="p2p-close-btn" id="p2pCloseBtn">&#215;</button>
+      <div class="p2p-title">📡 P2P QuickShare</div>
+      <button class="p2p-close-btn" id="p2pCloseBtn">×</button>
     </div>
     <div class="p2p-tabs">
-      <button class="p2p-tab-btn active" id="p2pTabSend">&#128228; Send</button>
-      <button class="p2p-tab-btn" id="p2pTabReceive">&#128229; Receive</button>
+      <button class="p2p-tab-btn active" id="p2pTabSend">📤 Send</button>
+      <button class="p2p-tab-btn" id="p2pTabReceive">📥 Receive</button>
     </div>
     <div class="p2p-body">
-      <!-- ── SEND VIEW ── -->
+      <!-- Send View -->
       <div class="p2p-view" id="p2pSendView">
-        <p class="p2p-help-text" data-i18n="p2p_send_hint">Add files below, then share the code or QR. Multiple receivers supported.</p>
-        <div id="p2pFileQueueWrap">
-          <div id="p2pFileQueueList"></div>
-          <button class="p2p-add-btn" id="p2pAddFilesBtn">&#10010; Add Files from Workspace</button>
-          <div id="p2pFilePickerDropdown" class="p2p-picker-dd" style="display:none;"></div>
-        </div>
-        <button class="modal-btn btn-accent p2p-start-btn" id="p2pStartBroadcastBtn">&#128640; Start Sharing</button>
-        <div id="p2pSenderPanel" style="display:none;margin-top:14px;text-align:center;">
-          <div class="p2p-code-label" data-i18n="p2p_share_code">Share this code with receivers:</div>
+        <p class="p2p-help-text" style="margin-bottom:10px;">Add files from workspace. Multiple receivers can connect simultaneously.</p>
+        <div id="p2pFileQueueList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;max-height:140px;overflow-y:auto;"></div>
+        <button class="modal-btn" id="p2pAddFilesBtn" style="width:100%;margin-bottom:8px;background:rgba(255,255,255,0.05);border:1px dashed rgba(255,255,255,0.18);font-size:13px;">＋ Add Files from Workspace</button>
+        <div id="p2pFilePickerDropdown" style="display:none;background:var(--bg-panel,#1a1a2e);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:6px;max-height:160px;overflow-y:auto;margin-bottom:8px;"></div>
+        <button class="modal-btn btn-accent" id="p2pStartBroadcastBtn" style="margin-top:4px;width:100%;">🚀 Start Sharing</button>
+        <div id="p2pSenderPanel" style="display:none;margin-top:16px;text-align:center;">
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:10px;">Share this code or QR with receivers:</div>
           <div id="p2pMyCode" class="p2p-code-display"></div>
-          <div id="p2pQRWrap" style="margin-top:10px;">
-            <canvas id="p2pQRCanvas" width="148" height="148" style="border-radius:8px;background:#fff;padding:5px;display:none;"></canvas>
+          <div style="margin-top:12px;">
+            <canvas id="p2pQRCanvas" width="148" height="148" style="border-radius:8px;background:#fff;padding:5px;"></canvas>
           </div>
-          <div id="p2pPeersList" style="margin-top:8px;"></div>
-          <div id="p2pSendProgressList" style="margin-top:6px;text-align:left;"></div>
-          <div id="p2pSendStatus" style="margin-top:8px;font-size:13px;color:var(--c-muted);">&#9203; Waiting for receivers...</div>
-          <button id="p2pStopBtn" class="modal-btn p2p-stop-btn">&#10006; Stop Sharing</button>
+          <div id="p2pPeersList" style="margin-top:10px;text-align:left;"></div>
+          <div id="p2pSendProgressList" style="margin-top:8px;text-align:left;"></div>
+          <div id="p2pSendStatus" style="margin-top:8px;font-size:13px;color:rgba(255,255,255,0.5);">⏳ Waiting for receivers…</div>
+          <button id="p2pStopBtn" class="modal-btn" style="margin-top:12px;width:100%;background:var(--c-danger,#ef4444);">✖ Stop Sharing</button>
         </div>
       </div>
-      <!-- ── RECEIVE VIEW ── -->
+      <!-- Receive View -->
       <div class="p2p-view" id="p2pReceiveView" style="display:none;">
-        <p class="p2p-help-text" data-i18n="p2p_recv_hint">Enter the 6-character code from the sender:</p>
-        <div class="p2p-code-slots-wrap">
-          <div class="p2p-slots" id="p2pCodeSlots">
+        <p class="p2p-help-text" style="margin-bottom:14px;">Enter the 6-character code from the sender:</p>
+        <div class="p2p-code-input-wrapper">
+          <div class="p2p-code-slots" id="p2pCodeSlots">
             <input class="p2p-slot" maxlength="1" data-idx="0" inputmode="text" autocomplete="off" spellcheck="false">
             <input class="p2p-slot" maxlength="1" data-idx="1" inputmode="text" autocomplete="off" spellcheck="false">
-            <span class="p2p-slot-sep">&#8211;</span>
+            <div class="p2p-slot-sep">—</div>
             <input class="p2p-slot" maxlength="1" data-idx="2" inputmode="text" autocomplete="off" spellcheck="false">
             <input class="p2p-slot" maxlength="1" data-idx="3" inputmode="text" autocomplete="off" spellcheck="false">
             <input class="p2p-slot" maxlength="1" data-idx="4" inputmode="text" autocomplete="off" spellcheck="false">
             <input class="p2p-slot" maxlength="1" data-idx="5" inputmode="text" autocomplete="off" spellcheck="false">
           </div>
-          <input id="p2pCodeInput" type="text" maxlength="6" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;" autocomplete="off" tabindex="-1">
+          <input id="p2pCodeInput" type="text" maxlength="6" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;" autocomplete="off">
         </div>
-        <button id="p2pConnectBtn" class="modal-btn btn-accent p2p-start-btn" style="margin-top:12px;">&#128279; Connect &amp; Receive</button>
-        <div id="p2pReceiveStatus" style="margin-top:12px;font-size:13px;color:var(--c-muted);text-align:center;min-height:18px;"></div>
+        <button id="p2pConnectBtn" class="modal-btn btn-accent" style="width:100%;margin-top:14px;padding:12px;">🔗 Connect &amp; Receive</button>
+        <div id="p2pReceiveStatus" style="margin-top:14px;font-size:13px;color:rgba(255,255,255,0.5);text-align:center;min-height:20px;"></div>
         <div id="p2pReceiveProgressList" style="margin-top:8px;display:flex;flex-direction:column;gap:6px;"></div>
-        <div id="p2pIncomingFilesList" style="margin-top:6px;"></div>
+        <div id="p2pIncomingFilesList" style="margin-top:8px;"></div>
       </div>
     </div>
   </div>
@@ -3152,438 +3270,339 @@ window.addEventListener('keydown', e => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════
-//  P2P QUICKSHARE v2 — Multi-File · Multi-Device · 256 KB chunks
+//  P2P QUICKSHARE v2 — Multi-File + Multi-Device  (256KB chunks, pipelined)
 // ═══════════════════════════════════════════════════════════════════════
 
 function _loadScript(src) {
     return new Promise((res, rej) => {
-        if (document.querySelector('script[src="' + src + '"]')) return res();
+        if (document.querySelector(`script[src="${src}"]`)) return res();
         const s = document.createElement('script');
         s.src = src; s.onload = res; s.onerror = rej;
         document.head.appendChild(s);
     });
 }
 
-const P2P_CHUNK = 256 * 1024; // 256 KB — 4x faster than original 64 KB
-let _peer       = null;
-let _peerConns  = {};           // peerId → DataConnection (multi-device)
-let _p2pQueue   = [];           // [{fileItem}] — files to send
+// ── State ──
+let _peer = null;
+let _peerConns = {};
+let _p2pSendQueue = [];
+const P2P_CHUNK = 256 * 1024; // 256 KB – 4× faster than 64 KB
 
 function _genCode() {
-    const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    return 'WT' + Array.from({length:4}, () => c[Math.floor(Math.random()*c.length)]).join('');
+    const ch = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    return 'WT' + Array.from({length:4}, () => ch[Math.floor(Math.random()*ch.length)]).join('');
 }
-
-async function _drawQR(text) {
+async function _drawQR(text, canvas) {
     try {
         await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js');
-        const wrap = document.getElementById('p2pQRWrap');
-        if (!wrap) return;
-        wrap.innerHTML = '';
+        canvas.style.display = 'none';
         const div = document.createElement('div');
-        div.style.cssText = 'display:inline-block;background:#fff;padding:5px;border-radius:8px;margin-top:4px;';
-        wrap.appendChild(div);
-        new QRCode(div, { text, width:148, height:148, correctLevel: QRCode.CorrectLevel.M });
-    } catch(e) { console.warn('QR failed', e); }
+        div.id = 'p2pQRDiv';
+        div.style.cssText = 'display:inline-block;background:#fff;padding:5px;border-radius:8px;margin-top:8px;';
+        const old = document.getElementById('p2pQRDiv');
+        if (old) old.remove();
+        canvas.parentNode.insertBefore(div, canvas.nextSibling);
+        new QRCode(div, {text, width:148, height:148, correctLevel:QRCode.CorrectLevel.M});
+    } catch(e) { console.warn('QR:', e); }
 }
 
-// ── Modal open / close ──
+// ── Open/close modal ──
 p2pShareToggle.addEventListener('click', () => {
     p2pShareModal.classList.add('active');
-    _p2pRenderQueue();
-    _p2pInitSlots();
+    _renderSendQueue();
+    _initCodeSlots();
 });
 p2pCloseBtn.addEventListener('click', () => p2pShareModal.classList.remove('active'));
-p2pShareModal.addEventListener('click', e => {
-    if (e.target === p2pShareModal) p2pShareModal.classList.remove('active');
-});
+p2pShareModal.addEventListener('click', e => { if (e.target===p2pShareModal) p2pShareModal.classList.remove('active'); });
 
 p2pTabSend.addEventListener('click', () => {
     p2pTabSend.classList.add('active'); p2pTabReceive.classList.remove('active');
-    p2pSendView.style.display = 'block'; p2pReceiveView.style.display = 'none';
-    _p2pRenderQueue();
+    p2pSendView.style.display='block'; p2pReceiveView.style.display='none';
 });
 p2pTabReceive.addEventListener('click', () => {
     p2pTabReceive.classList.add('active'); p2pTabSend.classList.remove('active');
-    p2pReceiveView.style.display = 'block'; p2pSendView.style.display = 'none';
-    _p2pInitSlots();
+    p2pReceiveView.style.display='block'; p2pSendView.style.display='none';
+    _initCodeSlots();
 });
 
-// ── Queue renderer ──
-function _p2pRenderQueue() {
+// ── Animated receive-code slots ──
+function _initCodeSlots() {
+    const slots = document.querySelectorAll('.p2p-slot');
+    if (!slots.length) return;
+    slots.forEach((slot, i) => {
+        slot.value = ''; slot.classList.remove('filled');
+        slot.oninput = () => {
+            const v = slot.value.replace(/[^a-zA-Z0-9]/g,'').toUpperCase();
+            slot.value = v ? v[0] : '';
+            slot.classList.toggle('filled', !!slot.value);
+            if (slot.value) {
+                const nx = document.querySelector(`.p2p-slot[data-idx="${i+1}"]`);
+                if (nx) nx.focus();
+            }
+            _syncSlots();
+        };
+        slot.onkeydown = e => {
+            if (e.key==='Backspace' && !slot.value) {
+                const pv = document.querySelector(`.p2p-slot[data-idx="${i-1}"]`);
+                if (pv) { pv.value=''; pv.classList.remove('filled'); pv.focus(); _syncSlots(); }
+            } else if (e.key==='Enter') { _syncSlots(); _p2pConnect(); }
+        };
+        slot.onpaste = e => {
+            e.preventDefault();
+            const t = (e.clipboardData||window.clipboardData).getData('text').replace(/[^a-zA-Z0-9]/g,'').toUpperCase().slice(0,6);
+            [...t].forEach((ch,j) => {
+                const s = document.querySelector(`.p2p-slot[data-idx="${j}"]`);
+                if (s) { s.value=ch; s.classList.add('filled'); }
+            });
+            _syncSlots();
+            const last = document.querySelector(`.p2p-slot[data-idx="${Math.min(t.length,5)}"]`);
+            if (last) last.focus();
+        };
+    });
+    // Auto-fill from URL
+    const urlCode = new URLSearchParams(window.location.search).get('p2p');
+    if (urlCode) {
+        [...urlCode.toUpperCase().slice(0,6)].forEach((ch,j) => {
+            const s = document.querySelector(`.p2p-slot[data-idx="${j}"]`);
+            if (s) { s.value=ch; s.classList.add('filled'); }
+        });
+        _syncSlots();
+    }
+}
+function _syncSlots() {
+    const v = [...document.querySelectorAll('.p2p-slot')].map(s=>s.value).join('');
+    const h = document.getElementById('p2pCodeInput');
+    if (h) h.value = v;
+}
+
+// ── Send queue ──
+function _renderSendQueue() {
     const list = document.getElementById('p2pFileQueueList');
     if (!list) return;
     list.innerHTML = '';
-    if (!_p2pQueue.length) {
-        list.innerHTML = '<div class="p2p-queue-empty">No files added yet</div>';
+    if (!_p2pSendQueue.length) {
+        list.innerHTML = '<div style="font-size:12px;color:rgba(255,255,255,0.35);text-align:center;padding:8px 0;">No files added yet</div>';
         return;
     }
-    _p2pQueue.forEach((item, i) => {
-        const sz = item.fileItem.size > 1048576
-            ? (item.fileItem.size/1048576).toFixed(1) + ' MB'
-            : Math.round(item.fileItem.size/1024) + ' KB';
+    _p2pSendQueue.forEach((item, i) => {
+        const sz = item.size > 1048576 ? (item.size/1048576).toFixed(1)+' MB' : Math.round(item.size/1024)+' KB';
         const row = document.createElement('div');
         row.className = 'p2p-queue-row';
-        row.innerHTML =
-            '<span class="p2p-q-icon">' + getFileIcon(item.fileItem.name) + '</span>' +
-            '<span class="p2p-q-name">' + (item.fileItem.displayName || item.fileItem.name) + '</span>' +
-            '<span class="p2p-q-sz">' + sz + '</span>' +
-            '<button class="p2p-q-rm" data-i="' + i + '" title="Remove">\u00d7</button>';
-        row.querySelector('.p2p-q-rm').onclick = () => {
-            _p2pQueue.splice(i, 1);
-            _p2pRenderQueue();
-        };
+        row.innerHTML = `<span class="p2p-queue-icon">${getFileIcon(item.name)}</span><span class="p2p-queue-name">${item.displayName||item.name}</span><span class="p2p-queue-size">${sz}</span><button class="p2p-queue-rm" data-i="${i}">×</button>`;
+        row.querySelector('.p2p-queue-rm').onclick = () => { _p2pSendQueue.splice(i,1); _renderSendQueue(); };
         list.appendChild(row);
     });
 }
 
-// ── File picker ──
-document.getElementById('p2pAddFilesBtn').addEventListener('click', (e) => {
+// File picker
+document.getElementById('p2pAddFilesBtn').addEventListener('click', e => {
     e.stopPropagation();
     const dd = document.getElementById('p2pFilePickerDropdown');
-    if (dd.style.display !== 'none') { dd.style.display = 'none'; return; }
+    if (dd.style.display !== 'none') { dd.style.display='none'; return; }
     dd.innerHTML = '';
-    const avail = (activeFilesCache || []).filter(f => !_p2pQueue.find(q => q.fileItem.id === f.id));
-    if (!avail.length) {
-        dd.innerHTML = '<div style="padding:10px;font-size:12px;color:var(--c-muted)">All files already added</div>';
-    } else {
-        avail.forEach(file => {
-            const sz = file.size > 1048576 ? (file.size/1048576).toFixed(1)+' MB' : Math.round(file.size/1024)+' KB';
-            const opt = document.createElement('div');
-            opt.className = 'p2p-picker-opt';
-            opt.innerHTML =
-                '<span>' + getFileIcon(file.name) + '</span>' +
-                '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (file.displayName||file.name) + '</span>' +
-                '<span style="font-size:11px;color:var(--c-muted);flex-shrink:0">' + sz + '</span>';
-            opt.onclick = (ev) => {
-                ev.stopPropagation();
-                if (!_p2pQueue.find(q => q.fileItem.id === file.id))
-                    _p2pQueue.push({ fileItem: file });
-                _p2pRenderQueue();
-                dd.style.display = 'none';
-            };
-            dd.appendChild(opt);
-        });
+    const available = (activeFilesCache||[]).filter(f => !_p2pSendQueue.find(q=>q.id===f.id));
+    if (!available.length) {
+        dd.innerHTML = '<div style="padding:10px;font-size:12px;color:rgba(255,255,255,0.4);">All files already added</div>';
     }
-    dd.style.display = 'block';
+    available.forEach(file => {
+        const sz = file.size>1048576 ? (file.size/1048576).toFixed(1)+' MB' : Math.round(file.size/1024)+' KB';
+        const opt = document.createElement('div');
+        opt.className = 'p2p-picker-opt';
+        opt.innerHTML = `<span>${getFileIcon(file.name)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${file.displayName||file.name}</span><span style="font-size:11px;color:rgba(255,255,255,0.35)">${sz}</span>`;
+        opt.onclick = ev => {
+            ev.stopPropagation();
+            if (!_p2pSendQueue.find(q=>q.id===file.id)) _p2pSendQueue.push(file);
+            _renderSendQueue();
+            dd.style.display='none';
+        };
+        dd.appendChild(opt);
+    });
+    dd.style.display='block';
 });
 document.addEventListener('click', () => {
     const dd = document.getElementById('p2pFilePickerDropdown');
-    if (dd) dd.style.display = 'none';
+    if (dd) dd.style.display='none';
 });
 
 // ── SENDER ──
 document.getElementById('p2pStartBroadcastBtn').addEventListener('click', async () => {
-    if (!_p2pQueue.length) { showToast('\u26a0\ufe0f Add at least one file first'); return; }
-
-    const startBtn = document.getElementById('p2pStartBroadcastBtn');
-    startBtn.disabled = true;
-    document.getElementById('p2pSendStatus').textContent = '\u231b Initialising...';
+    if (!_p2pSendQueue.length) { showToast('⚠️ Add at least one file first'); return; }
+    document.getElementById('p2pStartBroadcastBtn').disabled = true;
+    document.getElementById('p2pSendStatus').textContent = '⌛ Initialising…';
     document.getElementById('p2pSenderPanel').style.display = 'block';
 
-    try {
-        await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js');
-    } catch(e) {
-        showToast('\u274c Failed to load PeerJS');
-        startBtn.disabled = false;
-        return;
-    }
+    try { await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'); }
+    catch(e) { showToast('❌ Failed to load PeerJS'); document.getElementById('p2pStartBroadcastBtn').disabled=false; return; }
 
-    if (_peer) { try { _peer.destroy(); } catch(e){} }
+    if (_peer) { try{_peer.destroy();}catch(e){} }
     _peerConns = {};
 
     const code = _genCode();
     document.getElementById('p2pMyCode').textContent = code;
-    const shareUrl = location.href.split('?')[0] + '?p2p=' + code;
-    _drawQR(shareUrl);
+    const shareUrl = window.location.href.split('?')[0] + '?p2p=' + code;
+    _drawQR(shareUrl, document.getElementById('p2pQRCanvas'));
 
     _peer = new Peer(code, {
-        host: '0.peerjs.com', port: 443, secure: true, path: '/',
-        config: { iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:global.stun.twilio.com:3478' }
-        ]}
+        host:'0.peerjs.com', port:443, secure:true, path:'/',
+        config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}
     });
-
-    _peer.on('open', () => {
-        document.getElementById('p2pSendStatus').textContent = '\u23f3 Waiting for receivers\u2026';
-    });
+    _peer.on('open', () => { document.getElementById('p2pSendStatus').textContent='⏳ Waiting for receivers…'; });
     _peer.on('error', err => {
-        document.getElementById('p2pSendStatus').textContent = '\u274c ' + err.type;
-        showToast('\u274c P2P: ' + err.type);
-        startBtn.disabled = false;
+        document.getElementById('p2pSendStatus').textContent='❌ '+err.type;
+        showToast('❌ P2P: '+err.type);
+        document.getElementById('p2pStartBroadcastBtn').disabled=false;
     });
     _peer.on('connection', conn => {
         const pid = conn.peer;
         _peerConns[pid] = conn;
-        _p2pUpdatePeersBadge();
-        showToast('\u2705 New receiver connected!');
+        _updatePeersBadge();
+        showToast('✅ New receiver connected!');
         conn.on('open', async () => {
-            document.getElementById('p2pSendStatus').textContent =
-                '\ud83d\udce4 Sending ' + _p2pQueue.length + ' file(s)\u2026';
-            await _p2pSendAll(conn, pid);
+            document.getElementById('p2pSendStatus').textContent='📤 Sending '+_p2pSendQueue.length+' file(s)…';
+            await _sendAllFiles(conn, pid);
         });
-        conn.on('close', () => { delete _peerConns[pid]; _p2pUpdatePeersBadge(); });
-        conn.on('error', err => showToast('\u26a0\ufe0f Receiver: ' + (err.message || err)));
+        conn.on('close', () => { delete _peerConns[pid]; _updatePeersBadge(); });
+        conn.on('error', err => showToast('⚠️ Receiver error: '+(err.message||err)));
     });
 });
 
-function _p2pUpdatePeersBadge() {
+function _updatePeersBadge() {
     const el = document.getElementById('p2pPeersList');
     if (!el) return;
     const n = Object.keys(_peerConns).length;
-    el.innerHTML = n
-        ? '<div class="p2p-peers-badge">\ud83d\udc65 ' + n + ' receiver' + (n > 1 ? 's' : '') + ' connected</div>'
-        : '';
+    el.innerHTML = n ? `<div class="p2p-peers-badge">👥 ${n} receiver${n>1?'s':''} connected</div>` : '';
 }
 
-async function _p2pSendAll(conn, pid) {
-    const progList = document.getElementById('p2pSendProgressList');
-    progList.innerHTML = '';
-
-    // Build progress rows
-    _p2pQueue.forEach((item, idx) => {
+async function _sendAllFiles(conn, peerId) {
+    const plist = document.getElementById('p2pSendProgressList');
+    plist.innerHTML = '';
+    // Create progress rows up front
+    _p2pSendQueue.forEach((item, idx) => {
         const row = document.createElement('div');
-        row.className = 'p2p-prog-row';
-        const name = item.fileItem.displayName || item.fileItem.name;
-        row.innerHTML =
-            '<div class="p2p-prog-name">' + getFileIcon(name) + ' ' + name + '</div>' +
-            '<div class="p2p-prog-track"><div class="p2p-prog-fill" id="psf_' + pid + '_' + idx + '"></div></div>' +
-            '<div class="p2p-prog-pct" id="psp_' + pid + '_' + idx + '">0%</div>';
-        progList.appendChild(row);
+        row.className = 'p2p-progress-row';
+        row.id = `psrow_${peerId}_${idx}`;
+        const nm = item.displayName||item.name;
+        row.innerHTML = `<div class="p2p-prog-name">${getFileIcon(nm)} ${nm}</div><div class="p2p-prog-track"><div class="p2p-prog-fill" id="psf_${peerId}_${idx}" style="width:0%"></div></div><div class="p2p-prog-pct" id="psp_${peerId}_${idx}">0%</div>`;
+        plist.appendChild(row);
     });
 
-    for (let idx = 0; idx < _p2pQueue.length; idx++) {
-        const item = _p2pQueue[idx];
-        const file = item.fileItem.fileObject;
-        const name = item.fileItem.displayName || item.fileItem.name;
-        const totalChunks = Math.ceil(file.size / P2P_CHUNK);
-        const fillEl = document.getElementById('psf_' + pid + '_' + idx);
-        const pctEl  = document.getElementById('psp_' + pid + '_' + idx);
-
-        conn.send({ type: 'meta', name, size: file.size, mime: file.type, totalChunks, fileIndex: idx, totalFiles: _p2pQueue.length });
-
+    for (let idx=0; idx<_p2pSendQueue.length; idx++) {
+        const item = _p2pSendQueue[idx];
+        const file = item.fileObject;
+        const nm   = item.displayName||item.name;
+        const total = Math.ceil(file.size/P2P_CHUNK);
+        const fillEl = document.getElementById(`psf_${peerId}_${idx}`);
+        const pctEl  = document.getElementById(`psp_${peerId}_${idx}`);
+        conn.send({type:'meta', name:nm, size:file.size, mime:file.type, totalChunks:total, fileIndex:idx, totalFiles:_p2pSendQueue.length});
         await new Promise(resolve => {
-            let sent = 0, bytesSent = 0;
-            const PIPE = 6; // 6-chunk pipeline for max speed
-
-            function burst() {
-                const end = Math.min(sent + PIPE, totalChunks);
-                const startI = sent;
-                sent = end;
-                for (let i = startI; i < end; i++) {
-                    const slice = file.slice(i * P2P_CHUNK, (i + 1) * P2P_CHUNK);
+            const PIPE = 6;
+            let nextRead = 0, bytesSent = 0, doneCount = 0;
+            function kick() {
+                for (let b=0; b<PIPE && nextRead<total; b++) {
+                    const i = nextRead++;
+                    const slice = file.slice(i*P2P_CHUNK, (i+1)*P2P_CHUNK);
                     const rd = new FileReader();
-                    const ci = i;
                     rd.onload = () => {
-                        conn.send({ type: 'chunk', fileIndex: idx, index: ci, data: rd.result });
-                        bytesSent += rd.result.byteLength;
-                        const pct = Math.min(100, Math.round(bytesSent / file.size * 100));
-                        if (fillEl) fillEl.style.width = pct + '%';
-                        if (pctEl)  pctEl.textContent = pct + '%';
-                        if (ci === totalChunks - 1) {
-                            setTimeout(() => {
-                                conn.send({ type: 'done', fileIndex: idx });
-                                if (fillEl) { fillEl.style.width = '100%'; fillEl.style.background = '#22c55e'; }
-                                if (pctEl)  pctEl.textContent = '\u2705';
-                                resolve();
-                            }, 60);
+                        conn.send({type:'chunk', fileIndex:idx, index:i, data:rd.result});
+                        bytesSent += (rd.result?.byteLength||0);
+                        doneCount++;
+                        const pct = Math.min(100,Math.round(bytesSent/file.size*100));
+                        if (fillEl) fillEl.style.width=pct+'%';
+                        if (pctEl)  pctEl.textContent=pct+'%';
+                        if (doneCount===total) {
+                            setTimeout(()=>{ conn.send({type:'done',fileIndex:idx}); if(fillEl)fillEl.style.width='100%'; if(pctEl)pctEl.textContent='✅'; resolve(); },60);
+                        } else if (doneCount % PIPE === 0) {
+                            setTimeout(kick,0);
                         }
                     };
                     rd.readAsArrayBuffer(slice);
                 }
-                if (sent < totalChunks) setTimeout(burst, 10);
             }
-            burst();
+            kick();
         });
-        await new Promise(r => setTimeout(r, 40));
+        await new Promise(r=>setTimeout(r,40));
     }
-
-    document.getElementById('p2pSendStatus').textContent =
-        '\u2705 All ' + _p2pQueue.length + ' file(s) sent!';
-    showToast('\u2705 All files sent!');
+    document.getElementById('p2pSendStatus').textContent=`✅ All ${_p2pSendQueue.length} file(s) sent!`;
+    showToast('✅ All files sent!');
 }
 
 document.getElementById('p2pStopBtn').addEventListener('click', () => {
-    if (_peer) { try { _peer.destroy(); } catch(e){} _peer = null; }
+    if (_peer) { try{_peer.destroy();}catch(e){} _peer=null; }
     _peerConns = {};
-    document.getElementById('p2pSenderPanel').style.display = 'none';
-    document.getElementById('p2pStartBroadcastBtn').disabled = false;
-    document.getElementById('p2pSendProgressList').innerHTML = '';
-    document.getElementById('p2pPeersList').innerHTML = '';
-    showToast('\u23f9 Sharing stopped');
+    document.getElementById('p2pSenderPanel').style.display='none';
+    document.getElementById('p2pStartBroadcastBtn').disabled=false;
+    document.getElementById('p2pSendProgressList').innerHTML='';
+    document.getElementById('p2pPeersList').innerHTML='';
+    showToast('⏹ Sharing stopped');
 });
-
-// ── Animated code slots (Receive) ──
-function _p2pInitSlots() {
-    const slots = document.querySelectorAll('.p2p-slot');
-    if (!slots.length) return;
-    slots.forEach((slot, i) => {
-        slot.value = '';
-        slot.classList.remove('filled');
-        slot.oninput = () => {
-            const v = slot.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-            slot.value = v ? v[0] : '';
-            slot.classList.toggle('filled', !!slot.value);
-            if (slot.value) {
-                const next = document.querySelector('.p2p-slot[data-idx="' + (i+1) + '"]');
-                if (next) next.focus();
-            }
-            _p2pSyncCode();
-        };
-        slot.onkeydown = (e) => {
-            if (e.key === 'Backspace' && !slot.value) {
-                const prev = document.querySelector('.p2p-slot[data-idx="' + (i-1) + '"]');
-                if (prev) { prev.value = ''; prev.classList.remove('filled'); prev.focus(); }
-                _p2pSyncCode();
-            } else if (e.key === 'Enter') {
-                _p2pSyncCode(); _p2pConnect();
-            }
-        };
-        slot.onpaste = (e) => {
-            e.preventDefault();
-            const txt = (e.clipboardData || window.clipboardData).getData('text')
-                .replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 6);
-            [...txt].forEach((ch, j) => {
-                const s = document.querySelector('.p2p-slot[data-idx="' + j + '"]');
-                if (s) { s.value = ch; s.classList.add('filled'); }
-            });
-            _p2pSyncCode();
-            const last = document.querySelector('.p2p-slot[data-idx="' + Math.min(txt.length, 5) + '"]');
-            if (last) last.focus();
-        };
-    });
-    // Auto-fill from URL ?p2p=
-    const urlCode = new URLSearchParams(location.search).get('p2p');
-    if (urlCode) {
-        [...urlCode.toUpperCase().slice(0, 6)].forEach((ch, j) => {
-            const s = document.querySelector('.p2p-slot[data-idx="' + j + '"]');
-            if (s) { s.value = ch; s.classList.add('filled'); }
-        });
-        _p2pSyncCode();
-    }
-}
-
-function _p2pSyncCode() {
-    const slots = document.querySelectorAll('.p2p-slot');
-    document.getElementById('p2pCodeInput').value =
-        [...slots].map(s => s.value).join('');
-}
 
 // ── RECEIVER ──
 document.getElementById('p2pConnectBtn').addEventListener('click', _p2pConnect);
 
 async function _p2pConnect() {
-    _p2pSyncCode();
-    const code = (document.getElementById('p2pCodeInput').value || '').trim().toUpperCase();
-    if (code.length < 6) { showToast('\u26a0\ufe0f Enter all 6 characters'); return; }
-
+    _syncSlots();
+    const code=(document.getElementById('p2pCodeInput').value||'').trim().toUpperCase();
+    if (code.length<6) { showToast('⚠️ Enter all 6 characters'); return; }
     const statusEl = document.getElementById('p2pReceiveStatus');
-    statusEl.textContent = '\ud83d\udd17 Connecting\u2026';
-
-    try {
-        await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js');
-    } catch(e) { showToast('\u274c Failed to load PeerJS'); return; }
-
-    if (_peer) { try { _peer.destroy(); } catch(e){} }
-
-    const myId = 'r-' + Math.random().toString(36).slice(2, 10);
+    statusEl.textContent='🔗 Connecting…';
+    try { await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'); }
+    catch(e) { showToast('❌ Failed to load PeerJS'); return; }
+    if (_peer) { try{_peer.destroy();}catch(e){} }
+    const myId='recv-'+Math.random().toString(36).slice(2,10);
     _peer = new Peer(myId, {
-        host: '0.peerjs.com', port: 443, secure: true, path: '/',
-        config: { iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:global.stun.twilio.com:3478' }
-        ]}
+        host:'0.peerjs.com', port:443, secure:true, path:'/',
+        config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}
     });
-
     _peer.on('open', () => {
-        statusEl.textContent = '\ud83d\udd17 Reaching sender\u2026';
-        const conn = _peer.connect(code, { reliable: true });
-        const fileStates = {};
-
-        conn.on('open', () => {
-            statusEl.textContent = '\u2705 Connected! Waiting for files\u2026';
-        });
-
+        statusEl.textContent='🔗 Reaching sender…';
+        const conn = _peer.connect(code, {reliable:true, serialization:'binary'});
+        let states = {};
+        conn.on('open', () => { statusEl.textContent='✅ Connected! Waiting for files…'; });
         conn.on('data', data => {
-            const progList = document.getElementById('p2pReceiveProgressList');
-
-            if (data.type === 'meta') {
-                const fi = data.fileIndex;
-                fileStates[fi] = { meta: data, chunks: new Array(data.totalChunks), got: 0 };
-                if (!document.getElementById('prr_' + fi)) {
-                    const row = document.createElement('div');
-                    row.className = 'p2p-prog-row';
-                    row.id = 'prr_' + fi;
-                    row.innerHTML =
-                        '<div class="p2p-prog-name">' + getFileIcon(data.name) + ' ' + data.name + '</div>' +
-                        '<div class="p2p-prog-track"><div class="p2p-prog-fill" id="prf_' + fi + '"></div></div>' +
-                        '<div class="p2p-prog-pct" id="prp_' + fi + '">0%</div>';
-                    progList.appendChild(row);
+            const plist = document.getElementById('p2pReceiveProgressList');
+            if (data.type==='meta') {
+                const fi=data.fileIndex;
+                states[fi]={meta:data, chunks:new Array(data.totalChunks), got:0};
+                if (!document.getElementById(`prrow_${fi}`)) {
+                    const row=document.createElement('div');
+                    row.className='p2p-progress-row'; row.id=`prrow_${fi}`;
+                    row.innerHTML=`<div class="p2p-prog-name">${getFileIcon(data.name)} ${data.name}</div><div class="p2p-prog-track"><div class="p2p-prog-fill" id="prf_${fi}" style="width:0%"></div></div><div class="p2p-prog-pct" id="prp_${fi}">0%</div>`;
+                    plist.appendChild(row);
                 }
-                statusEl.textContent = '\ud83d\udce5 ' + (fi + 1) + '/' + data.totalFiles + ': ' + data.name;
-
-            } else if (data.type === 'chunk') {
-                const fi = data.fileIndex;
-                const st = fileStates[fi]; if (!st) return;
-                st.chunks[data.index] = data.data; st.got++;
-                const pct = Math.min(100, Math.round(st.got / st.meta.totalChunks * 100));
-                const fe = document.getElementById('prf_' + fi);
-                const pe = document.getElementById('prp_' + fi);
-                if (fe) fe.style.width = pct + '%';
-                if (pe) pe.textContent = pct + '%';
-
-            } else if (data.type === 'done') {
-                const fi = data.fileIndex;
-                const st = fileStates[fi]; if (!st) return;
-                const blob = new Blob(st.chunks.filter(Boolean), { type: st.meta.mime || 'application/octet-stream' });
-                saveMultipleFiles([new File([blob], st.meta.name, { type: st.meta.mime })]);
-                showToast('\u2705 Received: ' + st.meta.name);
-                const fe = document.getElementById('prf_' + fi);
-                const pe = document.getElementById('prp_' + fi);
-                if (fe) { fe.style.width = '100%'; fe.style.background = '#22c55e'; }
-                if (pe) pe.textContent = '\u2705';
-                const doneCount = Object.values(fileStates).filter(s => s.chunks.filter(Boolean).length >= s.meta.totalChunks).length;
-                const total = st.meta.totalFiles || 1;
-                if (doneCount >= total) {
-                    statusEl.textContent = '\u2705 All ' + total + ' file(s) received!';
-                    if (_peer) { try { _peer.destroy(); } catch(e){} _peer = null; }
-                } else {
-                    statusEl.textContent = '\u2705 ' + doneCount + '/' + total + ' files done\u2026';
-                }
+                statusEl.textContent=`📥 Receiving ${data.fileIndex+1}/${data.totalFiles}: ${data.name}`;
+            } else if (data.type==='chunk') {
+                const fi=data.fileIndex, st=states[fi]; if(!st)return;
+                st.chunks[data.index]=data.data; st.got++;
+                const pct=Math.min(100,Math.round(st.got/st.meta.totalChunks*100));
+                const f=document.getElementById(`prf_${fi}`), p=document.getElementById(`prp_${fi}`);
+                if(f) f.style.width=pct+'%'; if(p) p.textContent=pct+'%';
+            } else if (data.type==='done') {
+                const fi=data.fileIndex, st=states[fi]; if(!st)return;
+                const blob=new Blob(st.chunks.filter(Boolean),{type:st.meta.mime||'application/octet-stream'});
+                saveMultipleFiles([new File([blob],st.meta.name,{type:st.meta.mime})]);
+                showToast('✅ Received: '+st.meta.name);
+                const f=document.getElementById(`prf_${fi}`), p=document.getElementById(`prp_${fi}`);
+                if(f){f.style.width='100%';f.style.background='#22c55e';} if(p)p.textContent='✅';
+                const allDone = Object.keys(states).length===st.meta.totalFiles &&
+                    Object.values(states).every(s=>s.got>=s.meta.totalChunks);
+                statusEl.textContent = allDone ? '✅ All files received!' : `✅ ${fi+1}/${st.meta.totalFiles} done…`;
+                if (allDone && _peer) { try{_peer.destroy();}catch(e){} _peer=null; }
             }
         });
-
-        conn.on('error', err => { statusEl.textContent = '\u274c ' + (err.message || err); });
-        conn.on('close', () => {
-            if (!statusEl.textContent.startsWith('\u2705'))
-                statusEl.textContent = '\u26a0\ufe0f Connection closed by sender.';
-        });
+        conn.on('error', err => { statusEl.textContent='❌ '+(err.message||err); });
+        conn.on('close', () => { if(!statusEl.textContent.startsWith('✅')) statusEl.textContent='⚠️ Connection closed.'; });
     });
-
     _peer.on('error', err => {
-        const msg = err.type === 'peer-unavailable'
-            ? 'Sender not found. Check the code.'
-            : (err.message || err.type);
-        document.getElementById('p2pReceiveStatus').textContent = '\u274c ' + msg;
-        showToast('\u274c ' + msg);
+        const msg=err.type==='peer-unavailable'?'Sender not found. Check the code.':(err.message||err.type);
+        document.getElementById('p2pReceiveStatus').textContent='❌ '+msg;
+        showToast('❌ '+msg);
     });
 }
 
-// Auto-open Receive tab + fill slots from URL
-(function() {
-    const u = new URLSearchParams(location.search).get('p2p');
-    if (u) {
-        p2pShareModal.classList.add('active');
-        p2pTabReceive.click();
-        setTimeout(() => {
-            [...u.toUpperCase().slice(0, 6)].forEach((ch, j) => {
-                const s = document.querySelector('.p2p-slot[data-idx="' + j + '"]');
-                if (s) { s.value = ch; s.classList.add('filled'); }
-            });
-            _p2pSyncCode();
-        }, 150);
-    }
+// Auto open receive tab from URL
+(function(){
+    const u=new URLSearchParams(window.location.search).get('p2p');
+    if(u){ p2pTabReceive.click(); setTimeout(_initCodeSlots,120); }
 })();
 
 
@@ -3819,6 +3838,8 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
         converterSelectedValue.textContent = '-- Select target format --';
         converterExtraOptions.innerHTML = '';
         converterExtraOptions.style.display = 'none';
+        converterConvertBtn.disabled = false;
+        converterConvertBtn.style.opacity = '';
         
         let targets = [];
         const isImage = ['png', 'jpg', 'jpeg', 'webp', 'bmp'].includes(ext);
@@ -3861,28 +3882,21 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
                 { val: 'txt', label: 'Plain Text (.txt)' },
                 { val: 'custom', label: 'Custom Extension...' }
             ];
-        } else if (isAudio) {
-            targets = [
-                { val: 'mp3', label: 'MP3 Audio (.mp3)' },
-                { val: 'wav', label: 'WAV Audio (.wav)' },
-                { val: 'ogg', label: 'Ogg Vorbis (.ogg)' },
-                { val: 'flac', label: 'FLAC Audio (.flac)' },
-                { val: 'aac', label: 'AAC Audio (.aac)' },
-                { val: 'm4a', label: 'M4A Audio (.m4a)' },
-                { val: 'custom', label: 'Custom Extension...' }
-            ];
-        } else if (isVideo) {
-            targets = [
-                { val: 'mp4', label: 'MP4 Video (.mp4)' },
-                { val: 'avi', label: 'AVI Video (.avi)' },
-                { val: 'webm', label: 'WebM Video (.webm)' },
-                { val: 'mkv', label: 'MKV Video (.mkv)' },
-                { val: 'mov', label: 'MOV Video (.mov)' },
-                { val: 'gif', label: 'Animated GIF (.gif)' },
-                { val: 'mp3', label: 'Extract Audio to MP3 (.mp3)' },
-                { val: 'wav', label: 'Extract Audio to WAV (.wav)' },
-                { val: 'custom', label: 'Custom Extension...' }
-            ];
+        } else if (isAudio || isVideo) {
+            // Show maintenance notice immediately
+            converterSelectedValue.textContent = '🛠️ Under maintenance';
+            converterExtraOptions.style.display = 'flex';
+            converterExtraOptions.innerHTML = `<div style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);border-radius:10px;padding:14px 16px;display:flex;gap:10px;align-items:flex-start;width:100%;box-sizing:border-box;">
+              <span style="font-size:24px;flex-shrink:0;line-height:1">🛠️</span>
+              <div>
+                <div style="font-weight:700;color:#fbbf24;font-size:13px;margin-bottom:5px;">Тимчасово не працює</div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.65);line-height:1.55">Конвертація аудіо та відео наразі на технічних роботах. Функція буде відновлена найближчим часом.<br><br>Ви все ще можете грати аудіо/відео та завантажувати файли без конвертації.</div>
+              </div>
+            </div>`;
+            converterConvertBtn.disabled = true;
+            converterConvertBtn.style.opacity = '0.35';
+            converterModal.classList.add('active');
+            return;
         } else if (isText) {
             targets = [
                 { val: 'bat', label: 'Windows Batch (.bat)' },
@@ -4090,132 +4104,11 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
             const isAudio = ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a'].includes(origExt) || ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a'].includes(newExt);
             const isImage = ['png', 'jpg', 'jpeg', 'webp', 'bmp'].includes(origExt);
             
-            if (isAudio && targetFormat !== 'custom' && !targetFormat.startsWith('decode_')) {
-                // Audio conversion via Web Audio API + MediaRecorder
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const arrayBuf = await item.fileObject.arrayBuffer();
-                const audioBuffer = await audioCtx.decodeAudioData(arrayBuf);
-                
-                // Re-encode using MediaRecorder with supported format
-                const offlineCtx = new OfflineAudioContext(
-                    audioBuffer.numberOfChannels,
-                    audioBuffer.length,
-                    audioBuffer.sampleRate
-                );
-                const source = offlineCtx.createBufferSource();
-                source.buffer = audioBuffer;
-                source.connect(offlineCtx.destination);
-                source.start();
-                await offlineCtx.startRendering();
-                
-                // Use MediaRecorder to encode - picks best supported format
-                const stream = audioCtx.createMediaStreamDestination();
-                const src2 = audioCtx.createBufferSource();
-                src2.buffer = audioBuffer;
-                src2.connect(stream);
-                
-                // Determine MIME type
-                let mimeType = 'audio/webm';
-                if (targetFormat === 'ogg') mimeType = 'audio/ogg';
-                else if (targetFormat === 'mp4' || targetFormat === 'm4a' || targetFormat === 'aac') mimeType = 'audio/mp4';
-                if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/webm';
-                
-                const recorder = new MediaRecorder(stream.stream, { mimeType });
-                const chunks = [];
-                recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-                
-                await new Promise((resolve, reject) => {
-                    recorder.onstop = resolve;
-                    recorder.onerror = reject;
-                    src2.start();
-                    recorder.start();
-                    setTimeout(() => recorder.stop(), audioBuffer.duration * 1000 + 500);
-                });
-                
-                outputBlob = new Blob(chunks, { type: mimeType });
-                // Note: don't close audioCtx immediately - let GC handle it
-                setTimeout(() => audioCtx.close(), 1000);
-                
-            } else if (isVideo && targetFormat !== 'custom' && !targetFormat.startsWith('decode_')) {
-                // Video conversion via MediaRecorder (browser-native, no FFmpeg needed)
-                // Supports: webm output in all modern browsers
-                // For mp4/other: we re-encode to webm (best we can do without FFmpeg on GitHub Pages)
-                
-                const videoEl = document.createElement('video');
-                videoEl.src = URL.createObjectURL(item.fileObject);
-                videoEl.muted = true;
-                await new Promise((resolve, reject) => {
-                    videoEl.onloadedmetadata = resolve;
-                    videoEl.onerror = reject;
-                });
-                
-                const canvas = document.createElement('canvas');
-                canvas.width = videoEl.videoWidth;
-                canvas.height = videoEl.videoHeight;
-                const ctx2 = canvas.getContext('2d');
-                
-                // Capture canvas stream
-                const canvasStream = canvas.captureStream(30);
-                
-                // Add audio track if video has audio
-                let combinedStream = canvasStream;
-                try {
-                    const audioCtx = new AudioContext();
-                    const arrayBuf2 = await item.fileObject.arrayBuffer();
-                    const audioBuffer2 = await audioCtx.decodeAudioData(arrayBuf2).catch(() => null);
-                    if (audioBuffer2) {
-                        const dest = audioCtx.createMediaStreamDestination();
-                        const audioSrc = audioCtx.createBufferSource();
-                        audioSrc.buffer = audioBuffer2;
-                        audioSrc.connect(dest);
-                        audioSrc.start();
-                        combinedStream = new MediaStream([
-                            ...canvasStream.getVideoTracks(),
-                            ...dest.stream.getAudioTracks()
-                        ]);
-                    }
-                } catch(e) { /* no audio track */ }
-                
-                let videoMime = 'video/webm;codecs=vp8,opus';
-                if (!MediaRecorder.isTypeSupported(videoMime)) videoMime = 'video/webm';
-                
-                const videoRecorder = new MediaRecorder(combinedStream, { mimeType: videoMime });
-                const videoChunks = [];
-                videoRecorder.ondataavailable = e => { if (e.data.size > 0) videoChunks.push(e.data); };
-                
-                videoEl.currentTime = 0;
-                await videoEl.play();
-                videoRecorder.start();
-                
-                // Draw frames
-                const drawFrame = () => {
-                    if (!videoEl.ended && !videoEl.paused) {
-                        ctx2.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-                        requestAnimationFrame(drawFrame);
-                    }
-                };
-                drawFrame();
-                
-                await new Promise(resolve => {
-                    videoEl.onended = () => {
-                        videoRecorder.stop();
-                        resolve();
-                    };
-                });
-                
-                await new Promise(resolve => { videoRecorder.onstop = resolve; });
-                
-                // Output as webm (most compatible browser output)
-                const outExt = ['mp4','avi','mkv','mov'].includes(targetFormat) ? 'webm' : targetFormat;
-                outputBlob = new Blob(videoChunks, { type: 'video/webm' });
-                URL.revokeObjectURL(videoEl.src);
-                
-                // Note: if user wanted mp4/avi/mkv we give webm (browser limitation)
-                if (outExt !== targetFormat) {
-                    showToast('ℹ\ufe0f Browser can only output WebM. Saving as .webm');
-                    newFileName = newFileName.replace('.' + targetFormat, '.webm');
-                }
-                
+            if ((isAudio || isVideo) && targetFormat !== 'custom' && !targetFormat.startsWith('decode_')) {
+                // Audio/Video conversion — temporarily under maintenance
+                converterModal.classList.remove('active');
+                throw new Error('🛠️ Audio & video conversion is temporarily unavailable (under maintenance). Check back soon!');
+
             } else if (isImage) {
                 // Convert image format via Canvas
                 const imgUrl = URL.createObjectURL(item.fileObject);
