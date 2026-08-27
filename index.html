@@ -5,28 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta name="robots" content="index, follow">
     
-    <!-- ✅ SEO OPTIMIZATION -->
+    <!-- SEO Meta Tags -->
     <title>WebTools Utility — High-Performance File Hub & Viewer</title>
-    <meta name="description" content="Secure local file hub for viewing, editing, and analyzing archives, media, code, NBT, and hex files directly in your browser. No server uploads.">
-    <meta name="keywords" content="file viewer, hex editor, nbt viewer, archive extractor, json formatter, csv viewer, local file tools, p2p share, web utility">
+    <meta name="description" content="WebTools Utility is a high-performance, local file hub for viewing, editing, and analyzing archives, media, code, NBT, and hex files directly in your browser. Secure, fast, and privacy-focused.">
+    <meta name="keywords" content="file viewer, hex editor, NBT viewer, archive extractor, JSON formatter, CSV viewer, local file tools, web utility, P2P share, online editor">
     <meta name="author" content="WebTools Utility">
-    <meta name="theme-color" content="#07070d">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://webtools.utility/">
     <meta property="og:title" content="WebTools Utility — High-Performance File Hub">
-    <meta property="og:description" content="Analyze, view, and edit files locally in your browser. Supports Archives, Media, Hex, NBT, JSON, CSV. Secure & Private.">
+    <meta property="og:description" content="Analyze, view, and edit files locally in your browser. Supports Archives, Media, Hex, NBT, JSON, CSV, and more.">
     <meta property="og:image" content="https://webtools.utility/assets/og-cover.png">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://webtools.utility/">
     <meta name="twitter:title" content="WebTools Utility — High-Performance File Hub">
-    <meta name="twitter:description" content="Analyze, view, and edit files locally in your browser. Secure & Private.">
+    <meta name="twitter:description" content="Analyze, view, and edit files locally in your browser. Secure and private.">
     <meta name="twitter:image" content="https://webtools.utility/assets/og-cover.png">
 
-    <!-- Schema.org JSON-LD -->
+    <!-- Schema.org JSON-LD Markup -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -37,7 +36,11 @@
       "applicationCategory": "UtilitiesApplication",
       "operatingSystem": "All",
       "browserRequirements": "Requires a modern browser with JavaScript enabled",
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
       "featureList": "File Viewing, Hex Editing, NBT Parsing, Archive Extraction, P2P Sharing, Local Conversion"
     }
     </script>
@@ -66,7 +69,7 @@
             </a>
             
             <div class="header-controls">
-                <!-- ✅ LANGUAGE SWITCHER (i18n) -->
+                <!-- Language Switcher -->
                 <div class="custom-dropdown" id="langDropdown">
                     <div class="custom-dropdown-trigger" id="langTrigger" role="button" aria-haspopup="listbox" aria-expanded="false">
                         <span id="currentLang">EN</span>
@@ -88,14 +91,29 @@
                 <button class="control-btn" id="settingsBtn" data-i18n="settings_btn">⚙️ Settings</button>
             </div>
 
-            <!-- SETTINGS DROPDOWN -->
+            <!-- Settings Dropdown -->
             <div class="settings-dropdown" id="settingsDropdown">
                 <div class="settings-title" data-i18n="global_settings">GLOBAL SETTINGS</div>
-                <div class="settings-row"><span data-i18n="light_theme">Light Theme</span><label class="switch"><input type="checkbox" id="themeToggle"><span class="slider"></span></label></div>
-                <div class="settings-row"><span data-i18n="disable_animations">Disable Animations</span><label class="switch"><input type="checkbox" id="animToggle"><span class="slider"></span></label></div>
-                <div class="settings-row"><span data-i18n="custom_scrollbar">Custom Scrollbar</span><label class="switch"><input type="checkbox" id="scrollToggle" checked><span class="slider"></span></label></div>
-                <div class="settings-row"><span data-i18n="force_hex">Force Hex Mode</span><label class="switch"><input type="checkbox" id="hexToggle"><span class="slider"></span></label></div>
+                
+                <div class="settings-row">
+                    <span data-i18n="light_theme">Light Theme</span>
+                    <label class="switch"><input type="checkbox" id="themeToggle"><span class="slider"></span></label>
+                </div>
+                <div class="settings-row">
+                    <span data-i18n="disable_animations">Disable Animations</span>
+                    <label class="switch"><input type="checkbox" id="animToggle"><span class="slider"></span></label>
+                </div>
+                <div class="settings-row">
+                    <span data-i18n="custom_scrollbar">Custom Scrollbar</span>
+                    <label class="switch"><input type="checkbox" id="scrollToggle" checked><span class="slider"></span></label>
+                </div>
+                <div class="settings-row">
+                    <span data-i18n="force_hex">Force Hex Mode</span>
+                    <label class="switch"><input type="checkbox" id="hexToggle"><span class="slider"></span></label>
+                </div>
+                
                 <hr class="settings-divider">
+                
                 <div class="settings-footer-links">
                     <button class="settings-link-btn" id="privacyBtn" data-i18n="privacy_policy">Privacy Policy</button>
                     <button class="settings-link-btn" id="termsBtn" data-i18n="terms_of_use">Terms of Use</button>
@@ -110,13 +128,22 @@
                 <section class="panel-section">
                     <div class="section-header">
                         <span data-i18n="active_files">ACTIVE FILES</span>
-                        <div class="header-actions"><button class="action-btn" id="clearAllBtn" title="Clear All">🗑️</button></div>
+                        <div class="header-actions">
+                            <button class="action-btn" id="clearAllBtn" title="Clear All">🗑️</button>
+                        </div>
                     </div>
-                    <div class="search-wrapper"><input type="text" id="fileSearchInput" placeholder="Search files..." data-i18n-placeholder="search_files"></div>
-                    <div class="file-tree" id="fileTree"><div class="tree-item empty" data-i18n="no_active_files">No active files</div></div>
+                    <div class="search-wrapper">
+                        <input type="text" id="fileSearchInput" placeholder="Search files..." data-i18n-placeholder="search_files">
+                    </div>
+                    <div class="file-tree" id="fileTree">
+                        <div class="tree-item empty" data-i18n="no_active_files">No active files</div>
+                    </div>
                 </section>
+                
                 <section class="panel-section metadata-section">
-                    <div class="section-header"><span data-i18n="metadata">METADATA</span></div>
+                    <div class="section-header">
+                        <span data-i18n="metadata">METADATA</span>
+                    </div>
                     <div class="meta-content" id="metaContent">
                         <div class="meta-row"><span data-i18n="size">Size</span>: <span id="metaSize">0 KB</span></div>
                         <div class="meta-row"><span data-i18n="format">Format</span>: <span id="metaFormat">—</span></div>
@@ -163,7 +190,7 @@
                         </div>
                     </div>
                     
-                    <!-- EDITOR TOOLS -->
+                    <!-- Editor Search/Replace Toolbar -->
                     <div class="editor-tools-toolbar" id="editorTools" style="display: none;">
                         <div class="toolbar-section">
                             <button class="action-btn" id="searchReplaceBtn">🔍 0/0</button>
@@ -182,7 +209,9 @@
                         </div>
                     </div>
 
-                    <div class="viewer-content-wrapper" id="viewerContent"></div>
+                    <div class="viewer-content-wrapper" id="viewerContent">
+                        <!-- Content injected via JS -->
+                    </div>
                 </div>
             </main>
 
@@ -197,7 +226,7 @@
     </div>
 
     <!-- MODALS -->
-    <!-- Delete All -->
+    <!-- Delete All Confirmation -->
     <div class="modal-overlay" id="deleteAllModal">
         <div class="modal-box">
             <h3 class="modal-title danger-title" data-i18n="delete_all_files">Delete All Files?</h3>
@@ -209,13 +238,13 @@
         </div>
     </div>
 
-    <!-- Convert Modal with Placeholder -->
+    <!-- Convert Modal -->
     <div class="modal-overlay" id="convertModal">
         <div class="modal-box">
             <h3 class="modal-title accent-title" data-i18n="webtools_local_converter">WebTools Local Converter</h3>
             <p class="modal-text" id="convertDesc" data-i18n="convert_into">Convert "{name}" into another format locally.</p>
             
-            <!-- ✅ CONVERSION PLACEHOLDER (Video/Audio Unavailable) -->
+            <!-- Conversion Placeholder (Video/Audio limitation) -->
             <div class="conversion-placeholder" id="conversionPlaceholder">
                 <div class="placeholder-icon">⚠️</div>
                 <h4 class="placeholder-title" data-i18n="temporarily_unavailable">Temporarily unavailable</h4>
@@ -228,6 +257,7 @@
                     <option data-i18n="select_target_format">-- Select target format --</option>
                 </select>
             </div>
+            
             <div class="modal-buttons">
                 <button class="modal-btn btn-cancel" data-i18n="cancel">Cancel</button>
                 <button class="modal-btn btn-accent" data-i18n="convert_save">Convert & Save</button>
@@ -235,7 +265,7 @@
         </div>
     </div>
 
-    <!-- Rename -->
+    <!-- Rename Modal -->
     <div class="modal-overlay" id="renameModal">
         <div class="modal-box">
             <h3 class="modal-title" data-i18n="rename">Rename</h3>
@@ -248,25 +278,34 @@
         </div>
     </div>
 
-    <!-- P2P QuickShare -->
+    <!-- P2P QuickShare Modal -->
     <div class="modal-overlay" id="p2pModal">
         <div class="modal-box p2p-modal">
             <div class="p2p-header">
                 <h3 class="p2p-title" data-i18n="p2p_quickshare">📡 P2P QuickShare</h3>
                 <button class="p2p-close-btn" id="p2pCloseBtn">✖</button>
             </div>
+            
             <div class="p2p-tabs">
                 <button class="p2p-tab-btn active" data-tab="send" data-i18n="send">📤 Send</button>
                 <button class="p2p-tab-btn" data-tab="receive" data-i18n="receive">📥 Receive</button>
             </div>
+
+            <!-- Send Tab -->
             <div class="p2p-tab-content active" id="sendTab">
                 <p class="p2p-help-text" data-i18n="add_files_workspace">Add files from workspace. Multiple receivers can connect simultaneously.</p>
-                <!-- ✅ FIXED QUICK SHARE BUTTON (Green Style) -->
                 <button class="p2p-file-action-btn" id="p2pAddFilesBtn" data-i18n="add_files_from_workspace">＋ Add Files from Workspace</button>
-                <div class="p2p-pulse-container" style="display:none;"><div class="p2p-pulse-ring"></div><div class="p2p-pulse-ring delay-1"></div><div class="p2p-pulse-center">🚀</div></div>
+                
+                <div class="p2p-pulse-container" style="display:none;">
+                    <div class="p2p-pulse-ring"></div>
+                    <div class="p2p-pulse-ring delay-1"></div>
+                    <div class="p2p-pulse-center">🚀</div>
+                </div>
                 <p class="p2p-status-label" style="display:none;" data-i18n="waiting_receivers">⏳ Waiting for receivers…</p>
                 <button class="modal-btn btn-accent" style="width:100%; margin-top:15px; display:none;" data-i18n="start_sharing">🚀 Start Sharing</button>
             </div>
+
+            <!-- Receive Tab -->
             <div class="p2p-tab-content" id="receiveTab" style="display:none;">
                 <p class="p2p-help-text" data-i18n="enter_6_char_code">Enter the 6-character code from the sender:</p>
                 <input type="text" class="modal-input" maxlength="6" placeholder="------" style="text-align:center; letter-spacing:8px; font-size:20px;">
@@ -275,14 +314,16 @@
         </div>
     </div>
 
-    <!-- Legal -->
+    <!-- Legal Modals (Privacy & Terms) -->
     <div class="modal-overlay" id="legalModal">
         <div class="modal-box legal-modal">
             <div class="legal-header">
                 <h3 class="modal-title" id="legalTitle" data-i18n="legal">LEGAL</h3>
                 <button class="modal-btn btn-cancel" id="legalCloseBtn" data-i18n="close">Close</button>
             </div>
-            <div class="legal-scroll" id="legalContent"></div>
+            <div class="legal-scroll" id="legalContent">
+                <!-- Content injected dynamically -->
+            </div>
         </div>
     </div>
 
@@ -306,74 +347,9 @@
         </div>
     </div>
 
+    <!-- Toasts -->
     <div class="toast-notification" id="toast"></div>
 
-    <!-- ✅ FULL I18N & APP LOGIC SCRIPT -->
-    <script>
-        // ── TRANSLATIONS DICTIONARY (8 LANGUAGES) ──
-        const translations = {
-            en: { app_title:"Utility", share_btn:"📡 Share", settings_btn:"⚙️ Settings", global_settings:"GLOBAL SETTINGS", light_theme:"Light Theme", disable_animations:"Disable Animations", custom_scrollbar:"Custom Scrollbar", force_hex:"Force Hex Mode", privacy_policy:"Privacy Policy", terms_of_use:"Terms of Use", active_files:"ACTIVE FILES", no_active_files:"No active files", metadata:"METADATA", size:"Size", format:"Format", checksum:"Checksum", calculate_sha256:"Calculate SHA-256", open_view_any_file:"Open & View Any File", drag_files_here:"Drag files here or click to browse", supported_formats:"Media · Archives · Scripts · Images · JSON · CSV · Configs", storing_locally:"Storing locally…", back:"⬅ Back", file_viewer:"FILE VIEWER", raw:"〈/〉 Raw", edit:"✏️ Edit", convert:"🔄 Convert", download:"📥 Download", replace_all:"Replace All", format_btn:"✨ Format", upper:"🔠 Upper", lower:"🔡 Lower", insert_template:"📋 Insert template...", lines:"Lines", words:"Words", chars:"Chars", advertisement:"ADVERTISEMENT", adSense_active:"AdSense is active", delete_all_files:"Delete All Files?", delete_all_desc:"All files will be removed from local storage. This cannot be undone.", cancel:"Cancel", delete_all:"Delete All", webtools_local_converter:"WebTools Local Converter", target_format:"Target Format", select_target_format:"-- Select target format --", convert_save:"Convert & Save", rename:"Rename", enter_new_name:"Enter a new name:", delete_item:"Delete Item?", delete:"Delete", legal:"LEGAL", close:"Close", p2p_quickshare:"📡 P2P QuickShare", send:"📤 Send", receive:"📥 Receive", add_files_workspace:"Add files from workspace. Multiple receivers can connect simultaneously.", add_files_from_workspace:"＋ Add Files from Workspace", start_sharing:"🚀 Start Sharing", share_code_qr:"Share this code or QR with receivers:", waiting_receivers:"⏳ Waiting for receivers…", stop_sharing:"✖ Stop Sharing", enter_6_char_code:"Enter the 6-character code from the sender:", connect_receive:"🔗 Connect & Receive", cookie_title:"🍪 We use cookies", cookie_desc:"We save your UI preferences locally. Third-party ads (Google AdSense) may also set cookies. By continuing you agree to our", decline:"Decline", accept_all:"Accept All", temporarily_unavailable:"Temporarily unavailable", technical_difficulties:"We are experiencing technical difficulties. This feature will be back online soon.", upload_file:"Upload file", convert_into:"Convert \"{name}\" into another format locally.", remove_from_archive:"Remove {name} from the archive view?", search_files:"Search files..." },
-            uk: { app_title:"Утиліта", share_btn:"📡 Поділитися", settings_btn:"⚙️ Налаштування", global_settings:"ЗАГАЛЬНІ НАЛАШТУВАННЯ", light_theme:"Світла тема", disable_animations:"Вимкнути анімації", custom_scrollbar:"Кастомний скролбар", force_hex:"Примусовий Hex", privacy_policy:"Політика конфіденційності", terms_of_use:"Умови використання", active_files:"АКТИВНІ ФАЙЛИ", no_active_files:"Немає активних файлів", metadata:"МЕТАДАНІ", size:"Розмір", format:"Формат", checksum:"Контрольна сума", calculate_sha256:"Обчислити SHA-256", open_view_any_file:"Відкрити та переглянути будь-який файл", drag_files_here:"Перетягніть файли сюди або натисніть для вибору", supported_formats:"Медіа · Архіви · Скрипти · Зображення · JSON · CSV · Конфіги", storing_locally:"Зберігається локально…", back:"⬅ Назад", file_viewer:"ПЕРЕГЛЯДАЧ ФАЙЛІВ", raw:"〈/〉 Код", edit:"✏️ Редагувати", convert:"🔄 Конвертувати", download:"📥 Завантажити", replace_all:"Замінити все", format_btn:"✨ Форматувати", upper:"🔠 Верхній", lower:"🔡 Нижній", insert_template:"📋 Вставити шаблон...", lines:"Рядки", words:"Слова", chars:"Символи", advertisement:"РЕКЛАМА", adSense_active:"AdSense активний", delete_all_files:"Видалити всі файли?", delete_all_desc:"Усі файли будуть видалені з локального сховища. Це неможливо скасувати.", cancel:"Скасувати", delete_all:"Видалити все", webtools_local_converter:"Локальний конвертер WebTools", target_format:"Цільовий формат", select_target_format:"-- Виберіть цільовий формат --", convert_save:"Конвертувати та зберегти", rename:"Перейменувати", enter_new_name:"Введіть нову назву:", delete_item:"Видалити елемент?", delete:"Видалити", legal:"ЮРИДИЧНО", close:"Закрити", p2p_quickshare:"📡 P2P Швидкий обмін", send:"📤 Надіслати", receive:"📥 Отримати", add_files_workspace:"Додайте файли з робочої області. Кілька отримувачів можуть підключатися одночасно.", add_files_from_workspace:"＋ Додати файли з робочої області", start_sharing:"🚀 Почати обмін", share_code_qr:"Поділіться цим кодом або QR з отримувачами:", waiting_receivers:"⏳ Очікування отримувачів…", stop_sharing:"✖ Зупинити обмін", enter_6_char_code:"Введіть 6-значний код від відправника:", connect_receive:"🔗 Підключитися та отримати", cookie_title:"🍪 Ми використовуємо файли cookie", cookie_desc:"Ми зберігаємо ваші налаштування інтерфейсу локально. Стороння реклама (Google AdSense) також може встановлювати файли cookie. Продовжуючи, ви погоджуєтесь з нашою", decline:"Відхилити", accept_all:"Прийняти всі", temporarily_unavailable:"Тимчасово недоступно", technical_difficulties:"Виникли технічні неполадки. Ця функція скоро знову буде доступна.", upload_file:"Завантажити файл", convert_into:"Конвертувати \"{name}\" в інший формат локально.", remove_from_archive:"Видалити {name} з перегляду архіву?", search_files:"Пошук файлів..." },
-            ru: { app_title:"Утилита", share_btn:"📡 Поделиться", settings_btn:"⚙️ Настройки", global_settings:"ОБЩИЕ НАСТРОЙКИ", light_theme:"Светлая тема", disable_animations:"Отключить анимации", custom_scrollbar:"Кастомный скроллбар", force_hex:"Принудительный Hex", privacy_policy:"Политика конфиденциальности", terms_of_use:"Условия использования", active_files:"АКТИВНЫЕ ФАЙЛЫ", no_active_files:"Нет активных файлов", metadata:"МЕТАДАННЫЕ", size:"Размер", format:"Формат", checksum:"Контрольная сумма", calculate_sha256:"Вычислить SHA-256", open_view_any_file:"Открыть и просмотреть любой файл", drag_files_here:"Перетащите файлы сюда или нажмите для выбора", supported_formats:"Медиа · Архивы · Скрипты · Изображения · JSON · CSV · Конфиги", storing_locally:"Сохраняется локально…", back:"⬅ Назад", file_viewer:"ПРОСМОТР ФАЙЛОВ", raw:"〈/〉 Код", edit:"✏️ Редактировать", convert:"🔄 Конвертировать", download:"📥 Скачать", replace_all:"Заменить все", format_btn:"✨ Форматировать", upper:"🔠 Верхний", lower:"🔡 Нижний", insert_template:"📋 Вставить шаблон...", lines:"Строки", words:"Слова", chars:"Символы", advertisement:"РЕКЛАМА", adSense_active:"AdSense активен", delete_all_files:"Удалить все файлы?", delete_all_desc:"Все файлы будут удалены из локального хранилища. Это нельзя отменить.", cancel:"Отмена", delete_all:"Удалить все", webtools_local_converter:"Локальный конвертер WebTools", target_format:"Целевой формат", select_target_format:"-- Выберите целевой формат --", convert_save:"Конвертировать и сохранить", rename:"Переименовать", enter_new_name:"Введите новое имя:", delete_item:"Удалить элемент?", delete:"Удалить", legal:"ЮРИДИЧЕСКИ", close:"Закрыть", p2p_quickshare:"📡 P2P Быстрый обмен", send:"📤 Отправить", receive:"📥 Получить", add_files_workspace:"Добавьте файлы из рабочей области. Несколько получателей могут подключаться одновременно.", add_files_from_workspace:"＋ Добавить файлы из рабочей области", start_sharing:"🚀 Начать обмен", share_code_qr:"Поделитесь этим кодом или QR с получателями:", waiting_receivers:"⏳ Ожидание получателей…", stop_sharing:"✖ Остановить обмен", enter_6_char_code:"Введите 6-значный код от отправителя:", connect_receive:"🔗 Подключиться и получить", cookie_title:"🍪 Мы используем файлы cookie", cookie_desc:"Мы сохраняем ваши настройки интерфейса локально. Сторонняя реклама (Google AdSense) также может устанавливать файлы cookie. Продолжая, вы соглашаетесь с нашей", decline:"Отклонить", accept_all:"Принять все", temporarily_unavailable:"Временно недоступно", technical_difficulties:"Возникли технические неполадки. Эта функция скоро снова будет доступна.", upload_file:"Загрузить файл", convert_into:"Конвертировать \"{name}\" в другой формат локально.", remove_from_archive:"Удалить {name} из просмотра архива?", search_files:"Поиск файлов..." },
-            de: { app_title:"Dienstprogramm", share_btn:"📡 Teilen", settings_btn:"⚙️ Einstellungen", global_settings:"GLOBALE EINSTELLUNGEN", light_theme:"Helles Design", disable_animations:"Animationen deaktivieren", custom_scrollbar:"Benutzerdefinierte Scrollbar", force_hex:"Hex-Modus erzwingen", privacy_policy:"Datenschutzrichtlinie", terms_of_use:"Nutzungsbedingungen", active_files:"AKTIVE DATEIEN", no_active_files:"Keine aktiven Dateien", metadata:"METADATEN", size:"Größe", format:"Format", checksum:"Prüfsumme", calculate_sha256:"SHA-256 berechnen", open_view_any_file:"Beliebige Datei öffnen & anzeigen", drag_files_here:"Dateien hierher ziehen oder klicken", supported_formats:"Medien · Archive · Skripte · Bilder · JSON · CSV · Konfigurationen", storing_locally:"Lokal speichern…", back:"⬅ Zurück", file_viewer:"DATEI-VIEWER", raw:"〈/〉 Raw", edit:"✏️ Bearbeiten", convert:"🔄 Konvertieren", download:"📥 Herunterladen", replace_all:"Alle ersetzen", format_btn:"✨ Formatieren", upper:"🔠 Groß", lower:"🔡 Klein", insert_template:"📋 Vorlage einfügen...", lines:"Zeilen", words:"Wörter", chars:"Zeichen", advertisement:"WERBUNG", adSense_active:"AdSense ist aktiv", delete_all_files:"Alle Dateien löschen?", delete_all_desc:"Alle Dateien werden aus dem lokalen Speicher entfernt. Dies kann nicht rückgängig gemacht werden.", cancel:"Abbrechen", delete_all:"Alle löschen", webtools_local_converter:"WebTools Lokaler Konverter", target_format:"Zielformat", select_target_format:"-- Zielformat auswählen --", convert_save:"Konvertieren & Speichern", rename:"Umbenennen", enter_new_name:"Neuen Namen eingeben:", delete_item:"Element löschen?", delete:"Löschen", legal:"RECHTLICHES", close:"Schließen", p2p_quickshare:"📡 P2P QuickShare", send:"📤 Senden", receive:"📥 Empfangen", add_files_workspace:"Dateien aus dem Arbeitsbereich hinzufügen. Mehrere Empfänger können sich gleichzeitig verbinden.", add_files_from_workspace:"＋ Dateien aus Arbeitsbereich hinzufügen", start_sharing:"🚀 Teilen starten", share_code_qr:"Teilen Sie diesen Code oder QR mit Empfängern:", waiting_receivers:"⏳ Warten auf Empfänger…", stop_sharing:"✖ Teilen stoppen", enter_6_char_code:"Geben Sie den 6-stelligen Code des Absenders ein:", connect_receive:"🔗 Verbinden & Empfangen", cookie_title:"🍪 Wir verwenden Cookies", cookie_desc:"Wir speichern Ihre UI-Einstellungen lokal. Drittanbieter-Werbung (Google AdSense) kann ebenfalls Cookies setzen. Indem Sie fortfahren, stimmen Sie unserer", decline:"Ablehnen", accept_all:"Alle akzeptieren", temporarily_unavailable:"Vorübergehend nicht verfügbar", technical_difficulties:"Wir haben technische Schwierigkeiten. Diese Funktion wird bald wieder online sein.", upload_file:"Datei hochladen", convert_into:"\"{name}\" lokal in ein anderes Format konvertieren.", remove_from_archive:"{name} aus der Archivansicht entfernen?", search_files:"Dateien suchen..." },
-            pl: { app_title:"Narzędzie", share_btn:"📡 Udostępnij", settings_btn:"⚙️ Ustawienia", global_settings:"USTAWIENIA GLOBALNE", light_theme:"Jasny motyw", disable_animations:"Wyłącz animacje", custom_scrollbar:"Niestandardowy pasek przewijania", force_hex:"Wymuś tryb Hex", privacy_policy:"Polityka prywatności", terms_of_use:"Warunki korzystania", active_files:"AKTYWNE PLIKI", no_active_files:"Brak aktywnych plików", metadata:"METADANE", size:"Rozmiar", format:"Format", checksum:"Suma kontrolna", calculate_sha256:"Oblicz SHA-256", open_view_any_file:"Otwórz i wyświetl dowolny plik", drag_files_here:"Przeciągnij pliki tutaj lub kliknij, aby wybrać", supported_formats:"Media · Archiwa · Skrypty · Obrazy · JSON · CSV · Konfiguracje", storing_locally:"Przechowywanie lokalne…", back:"⬅ Wstecz", file_viewer:"PRZEGLĄDARKA PLIKÓW", raw:"〈/〉 Surowy", edit:"✏️ Edytuj", convert:"🔄 Konwertuj", download:"📥 Pobierz", replace_all:"Zamień wszystko", format_btn:"✨ Formatuj", upper:"🔠 Wielkie", lower:"🔡 Małe", insert_template:"📋 Wstaw szablon...", lines:"Linie", words:"Słowa", chars:"Znaki", advertisement:"REKLAMA", adSense_active:"AdSense jest aktywny", delete_all_files:"Usunąć wszystkie pliki?", delete_all_desc:"Wszystkie pliki zostaną usunięte z pamięci lokalnej. Tej operacji nie można cofnąć.", cancel:"Anuluj", delete_all:"Usuń wszystko", webtools_local_converter:"Lokalny konwerter WebTools", target_format:"Format docelowy", select_target_format:"-- Wybierz format docelowy --", convert_save:"Konwertuj i Zapisz", rename:"Zmień nazwę", enter_new_name:"Wprowadź nową nazwę:", delete_item:"Usunąć element?", delete:"Usuń", legal:"PRAWNE", close:"Zamknij", p2p_quickshare:"📡 P2P QuickShare", send:"📤 Wyślij", receive:"📥 Odbierz", add_files_workspace:"Dodaj pliki z obszaru roboczego. Wielu odbiorców może połączyć się jednocześnie.", add_files_from_workspace:"＋ Dodaj pliki z obszaru roboczego", start_sharing:"🚀 Rozpocznij udostępnianie", share_code_qr:"Udostępnij ten kod lub QR odbiorcom:", waiting_receivers:"⏳ Oczekiwanie na odbiorców…", stop_sharing:"✖ Zatrzymaj udostępnianie", enter_6_char_code:"Wprowadź 6-znakowy kod od nadawcy:", connect_receive:"🔗 Połącz i Odbierz", cookie_title:"🍪 Używamy plików cookie", cookie_desc:"Zapisujemy Twoje preferencje UI lokalnie. Reklamy stron trzecich (Google AdSense) również mogą ustawiać pliki cookie. Kontynuując, wyrażasz zgodę na naszą", decline:"Odrzuć", accept_all:"Zaakceptuj wszystko", temporarily_unavailable:"Tymczasowo niedostępne", technical_difficulties:"Mamy problemy techniczne. Ta funkcja wkrótce znów będzie dostępna.", upload_file:"Prześlij plik", convert_into:"Konwertuj \"{name}\" lokalnie na inny format.", remove_from_archive:"Usunąć {name} z widoku archiwum?", search_files:"Szukaj plików..." },
-            es: { app_title:"Utilidad", share_btn:"📡 Compartir", settings_btn:"⚙️ Ajustes", global_settings:"AJUSTES GLOBALES", light_theme:"Tema Claro", disable_animations:"Desactivar Animaciones", custom_scrollbar:"Barra Desplazamiento", force_hex:"Forzar Modo Hex", privacy_policy:"Política de Privacidad", terms_of_use:"Términos de Uso", active_files:"ARCHIVOS ACTIVOS", no_active_files:"No hay archivos activos", metadata:"METADATOS", size:"Tamaño", format:"Formato", checksum:"Suma de verificación", calculate_sha256:"Calcular SHA-256", open_view_any_file:"Abrir y Ver Cualquier Archivo", drag_files_here:"Arrastra archivos aquí o haz clic para buscar", supported_formats:"Medios · Archivos · Scripts · Imágenes · JSON · CSV · Configs", storing_locally:"Almacenando localmente…", back:"⬅ Atrás", file_viewer:"VISOR DE ARCHIVOS", raw:"〈/〉 Raw", edit:"✏️ Editar", convert:"🔄 Convertir", download:"📥 Descargar", replace_all:"Reemplazar Todo", format_btn:"✨ Formatear", upper:"🔠 Mayús", lower:"🔡 Minús", insert_template:"📋 Insertar plantilla...", lines:"Líneas", words:"Palabras", chars:"Caracteres", advertisement:"PUBLICIDAD", adSense_active:"AdSense está activo", delete_all_files:"¿Eliminar Todos los Archivos?", delete_all_desc:"Todos los archivos se eliminarán del almacenamiento local. Esto no se puede deshacer.", cancel:"Cancelar", delete_all:"Eliminar Todo", webtools_local_converter:"Conversor Local WebTools", target_format:"Formato Destino", select_target_format:"-- Seleccionar formato destino --", convert_save:"Convertir y Guardar", rename:"Renombrar", enter_new_name:"Introduce un nuevo nombre:", delete_item:"¿Eliminar Elemento?", delete:"Eliminar", legal:"LEGAL", close:"Cerrar", p2p_quickshare:"📡 P2P QuickShare", send:"📤 Enviar", receive:"📥 Recibir", add_files_workspace:"Añade archivos del espacio de trabajo. Varios receptores pueden conectarse simultáneamente.", add_files_from_workspace:"＋ Añadir Archivos del Espacio", start_sharing:"🚀 Iniciar Compartir", share_code_qr:"Comparte este código o QR con los receptores:", waiting_receivers:"⏳ Esperando receptores…", stop_sharing:"✖ Detener Compartir", enter_6_char_code:"Introduce el código de 6 caracteres del remitente:", connect_receive:"🔗 Conectar y Recibir", cookie_title:"🍪 Usamos cookies", cookie_desc:"Guardamos tus preferencias de UI localmente. Anuncios de terceros (Google AdSense) también pueden usar cookies. Al continuar, aceptas nuestra", decline:"Rechazar", accept_all:"Aceptar Todo", temporarily_unavailable:"Temporalmente no disponible", technical_difficulties:"Estamos experimentando dificultades técnicas. Esta función volverá a estar en línea pronto.", upload_file:"Subir archivo", convert_into:"Convertir \"{name}\" a otro formato localmente.", remove_from_archive:"¿Eliminar {name} de la vista de archivo?", search_files:"Buscar archivos..." },
-            fr: { app_title:"Utilitaire", share_btn:"📡 Partager", settings_btn:"⚙️ Paramètres", global_settings:"PARAMÈTRES GLOBAUX", light_theme:"Thème Clair", disable_animations:"Désactiver Animations", custom_scrollbar:"Barre Défilement", force_hex:"Forcer Mode Hex", privacy_policy:"Politique de Confidentialité", terms_of_use:"Conditions d'Utilisation", active_files:"FICHIERS ACTIFS", no_active_files:"Aucun fichier actif", metadata:"MÉTADONNÉES", size:"Taille", format:"Format", checksum:"Somme de contrôle", calculate_sha256:"Calculer SHA-256", open_view_any_file:"Ouvrir et Voir Tout Fichier", drag_files_here:"Glissez les fichiers ici ou cliquez pour parcourir", supported_formats:"Médias · Archives · Scripts · Images · JSON · CSV · Configs", storing_locally:"Stockage local…", back:"⬅ Retour", file_viewer:"VISIONNEUSE", raw:"〈/〉 Raw", edit:"✏️ Éditer", convert:"🔄 Convertir", download:"📥 Télécharger", replace_all:"Tout Remplacer", format_btn:"✨ Formater", upper:"🔠 Majus", lower:"🔡 Minus", insert_template:"📋 Insérer modèle...", lines:"Lignes", words:"Mots", chars:"Caractères", advertisement:"PUBLICITÉ", adSense_active:"AdSense est actif", delete_all_files:"Supprimer Tous les Fichiers ?", delete_all_desc:"Tous les fichiers seront supprimés du stockage local. Cette action est irréversible.", cancel:"Annuler", delete_all:"Tout Supprimer", webtools_local_converter:"Convertisseur Local WebTools", target_format:"Format Cible", select_target_format:"-- Sélectionner format cible --", convert_save:"Convertir et Sauvegarder", rename:"Renommer", enter_new_name:"Entrez un nouveau nom :", delete_item:"Supprimer l'Élément ?", delete:"Supprimer", legal:"LÉGAL", close:"Fermer", p2p_quickshare:"📡 P2P QuickShare", send:"📤 Envoyer", receive:"📥 Recevoir", add_files_workspace:"Ajoutez des fichiers depuis l'espace de travail. Plusieurs destinataires peuvent se connecter simultanément.", add_files_from_workspace:"＋ Ajouter Fichiers Espace", start_sharing:"🚀 Démarrer Partage", share_code_qr:"Partagez ce code ou QR avec les destinataires :", waiting_receivers:"⏳ En attente de destinataires…", stop_sharing:"✖ Arrêter Partage", enter_6_char_code:"Entrez le code à 6 caractères de l'expéditeur :", connect_receive:"🔗 Connecter et Recevoir", cookie_title:"🍪 Nous utilisons des cookies", cookie_desc:"Nous enregistrons vos préférences UI localement. Les publicités tierces (Google AdSense) peuvent également définir des cookies. En continuant, vous acceptez notre", decline:"Refuser", accept_all:"Tout Accepter", temporarily_unavailable:"Temporairement indisponible", technical_difficulties:"Nous rencontrons des difficultés techniques. Cette fonctionnalité sera bientôt de retour en ligne.", upload_file:"Téléverser fichier", convert_into:"Convertir \"{name}\" dans un autre format localement.", remove_from_archive:"Retirer {name} de la vue d'archive ?", search_files:"Rechercher des fichiers..." },
-            it: { app_title:"Utilità", share_btn:"📡 Condividi", settings_btn:"⚙️ Impostazioni", global_settings:"IMPOSTAZIONI GLOBALI", light_theme:"Tema Chiaro", disable_animations:"Disattiva Animazioni", custom_scrollbar:"Barra Scorrimento", force_hex:"Forza Modalità Hex", privacy_policy:"Informativa Privacy", terms_of_use:"Termini di Utilizzo", active_files:"FILE ATTIVI", no_active_files:"Nessun file attivo", metadata:"METADATI", size:"Dimensione", format:"Formato", checksum:"Checksum", calculate_sha256:"Calcola SHA-256", open_view_any_file:"Apri e Visualizza Qualsiasi File", drag_files_here:"Trascina i file qui o clicca per sfogliare", supported_formats:"Media · Archivi · Script · Immagini · JSON · CSV · Configs", storing_locally:"Memorizzazione locale…", back:"⬅ Indietro", file_viewer:"VISUALIZZATORE FILE", raw:"〈/〉 Raw", edit:"✏️ Modifica", convert:"🔄 Converti", download:"📥 Scarica", replace_all:"Sostituisci Tutto", format_btn:"✨ Formatta", upper:"🔠 Maiusc", lower:"🔡 Minusc", insert_template:"📋 Inserisci modello...", lines:"Righe", words:"Parole", chars:"Caratteri", advertisement:"PUBBLICITÀ", adSense_active:"AdSense è attivo", delete_all_files:"Eliminare Tutti i File?", delete_all_desc:"Tutti i file verranno rimossi dalla memoria locale. Questa operazione non può essere annullata.", cancel:"Annulla", delete_all:"Elimina Tutto", webtools_local_converter:"Convertitore Locale WebTools", target_format:"Formato Destinazione", select_target_format:"-- Seleziona formato destinazione --", convert_save:"Converti e Salva", rename:"Rinomina", enter_new_name:"Inserisci un nuovo nome:", delete_item:"Eliminare Elemento?", delete:"Elimina", legal:"LEGALE", close:"Chiudi", p2p_quickshare:"📡 P2P QuickShare", send:"📤 Invia", receive:"📥 Ricevi", add_files_workspace:"Aggiungi file dall'area di lavoro. Più destinatari possono connettersi simultaneamente.", add_files_from_workspace:"＋ Aggiungi File dall'Area", start_sharing:"🚀 Avvia Condivisione", share_code_qr:"Condividi questo codice o QR con i destinatari:", waiting_receivers:"⏳ In attesa di destinatari…", stop_sharing:"✖ Ferma Condivisione", enter_6_char_code:"Inserisci il codice a 6 caratteri dal mittente:", connect_receive:"🔗 Connetti e Ricevi", cookie_title:"🍪 Utilizziamo i cookie", cookie_desc:"Salviamo le tue preferenze UI localmente. Anche la pubblicità di terze parti (Google AdSense) potrebbe impostare cookie. Continuando, accetti la nostra", decline:"Rifiuta", accept_all:"Accetta Tutto", temporarily_unavailable:"Temporaneamente non disponibile", technical_difficulties:"Stiamo riscontrando difficoltà tecniche. Questa funzione tornerà presto online.", upload_file:"Carica file", convert_into:"Converti \"{name}\" in un altro formato localmente.", remove_from_archive:"Rimuovere {name} dalla vista archivio?", search_files:"Cerca file..." }
-        };
-
-        let currentLang = localStorage.getItem('wt_lang') || 'en';
-
-        function applyTranslations() {
-            document.documentElement.lang = currentLang;
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (translations[currentLang] && translations[currentLang][key]) el.textContent = translations[currentLang][key];
-                else if (translations['en'][key]) el.textContent = translations['en'][key];
-            });
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                const key = el.getAttribute('data-i18n-placeholder');
-                if (translations[currentLang] && translations[currentLang][key]) el.placeholder = translations[currentLang][key];
-            });
-            document.getElementById('currentLang').textContent = currentLang.toUpperCase();
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            applyTranslations();
-            
-            // Language Dropdown Logic
-            const langDropdown = document.getElementById('langDropdown');
-            const langTrigger = document.getElementById('langTrigger');
-            const langOptions = document.getElementById('langOptions');
-            
-            langTrigger.addEventListener('click', () => {
-                langDropdown.classList.toggle('open');
-                langOptions.classList.toggle('show');
-            });
-
-            document.querySelectorAll('.custom-dropdown-option').forEach(opt => {
-                opt.addEventListener('click', () => {
-                    currentLang = opt.dataset.lang;
-                    localStorage.setItem('wt_lang', currentLang);
-                    applyTranslations();
-                    langDropdown.classList.remove('open');
-                    langOptions.classList.remove('show');
-                });
-            });
-
-            document.addEventListener('click', (e) => {
-                if (!langDropdown.contains(e.target)) {
-                    langDropdown.classList.remove('open');
-                    langOptions.classList.remove('show');
-                }
-            });
-
-            // Show Cookie Banner if not accepted
-            if (!localStorage.getItem('wt_cookies')) {
-                setTimeout(() => document.getElementById('cookieBanner').classList.add('cb-show'), 1000);
-            }
-        });
-    </script>
     <script src="app.js"></script>
 </body>
 </html>
