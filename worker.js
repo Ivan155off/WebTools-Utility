@@ -15,12 +15,11 @@ const EXT_GROUPS = {
 
 self.onmessage = async function(e) {
     const msg = e.data;
-
     try {
         if (msg.type === 'ANALYZE_FILE') {
             const file = msg.file;
             const ext = file.name.toLowerCase().split('.').pop();
-
+            
             if (msg.forceHex) {
                 handleHex(file);
             } else if (EXT_GROUPS.NBT.includes(ext)) {
@@ -168,7 +167,6 @@ async function handleNBT(file) {
         } catch(e) {
             // Not gzipped, use raw
         }
-
         try {
             const tree = parseNBTBuffer(buffer, 0);
             self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'nbt', data: { tree: tree.value, name: tree.name } });
@@ -199,7 +197,6 @@ function handleHexFromBuffer(buffer) {
     self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'hex', data: { lines } });
 }
 
-// Fixed decompressGzip using DecompressionStream
 async function decompressGzip(data) {
     if (data[0] !== 0x1f || data[1] !== 0x8b) throw new Error('Not gzip');
     const ds = new DecompressionStream('gzip');
@@ -208,7 +205,6 @@ async function decompressGzip(data) {
     return new Uint8Array(decompressed);
 }
 
-// NBT Tag types
 const TAG = {
     END: 0, BYTE: 1, SHORT: 2, INT: 3, LONG: 4,
     FLOAT: 5, DOUBLE: 6, BYTE_ARRAY: 7, STRING: 8,
@@ -230,7 +226,6 @@ function readTag(view, offset, named, typeOverride) {
         name = String.fromCharCode(...nameBytes);
         offset += nameLen;
     }
-
     const { value, offset: newOffset } = readPayload(view, offset, type);
     return { type, name, value, offset: newOffset };
 }
@@ -256,7 +251,7 @@ function readPayload(view, offset, type) {
             const len = view.getUint16(offset); offset += 2;
             const bytes = new Uint8Array(view.buffer, offset, len);
             const str = String.fromCharCode(...bytes);
-            return { value: { _type: 'string', v: str },  offset: offset + len };
+            return { value: { _type: 'string', v: str }, offset: offset + len };
         }
         case TAG.LIST: {
             const elemType = view.getUint8(offset++);
@@ -342,6 +337,7 @@ function md5(buffer) {
     function md5gg(a,b,c,d,x,s,t){return md5cmn((b &d)|(c &(~d)),a,b,x,s,t);}
     function md5hh(a,b,c,d,x,s,t){return md5cmn(b^c^d,a,b,x,s,t);}
     function md5ii(a,b,c,d,x,s,t){return md5cmn(c^(b|(~d)),a,b,x,s,t);}
+    
     const len8 = buffer.length;
     let l = len8 + 8;
     const n = ((l >>> 6) + 1) << 4;
@@ -349,7 +345,7 @@ function md5(buffer) {
     for (let i = 0; i < len8; i++) m[i >> 2] |= buffer[i] << ((i % 4) << 3);
     m[len8 >> 2] |= 0x80 << ((len8 % 4) << 3);
     m[n - 2] = len8 << 3;
-
+    
     let a = 0x67452301, b = 0xEFCDAB89, c = 0x98BADCFE, d = 0x10325476;
     for (let i = 0; i < n; i += 16) {
         const [oa,ob,oc,od] = [a,b,c,d];
@@ -358,18 +354,22 @@ function md5(buffer) {
         a=md5ff(a,b,c,d,M(4),7,-176418897);d=md5ff(d,a,b,c,M(5),12,1200080426);c=md5ff(c,d,a,b,M(6),17,-1473231341);b=md5ff(b,c,d,a,M(7),22,-45705983);
         a=md5ff(a,b,c,d,M(8),7,1770035416);d=md5ff(d,a,b,c,M(9),12,-1958414417);c=md5ff(c,d,a,b,M(10),17,-42063);b=md5ff(b,c,d,a,M(11),22,-1990404162);
         a=md5ff(a,b,c,d,M(12),7,1804603682);d=md5ff(d,a,b,c,M(13),12,-40341101);c=md5ff(c,d,a,b,M(14),17,-1502002290);b=md5ff(b,c,d,a,M(15),22,1236535329);
+        
         a=md5gg(a,b,c,d,M(1),5,-165796510);d=md5gg(d,a,b,c,M(6),9,-1069501632);c=md5gg(c,d,a,b,M(11),14,643717713);b=md5gg(b,c,d,a,M(0),20,-373897302);
         a=md5gg(a,b,c,d,M(5),5,-701558691);d=md5gg(d,a,b,c,M(10),9,38016083);c=md5gg(c,d,a,b,M(15),14,-660478335);b=md5gg(b,c,d,a,M(4),20,-405537848);
         a=md5gg(a,b,c,d,M(9),5,568446438);d=md5gg(d,a,b,c,M(14),9,-1019803690);c=md5gg(c,d,a,b,M(3),14,-187363961);b=md5gg(b,c,d,a,M(8),20,1163531501);
         a=md5gg(a,b,c,d,M(13),5,-1444681467);d=md5gg(d,a,b,c,M(2),9,-51403784);c=md5gg(c,d,a,b,M(7),14,1735328473);b=md5gg(b,c,d,a,M(12),20,-1926607734);
+        
         a=md5hh(a,b,c,d,M(5),4,-378558);d=md5hh(d,a,b,c,M(8),11,-2022574463);c=md5hh(c,d,a,b,M(11),16,1839030562);b=md5hh(b,c,d,a,M(14),23,-35309556);
         a=md5hh(a,b,c,d,M(1),4,-1530992060);d=md5hh(d,a,b,c,M(4),11,1272893353);c=md5hh(c,d,a,b,M(7),16,-155497632);b=md5hh(b,c,d,a,M(10),23,-1094730640);
         a=md5hh(a,b,c,d,M(13),4,681279174);d=md5hh(d,a,b,c,M(0),11,-358537222);c=md5hh(c,d,a,b,M(3),16,-722521979);b=md5hh(b,c,d,a,M(6),23,76029189);
         a=md5hh(a,b,c,d,M(9),4,-640364487);d=md5hh(d,a,b,c,M(12),11,-421815835);c=md5hh(c,d,a,b,M(15),16,530742520);b=md5hh(b,c,d,a,M(2),23,-995338651);
+        
         a=md5ii(a,b,c,d,M(0),6,-198630844);d=md5ii(d,a,b,c,M(7),10,1126891415);c=md5ii(c,d,a,b,M(14),15,-1416354905);b=md5ii(b,c,d,a,M(5),21,-57434055);
         a=md5ii(a,b,c,d,M(12),6,1700485571);d=md5ii(d,a,b,c,M(3),10,-1894986606);c=md5ii(c,d,a,b,M(10),15,-1051523);b=md5ii(b,c,d,a,M(1),21,-2054922799);
         a=md5ii(a,b,c,d,M(8),6,1873313359);d=md5ii(d,a,b,c,M(15),10,-30611744);c=md5ii(c,d,a,b,M(6),15,-1560198380);b=md5ii(b,c,d,a,M(13),21,1309151649);
         a=md5ii(a,b,c,d,M(4),6,-145523070);d=md5ii(d,a,b,c,M(11),10,-1120210379);c=md5ii(c,d,a,b,M(2),15,718787259);b=md5ii(b,c,d,a,M(9),21,-343485551);
+        
         a=safeAdd(a,oa);b=safeAdd(b,ob);c=safeAdd(c,oc);d=safeAdd(d,od);
     }
     return [a,b,c,d].map(n => {
