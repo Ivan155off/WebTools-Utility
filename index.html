@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WebTools Utility — High-Performance File Hub</title>
     <script>
-        // Silence benign Vite websocket connection errors and unhandled rejections 
+        // Silence benign Vite websocket connection errors and unhandled rejections
         window.addEventListener('unhandledrejection', function(event) {
             const reason = event.reason;
             if (reason) {
@@ -221,6 +221,19 @@
       <div class="settings-row"><span>Force Hex Mode</span>
         <label class="switch"><input type="checkbox" id="forceHexToggle"><span class="slider"></span></label>
       </div>
+      <div class="settings-row">
+    <span data-i18n="language">Language</span>
+    <select id="langSelector" class="toolbar-select" style="width: 120px;">
+        <option value="en">English</option>
+        <option value="uk">Українська</option>
+        <option value="ru">Русский</option>
+        <option value="fr">Français</option>
+        <option value="es">Español</option>
+        <option value="de">Deutsch</option>
+        <option value="pl">Polski</option>
+        <option value="it">Italiano</option>
+    </select>
+</div>
       <div class="settings-divider"></div>
       <div class="settings-footer-links">
         <button class="settings-link-btn" id="openPrivacyBtn">Privacy Policy</button>
