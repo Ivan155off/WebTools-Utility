@@ -1,4 +1,4 @@
-/* ── 1. GLOBAL RESET & BASE VARIABLES ── */
+/* ── 1. GLOBAL RESET & BASE VARIABLES ── */ 
 *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
