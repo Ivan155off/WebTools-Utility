@@ -298,7 +298,7 @@ function readPayload(view, offset, type) {
     }
 }
 
-// ── TEXT ──────────────────────────────────────────────────────────────────────
+// ── TEXT ────────────────────────────────────────────────────────────────────── 
 function processAsText(file) {
     const chunkSize = 1024 * 1024 * 4;
     let offset = 0;
