@@ -4,7 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WebTools Utility — High-Performance File Hub</title>
+    <meta name="description" content="A fast, client-side web utility and high-performance file hub for editing, formatting, converting, and managing your files instantly in the browser.">
     <script>
+        let initialTheme = 'dark';
+        try {
+            const storedTheme = (localStorage.getItem('wt_theme') || '').trim().toLowerCase();
+            initialTheme = storedTheme === 'light' ? 'light' : 'dark';
+        } catch (error) {}
+        document.documentElement.setAttribute('data-theme', initialTheme);
+
         // Silence benign Vite websocket connection errors and unhandled rejections
         window.addEventListener('unhandledrejection', function(event) {
             const reason = event.reason;
@@ -26,29 +34,13 @@
             _origConsoleError.apply(console, args);
         };
     </script>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='40' y2='40' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%2310b981'/%3E%3Cstop offset='1' stop-color='%23059669'/%3E%3C/linearGradient%3E%3Cfilter id='s'%3E%3CfeDropShadow dx='0' dy='2' stdDeviation='2' flood-color='%23059669' flood-opacity='.5'/%3E%3C/filter%3E%3C/defs%3E%3Crect x='2' y='2' width='36' height='36' rx='10' fill='url(%23g)' filter='url(%23s)'/%3E%3Crect x='2' y='2' width='36' height='18' rx='10' fill='%2334d399' opacity='.22'/%3E%3Crect x='3' y='3' width='34' height='34' rx='9' fill='none' stroke='rgba(255,255,255,.18)' stroke-width='1'/%3E%3Cellipse cx='15' cy='11' rx='9' ry='4' fill='white' opacity='.12'/%3E%3Ctext x='20' y='27' font-family='system-ui,sans-serif' font-size='16' font-weight='900' fill='white' text-anchor='middle' letter-spacing='-1' opacity='.95'%3EWT%3C/text%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="shortcut icon" href="favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     
-    <!-- 🟢 GOOGLE ADSENSE GLOBAL TAG 🟢 -->
-    <!-- (ca-pub-xxxxxxxxxxxxxx) -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
-
-    <!-- 🟢 GOOGLE SEARCH CONSOLE VERIFICATION 🟢 -->
-    <meta name="google-site-verification" content="XXXXXXXXXX" />
-
-    <!-- 🟢 GOOGLE ANALYTICS (GA4) TAG 🟢 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3NRPS789V3"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-3NRPS789V3');
-    </script>
-
-
     <!-- JSZip Official CDN (Ensures static 3-file bundle runs perfectly) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <!-- FFmpeg.wasm is loaded dynamically on demand (avoids CDN blocking) -->
@@ -189,42 +181,42 @@
   <header class="app-header">
     <div class="logo" id="logoHome">
       <svg class="logo-svg" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="lg1" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#10b981"/><stop offset="1" stop-color="#059669"/>
-          </linearGradient>
-          <filter id="lsh"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#059669" flood-opacity="0.5"/></filter>
-        </defs>
-        <rect x="2" y="2" width="36" height="36" rx="10" fill="url(#lg1)" filter="url(#lsh)"/>
-        <rect x="2" y="2" width="36" height="20" rx="10" fill="#34d399" opacity="0.22"/>
-        <rect x="3" y="3" width="34" height="34" rx="9" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
-        <ellipse cx="15" cy="11" rx="9" ry="4" fill="white" opacity="0.13"/>
-        <text x="20" y="27" font-family="system-ui,-apple-system,sans-serif" font-size="16" font-weight="900" fill="white" text-anchor="middle" letter-spacing="-1" opacity="0.95">WT</text>
+                <defs>
+                    <linearGradient id="lg1" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#10b981"/><stop offset="1" stop-color="#059669"/>
+                    </linearGradient>
+                    <filter id="lsh"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#059669" flood-opacity="0.5"/></filter>
+                </defs>
+                <rect x="2" y="2" width="36" height="36" rx="10" fill="url(#lg1)" filter="url(#lsh)"/>
+                <rect x="2" y="2" width="36" height="20" rx="10" fill="#34d399" opacity="0.22"/>
+                <rect x="3" y="3" width="34" height="34" rx="9" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+                <ellipse cx="15" cy="11" rx="9" ry="4" fill="white" opacity="0.13"/>
+                <text x="20" y="27" font-family="system-ui,-apple-system,sans-serif" font-size="16" font-weight="900" fill="white" text-anchor="middle" letter-spacing="-1" opacity="0.95">WT</text>
       </svg>
       <span class="logo-text">WebTools<span class="logo-sub">Utility</span></span>
     </div>
     <div class="header-controls">
-      <button class="control-btn" id="p2pShareToggle" title="Peer-to-Peer QuickShare">📡 Share</button>
-      <button class="control-btn" id="settingsToggle">⚙️ Settings</button>
+    <button class="control-btn" id="p2pShareToggle" data-i18n="share" title="Peer-to-Peer QuickShare">📡 Share</button>
+    <button class="control-btn" id="settingsToggle" data-i18n="settings">⚙️ Settings</button>
     </div>
     <div class="settings-dropdown" id="settingsDropdown">
-      <div class="settings-title">GLOBAL SETTINGS</div>
-      <div class="settings-row"><span>Light Theme</span>
+    <div class="settings-title" data-i18n="globalSettings">GLOBAL SETTINGS</div>
+    <div class="settings-row"><span data-i18n="lightTheme">Light Theme</span>
         <label class="switch"><input type="checkbox" id="themeThemeToggle"><span class="slider"></span></label>
       </div>
-      <div class="settings-row"><span>Disable Animations</span>
+    <div class="settings-row"><span data-i18n="disableAnimations">Disable Animations</span>
         <label class="switch"><input type="checkbox" id="animationsToggle"><span class="slider"></span></label>
       </div>
-      <div class="settings-row"><span>Custom Scrollbar</span>
+    <div class="settings-row"><span data-i18n="customScrollbar">Custom Scrollbar</span>
         <label class="switch"><input type="checkbox" id="scrollbarToggle" checked><span class="slider"></span></label>
       </div>
-      <div class="settings-row"><span>Force Hex Mode</span>
+    <div class="settings-row"><span data-i18n="forceHex">Force Hex Mode</span>
         <label class="switch"><input type="checkbox" id="forceHexToggle"><span class="slider"></span></label>
       </div>
       <div class="settings-row">
     <span data-i18n="language">Language</span>
-    <select id="langSelector" class="toolbar-select" style="width: 120px;">
-        <option value="en">English</option>
+    <select id="langSelector" class="language-selector" aria-label="Language" style="display:none;">
+        <option value="en-GB">English (GB)</option>
         <option value="uk">Українська</option>
         <option value="ru">Русский</option>
         <option value="fr">Français</option>
@@ -233,11 +225,27 @@
         <option value="pl">Polski</option>
         <option value="it">Italiano</option>
     </select>
+    <div class="language-picker" id="languagePicker">
+        <button class="language-picker-trigger" id="languagePickerTrigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span id="languagePickerValue">English</span><span class="language-picker-arrow" aria-hidden="true"></span></button>
+        <div class="language-picker-options" id="languagePickerOptions" role="listbox">
+            <button type="button" role="option" data-language="en-GB">🇬🇧 English (GB)</button>
+            <button type="button" role="option" data-language="uk">🇺🇦 Ukrainian</button>
+            <button type="button" role="option" data-language="ru">🇷🇺 Russian</button>
+            <button type="button" role="option" data-language="pl">🇵🇱 Polish</button>
+            <button type="button" role="option" data-language="de">🇩🇪 German</button>
+            <button type="button" role="option" data-language="es">🇪🇸 Spanish</button>
+            <button type="button" role="option" data-language="it">🇮🇹 Italian</button>
+            <button type="button" role="option" data-language="fr">🇫🇷 French</button>
+        </div>
+    </div>
 </div>
       <div class="settings-divider"></div>
       <div class="settings-footer-links">
-        <button class="settings-link-btn" id="openPrivacyBtn">Privacy Policy</button>
-        <button class="settings-link-btn" id="openTermsBtn">Terms of Use</button>
+                <div class="settings-footer-row">
+                    <button class="settings-link-btn" id="openPrivacyBtn" data-i18n="privacy">Privacy Policy</button>
+                    <button class="settings-link-btn" id="openTermsBtn" data-i18n="terms">Terms of Use</button>
+                </div>
+                <button class="settings-link-btn settings-support-btn" id="supportProjectBtn" data-i18n="supportProject">Support Project</button>
       </div>
     </div>
   </header>
@@ -249,7 +257,7 @@
     <aside class="sidebar-panels">
       <div class="panel-section">
         <div class="section-header">
-          <span>ACTIVE FILES</span>
+          <span data-i18n="activeFiles">ACTIVE FILES</span>
           <div class="header-actions">
             <button class="action-btn" id="sidebarHomeBtn" title="Open New">📁</button>
             <button class="action-btn" id="downloadAllFilesBtn" title="Download All as ZIP">📦</button>
@@ -257,14 +265,14 @@
           </div>
         </div>
         <div class="search-wrapper">
-          <input type="text" id="fileSearchInput" placeholder="Search files..." spellcheck="false" autocomplete="off">
+          <input type="text" id="fileSearchInput" data-i18n-placeholder="searchFiles" placeholder="Search files..." spellcheck="false" autocomplete="off">
         </div>
         <div class="file-tree" id="sidebarFiles">
-          <div class="tree-item empty">No active files</div>
+          <div class="tree-item empty" data-i18n="noActiveFiles">No active files</div>
         </div>
       </div>
       <div class="panel-section metadata-section" id="metaSection" style="display:none;">
-        <div class="section-header"><span>METADATA</span></div>
+        <div class="section-header"><span data-i18n="metadata">METADATA</span></div>
         <div class="meta-content">
           <div class="meta-row">Size: <span id="metaSize">0 KB</span></div>
           <div class="meta-row">Format: <span id="metaFormat">—</span></div>
@@ -293,9 +301,9 @@
                 <line x1="12" y1="15" x2="12" y2="3"></line>
               </svg>
             </div>
-            <div class="drop-title-huge">Open & View Any File</div>
-            <div class="main-drop-text">Drag files here or click to browse</div>
-            <div class="sub-drop-text">Media · Archives · Scripts · Images · JSON · CSV · Configs</div>
+            <div class="drop-title-huge" data-i18n="openViewFile">Open & View Any File</div>
+            <div class="main-drop-text" data-i18n="dropFiles">Drag files here or click to browse</div>
+            <div class="sub-drop-text" data-i18n="supportedTypes">Media · Archives · Scripts · Images · JSON · CSV · Configs</div>
             <div class="upload-progress-container" id="progressContainer" style="display:none;">
               <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
               <div class="progress-status" id="progressStatus">Storing locally…</div>
@@ -308,14 +316,14 @@
       <div class="viewer-panel" id="viewerPanel" style="display:none;">
         <div class="panel-header">
           <div class="header-left">
-            <button class="control-btn back-btn" id="backToArchiveBtn" style="display:none;">⬅ Back</button>
+              <button class="control-btn back-btn" id="backToArchiveBtn" data-i18n="back" style="display:none;">⬅ Back</button>
             <span id="viewerHeader" class="viewer-title">FILE VIEWER</span>
           </div>
           <div class="header-right">
-            <button class="control-btn" id="viewRawBtn" style="display:none;">〈/〉 Raw</button>
-            <button class="control-btn editor-toggle-btn" id="editorToggleBtn" style="display:none;">✏️ Edit</button>
-            <button class="control-btn" id="convertFileBtn" style="display:inline-block;">🔄 Convert</button>
-            <button class="control-btn download-btn" id="downloadSliceBtn">📥 Download</button>
+            <button class="control-btn" id="viewRawBtn" data-i18n="raw" style="display:none;">〈/〉 Raw</button>
+            <button class="control-btn editor-toggle-btn" id="editorToggleBtn" data-i18n="edit" style="display:none;">✏️ Edit</button>
+            <button class="control-btn" id="convertFileBtn" data-i18n="convertShort" style="display:inline-block;">🔄 Convert</button>
+            <button class="control-btn download-btn" id="downloadSliceBtn" data-i18n="download">📥 Download</button>
           </div>
         </div>
         <div class="viewer-content-wrapper" id="viewerContentWrapper">
@@ -344,20 +352,26 @@
             </div>
             <!-- Editor Formatting and Snippets Toolbar -->
             <div class="editor-tools-toolbar" id="editorToolsToolbar" style="display:none;">
-              <div class="toolbar-section">
-                <button class="panel-action-btn" id="editorFormatBtn" title="Auto-Format / Beautify (e.g. JSON)">✨ Format</button>
-                <button class="panel-action-btn" id="editorUpperCaseBtn" title="Convert selection to UPPERCASE">🔠 Upper</button>
-                <button class="panel-action-btn" id="editorLowerCaseBtn" title="Convert selection to lowercase">🔡 Lower</button>
-              </div>
-              <div class="toolbar-section">
-                <select id="editorSnippetSelect" class="toolbar-select" title="Insert Template Snippet">
-                  <option value="">📋 Insert template...</option>
-                  <option value="html">HTML5 Skeleton</option>
-                  <option value="json">JSON config template</option>
-                  <option value="css">CSS Boilerplate</option>
-                  <option value="js">JS Fetch Template</option>
-                  <option value="md">Markdown Template</option>
-                </select>
+                            <div class="toolbar-section editor-history-tools">
+                                <button class="panel-action-btn" id="editorUndoBtn" data-i18n="undo" title="Undo (Ctrl+Z)">↶ Undo</button>
+                                <button class="panel-action-btn" id="editorRedoBtn" data-i18n="redo" title="Redo (Ctrl+Y)">↷ Redo</button>
+                            </div>
+                            <div class="toolbar-section editor-transform-tools">
+                                <button class="panel-action-btn" id="editorFormatBtn" title="Auto-Format / Beautify (e.g. JSON)">✨ Format</button>
+                                <button class="panel-action-btn" id="editorUpperCaseBtn" title="Convert selection to UPPERCASE">🔠 Upper</button>
+                                <button class="panel-action-btn" id="editorLowerCaseBtn" title="Convert selection to lowercase">🔡 Lower</button>
+                            </div>
+                            <div class="toolbar-section editor-template-tools">
+                                <div class="custom-dropdown editor-template-dropdown" id="editorSnippetSelect" title="Insert Template Snippet">
+                                    <button type="button" class="custom-dropdown-trigger" id="editorSnippetTrigger"><span data-i18n="insertTemplate">📋 Insert template...</span><span class="arrow">▾</span></button>
+                                    <div class="custom-dropdown-options" id="editorSnippetOptions">
+                                        <button type="button" class="custom-dropdown-option" data-value="html" data-i18n="htmlTemplate">HTML5 Skeleton</button>
+                                        <button type="button" class="custom-dropdown-option" data-value="json" data-i18n="jsonTemplate">JSON config template</button>
+                                        <button type="button" class="custom-dropdown-option" data-value="css" data-i18n="cssTemplate">CSS Boilerplate</button>
+                                        <button type="button" class="custom-dropdown-option" data-value="js" data-i18n="jsTemplate">JS Fetch Template</button>
+                                        <button type="button" class="custom-dropdown-option" data-value="md" data-i18n="markdownTemplate">Markdown Template</button>
+                                    </div>
+                                </div>
               </div>
               <div class="toolbar-stats" id="editorToolbarStats">Lines: 1 · Words: 0 · Chars: 0</div>
             </div>
@@ -378,27 +392,6 @@
       </div>
     </main>
 
-    <!-- ADS SIDEBAR -->
-    <aside class="ads-sidebar">
-      <div class="adsense-banner-vertical">
-        <div class="ads-label">ADVERTISEMENT</div>
-        
-        <!-- 🟢 ADSENSE UNIT 🟢 -->
-        <!-- Замени XXXXXXXXXX на свой data-ad-slot из панели AdSense -->
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-             data-ad-slot="XXXXXXXXXX"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>
-             (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-        
-        <div class="ads-placeholder-spec" style="display:none;"><br><small>AdSense is active</small></div>
-      </div>
-    </aside>
-
   </div><!-- /workspace -->
 </div><!-- /app-container -->
 
@@ -407,11 +400,11 @@
 <!-- Delete All -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal-box glass-modal">
-    <div class="modal-title danger-title">Delete All Files?</div>
-    <div class="modal-text">All files will be removed from local storage. This cannot be undone.</div>
+    <div class="modal-title danger-title" data-i18n="deleteAllQuestion">Delete All Files?</div>
+    <div class="modal-text" data-i18n="deleteAllText">All files will be removed from local storage. This cannot be undone.</div>
     <div class="modal-buttons">
-      <button class="modal-btn btn-cancel" id="modalCancelBtn">Cancel</button>
-      <button class="modal-btn btn-danger" id="modalConfirmBtn">Delete All</button>
+    <button class="modal-btn btn-cancel" id="modalCancelBtn" data-i18n="cancel">Cancel</button>
+    <button class="modal-btn btn-danger" id="modalConfirmBtn" data-i18n="deleteAll">Delete All</button>
     </div>
   </div>
 </div>
@@ -484,7 +477,7 @@
   <div class="modal-box legal-modal glass-modal">
     <div class="legal-header"><span class="nbt-badge">LEGAL</span><span class="modal-title accent-title" style="-webkit-text-fill-color:initial;color:var(--text-light)">Privacy Policy</span></div>
     <div class="legal-scroll" id="privacyContent"></div>
-    <div class="modal-buttons"><button class="modal-btn btn-accent" id="closePrivacyBtn">Close</button></div>
+    <div class="modal-buttons"><button class="modal-btn btn-accent" id="closePrivacyBtn" data-i18n="close">Close</button></div>
   </div>
 </div>
 
@@ -493,29 +486,64 @@
   <div class="modal-box legal-modal glass-modal">
     <div class="legal-header"><span class="nbt-badge">LEGAL</span><span class="modal-title accent-title" style="-webkit-text-fill-color:initial;color:var(--text-light)">Terms of Use</span></div>
     <div class="legal-scroll" id="termsContent"></div>
-    <div class="modal-buttons"><button class="modal-btn btn-accent" id="closeTermsBtn">Close</button></div>
+    <div class="modal-buttons"><button class="modal-btn btn-accent" id="closeTermsBtn" data-i18n="close">Close</button></div>
   </div>
+</div>
+
+<!-- Project Support -->
+<div class="modal-overlay" id="supportModal">
+    <div class="modal-box glass-modal support-modal">
+        <div class="support-modal-header">
+            <div>
+                <div class="modal-title accent-title" data-i18n="supportProject">Support Project</div>
+                <p class="support-modal-subtitle" data-i18n="supportProjectText">Support WebTools Utility by visiting the project on GitHub.</p>
+            </div>
+            <button class="p2p-close-btn support-close-btn" id="supportCloseBtn" type="button" aria-label="Close">×</button>
+        </div>
+        <div class="support-links">
+            <a class="support-link" href="https://github.com/Ivan155off/WebTools-Utility" target="_blank" rel="noopener noreferrer">
+                <span class="support-link-icon">⌂</span>
+                <span><strong data-i18n="supportMainSite">Main project page</strong><small data-i18n="supportMainSiteText">Open the GitHub repository</small></span>
+                <span class="support-link-arrow">→</span>
+            </a>
+            <a class="support-link" href="https://github.com/Ivan155off/WebTools-Utility/issues" target="_blank" rel="noopener noreferrer">
+                <span class="support-link-icon">⚑</span>
+                <span><strong data-i18n="supportIssues">Issues</strong><small data-i18n="supportIssuesText">Report a bug or ask a question</small></span>
+                <span class="support-link-arrow">→</span>
+            </a>
+            <a class="support-link" href="https://github.com/Ivan155off/WebTools-Utility/issues/new" target="_blank" rel="noopener noreferrer">
+                <span class="support-link-icon">✎</span>
+                <span><strong data-i18n="supportFeedback">Write a review</strong><small data-i18n="supportFeedbackText">Share feedback or suggest an improvement</small></span>
+                <span class="support-link-arrow">→</span>
+            </a>
+            <a class="support-link support-star-link" href="https://github.com/Ivan155off/WebTools-Utility" target="_blank" rel="noopener noreferrer">
+                <span class="support-link-icon">★</span>
+                <span><strong data-i18n="supportStar">Give the project a star</strong><small data-i18n="supportStarText">Show your support on GitHub</small></span>
+                <span class="support-link-arrow">→</span>
+            </a>
+        </div>
+    </div>
 </div>
 
 <!-- P2P Share Modal -->
 <div class="modal-overlay" id="p2pShareModal">
   <div class="modal-box glass-modal p2p-modal" style="max-width:560px;width:95%;">
     <div class="p2p-header">
-      <div class="p2p-title">📡 P2P QuickShare</div>
+    <div class="p2p-title" data-i18n="p2pTitle">📡 P2P QuickShare</div>
       <button class="p2p-close-btn" id="p2pCloseBtn">×</button>
     </div>
     <div class="p2p-tabs">
-      <button class="p2p-tab-btn active" id="p2pTabSend">📤 Send</button>
-      <button class="p2p-tab-btn" id="p2pTabReceive">📥 Receive</button>
+    <button class="p2p-tab-btn active" id="p2pTabSend" data-i18n="send">📤 Send</button>
+    <button class="p2p-tab-btn" id="p2pTabReceive" data-i18n="receive">📥 Receive</button>
     </div>
     <div class="p2p-body">
       <!-- Send View -->
       <div class="p2p-view" id="p2pSendView">
-        <p class="p2p-help-text" style="margin-bottom:10px;">Add files from workspace. Multiple receivers can connect simultaneously.</p>
+        <p class="p2p-help-text" data-i18n="p2pSendHelp" style="margin-bottom:10px;">Add files from workspace. Multiple receivers can connect simultaneously.</p>
         <div id="p2pFileQueueList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;max-height:140px;overflow-y:auto;"></div>
-        <button class="modal-btn" id="p2pAddFilesBtn" style="width:100%;margin-bottom:8px;background:rgba(255,255,255,0.05);border:1px dashed rgba(255,255,255,0.18);font-size:13px;">＋ Add Files from Workspace</button>
+        <button class="control-btn btn-accent" id="p2pAddFilesBtn" data-i18n="addFiles" style="width:100%;margin-bottom:8px;font-size:13px;">＋ Add Files from Workspace</button>
         <div id="p2pFilePickerDropdown" style="display:none;background:var(--bg-panel,#1a1a2e);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:6px;max-height:160px;overflow-y:auto;margin-bottom:8px;"></div>
-        <button class="modal-btn btn-accent" id="p2pStartBroadcastBtn" style="margin-top:4px;width:100%;">🚀 Start Sharing</button>
+        <button class="modal-btn btn-accent" id="p2pStartBroadcastBtn" data-i18n="startSharing" style="margin-top:4px;width:100%;">🚀 Start Sharing</button>
         <div id="p2pSenderPanel" style="display:none;margin-top:16px;text-align:center;">
           <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:10px;">Share this code or QR with receivers:</div>
           <div id="p2pMyCode" class="p2p-code-display"></div>
@@ -530,7 +558,7 @@
       </div>
       <!-- Receive View -->
       <div class="p2p-view" id="p2pReceiveView" style="display:none;">
-        <p class="p2p-help-text" style="margin-bottom:14px;">Enter the 6-character code from the sender:</p>
+        <p class="p2p-help-text" data-i18n="p2pReceiveHelp" style="margin-bottom:14px;">Enter the 6-character code from the sender:</p>
         <div class="p2p-code-input-wrapper">
           <div class="p2p-code-slots" id="p2pCodeSlots">
             <input class="p2p-slot" maxlength="1" data-idx="0" inputmode="text" autocomplete="off" spellcheck="false">
@@ -543,7 +571,7 @@
           </div>
           <input id="p2pCodeInput" type="text" maxlength="6" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;" autocomplete="off">
         </div>
-        <button id="p2pConnectBtn" class="modal-btn btn-accent" style="width:100%;margin-top:14px;padding:12px;">🔗 Connect &amp; Receive</button>
+        <button id="p2pConnectBtn" class="modal-btn btn-accent" data-i18n="connectReceive" style="width:100%;margin-top:14px;padding:12px;">🔗 Connect &amp; Receive</button>
         <div id="p2pReceiveStatus" style="margin-top:14px;font-size:13px;color:rgba(255,255,255,0.5);text-align:center;min-height:20px;"></div>
         <div id="p2pReceiveProgressList" style="margin-top:8px;display:flex;flex-direction:column;gap:6px;"></div>
         <div id="p2pIncomingFilesList" style="margin-top:8px;"></div>
@@ -561,16 +589,16 @@
     <div class="cookie-banner-left">
       <div class="cookie-banner-icon-wrap">🍪</div>
       <div class="cookie-banner-body">
-        <div class="cookie-banner-title">We use cookies</div>
-        <div class="cookie-banner-desc">We save your UI preferences locally. Third-party ads (Google AdSense) may also set cookies. By continuing you agree to our
-          <button class="cb-link" id="cbPrivacyBtn">Privacy&nbsp;Policy</button> and
-          <button class="cb-link" id="cbTermsBtn">Terms&nbsp;of&nbsp;Use</button>.
+                <div class="cookie-banner-title" data-i18n="cookieTitle">We use cookies</div>
+                <div class="cookie-banner-desc"><span data-i18n="cookieDescription">We save your UI preferences locally. Third-party ads (Google AdSense) may also set cookies. By continuing you agree to our</span>
+                    <button class="cb-link" id="cbPrivacyBtn" data-i18n="privacy">Privacy Policy</button> and
+                    <button class="cb-link" id="cbTermsBtn" data-i18n="terms">Terms of Use</button>.
         </div>
       </div>
     </div>
     <div class="cookie-banner-btns">
-      <button class="cb-btn cb-decline" id="cbDeclineBtn">Decline</button>
-      <button class="cb-btn cb-accept"  id="cbAcceptBtn">Accept All</button>
+    <button class="cb-btn cb-decline" id="cbDeclineBtn" data-i18n="decline">Decline</button>
+    <button class="cb-btn cb-accept"  id="cbAcceptBtn" data-i18n="acceptAll">Accept All</button>
     </div>
   </div>
 </div>
@@ -583,7 +611,6 @@ const settingsToggle    = document.getElementById('settingsToggle');
 const settingsDropdown  = document.getElementById('settingsDropdown');
 const dropZone          = document.getElementById('dropZone');
 const clickableDropBox  = document.getElementById('clickableDropBox');
-const progressContainer = document.getElementById('progressContainer');
 const viewerPanel       = document.getElementById('viewerPanel');
 const viewerHeader      = document.getElementById('viewerHeader');
 const virtualConsole    = document.getElementById('virtualConsole');
@@ -624,11 +651,7 @@ const p2pTabSend        = document.getElementById('p2pTabSend');
 const p2pTabReceive     = document.getElementById('p2pTabReceive');
 const p2pSendView       = document.getElementById('p2pSendView');
 const p2pReceiveView    = document.getElementById('p2pReceiveView');
-const p2pFileSelect     = null;
 const p2pStartBroadcastBtn = document.getElementById('p2pStartBroadcastBtn');
-const p2pBroadcastStatus = document.getElementById('p2pBroadcastStatus');
-const p2pBroadcastingName = document.getElementById('p2pBroadcastingName');
-const p2pIncomingFilesList = document.getElementById('p2pIncomingFilesList');
 
 // Editor Search/Replace references
 const editorSearchReplacePanel = document.getElementById('editorSearchReplacePanel');
@@ -640,6 +663,179 @@ const editorFindNextBtn  = document.getElementById('editorFindNextBtn');
 const editorReplaceSingleBtn = document.getElementById('editorReplaceSingleBtn');
 const editorReplaceAllBtn = document.getElementById('editorReplaceAllBtn');
 const editorCloseSearchBtn = document.getElementById('editorCloseSearchBtn');
+const editorSnippetSelect = document.getElementById('editorSnippetSelect');
+const editorSnippetTrigger = document.getElementById('editorSnippetTrigger');
+const editorSnippetOptions = document.getElementById('editorSnippetOptions');
+let editorSnippetCloseTimer = 0;
+const editorUndoBtn = document.getElementById('editorUndoBtn');
+const editorRedoBtn = document.getElementById('editorRedoBtn');
+
+// ═══════════════════════════════════════════════════════════
+//  INLINE MULTI-LANGUAGE UI
+// ═══════════════════════════════════════════════════════════
+const langSelector = document.getElementById('langSelector');
+const languagePicker = document.getElementById('languagePicker');
+const languagePickerTrigger = document.getElementById('languagePickerTrigger');
+const languagePickerValue = document.getElementById('languagePickerValue');
+const languagePickerOptions = document.getElementById('languagePickerOptions');
+const uiTranslations = {
+    en: {
+        language: 'Language', globalSettings: 'GLOBAL SETTINGS', lightTheme: 'Light Theme', disableAnimations: 'Disable Animations', customScrollbar: 'Custom Scrollbar', forceHex: 'Force Hex Mode', privacy: 'Privacy Policy', terms: 'Terms of Use', activeFiles: 'ACTIVE FILES', searchFiles: 'Search files...', openNew: 'Open New', downloadAll: 'Download All as ZIP', clearAll: 'Clear All', share: '📡 Share', settings: '⚙️ Settings', raw: '〈/〉 Raw', edit: '✏️ Edit', converterMaintenanceTitle: 'Temporarily unavailable', converterMaintenanceText: 'Audio and video conversion is currently under maintenance. The feature will be restored soon.<br><br>You can still play audio/video and download files without conversion.', addFiles: '＋ Add Files from Workspace', send: '📤 Send', receive: '📥 Receive', cancel: 'Cancel', close: 'Close', delete: 'Delete', convert: 'Convert & Save', targetFormat: 'Target Format', startSharing: '🚀 Start Sharing', stopSharing: '✖ Stop Sharing'
+    },
+    uk: {
+        language: 'Мова', globalSettings: 'ЗАГАЛЬНІ НАЛАШТУВАННЯ', lightTheme: 'Світла тема', disableAnimations: 'Вимкнути анімації', customScrollbar: 'Власна смуга прокручування', forceHex: 'Режим HEX', privacy: 'Політика конфіденційності', terms: 'Умови використання', activeFiles: 'АКТИВНІ ФАЙЛИ', searchFiles: 'Пошук файлів...', openNew: 'Відкрити новий', downloadAll: 'Завантажити все як ZIP', clearAll: 'Очистити все', share: 'Поділитися', settings: 'Налаштування', converterMaintenanceTitle: 'Тимчасово недоступно', converterMaintenanceText: 'Конвертація аудіо та відео наразі на технічному обслуговуванні. Функцію буде відновлено найближчим часом.<br><br>Ви все ще можете відтворювати аудіо/відео та завантажувати файли без конвертації.', addFiles: '＋ Додати файли з робочого простору', send: '📤 Надіслати', receive: '📥 Отримати', cancel: 'Скасувати', close: 'Закрити', delete: 'Видалити', rename: 'Перейменувати', convert: 'Конвертувати й зберегти', targetFormat: 'Цільовий формат', startSharing: '🚀 Почати обмін', stopSharing: '✖ Зупинити обмін'
+    },
+    ru: {
+        language: 'Язык', globalSettings: 'ОБЩИЕ НАСТРОЙКИ', lightTheme: 'Светлая тема', disableAnimations: 'Отключить анимации', customScrollbar: 'Своя полоса прокрутки', forceHex: 'Режим HEX', privacy: 'Политика конфиденциальности', terms: 'Условия использования', activeFiles: 'АКТИВНЫЕ ФАЙЛЫ', searchFiles: 'Поиск файлов...', openNew: 'Открыть новый', downloadAll: 'Скачать всё как ZIP', clearAll: 'Очистить всё', share: 'Поделиться', settings: 'Настройки', converterMaintenanceTitle: 'Временно недоступно', converterMaintenanceText: 'Конвертация аудио и видео сейчас на техническом обслуживании. Функция будет восстановлена в ближайшее время.<br><br>Вы всё ещё можете воспроизводить аудио/видео и скачивать файлы без конвертации.', addFiles: '＋ Добавить файлы из рабочего пространства', send: '📤 Отправить', receive: '📥 Получить', cancel: 'Отмена', close: 'Закрыть', delete: 'Удалить', rename: 'Переименовать', convert: 'Конвертировать и сохранить', targetFormat: 'Целевой формат', startSharing: '🚀 Начать обмен', stopSharing: '✖ Остановить обмен'
+    },
+    pl: {
+        language: 'Język', globalSettings: 'USTAWIENIA GŁÓWNE', lightTheme: 'Jasny motyw', disableAnimations: 'Wyłącz animacje', customScrollbar: 'Niestandardowy pasek przewijania', forceHex: 'Tryb HEX', privacy: 'Polityka prywatności', terms: 'Warunki użytkowania', activeFiles: 'AKTYWNE PLIKI', searchFiles: 'Szukaj plików...', openNew: 'Otwórz nowy', downloadAll: 'Pobierz wszystko jako ZIP', clearAll: 'Wyczyść wszystko', share: 'Udostępnij', settings: 'Ustawienia', converterMaintenanceTitle: 'Tymczasowo niedostępne', converterMaintenanceText: 'Konwersja audio i wideo jest obecnie w konserwacji. Funkcja zostanie wkrótce przywrócona.<br><br>Nadal możesz odtwarzać audio/wideo i pobierać pliki bez konwersji.', addFiles: '＋ Dodaj pliki z obszaru roboczego', send: '📤 Wyślij', receive: '📥 Odbierz', cancel: 'Anuluj', close: 'Zamknij', delete: 'Usuń', rename: 'Zmień nazwę', convert: 'Konwertuj i zapisz', targetFormat: 'Format docelowy', startSharing: '🚀 Rozpocznij udostępnianie', stopSharing: '✖ Zatrzymaj udostępnianie'
+    },
+    de: {
+        language: 'Sprache', globalSettings: 'ALLGEMEINE EINSTELLUNGEN', lightTheme: 'Helles Design', disableAnimations: 'Animationen deaktivieren', customScrollbar: 'Benutzerdefinierte Bildlaufleiste', forceHex: 'HEX-Modus erzwingen', privacy: 'Datenschutzerklärung', terms: 'Nutzungsbedingungen', activeFiles: 'AKTIVE DATEIEN', searchFiles: 'Dateien suchen...', openNew: 'Neu öffnen', downloadAll: 'Alle als ZIP herunterladen', clearAll: 'Alle löschen', share: 'Teilen', settings: 'Einstellungen', converterMaintenanceTitle: 'Vorübergehend nicht verfügbar', converterMaintenanceText: 'Die Audio- und Videokonvertierung wird derzeit gewartet. Die Funktion wird bald wiederhergestellt.<br><br>Du kannst Audio/Video weiterhin abspielen und Dateien ohne Konvertierung herunterladen.', addFiles: '＋ Dateien aus dem Arbeitsbereich hinzufügen', send: '📤 Senden', receive: '📥 Empfangen', cancel: 'Abbrechen', close: 'Schließen', delete: 'Löschen', rename: 'Umbenennen', convert: 'Konvertieren und speichern', targetFormat: 'Zielformat', startSharing: '🚀 Freigabe starten', stopSharing: '✖ Freigabe stoppen'
+    },
+    es: {
+        language: 'Idioma', globalSettings: 'AJUSTES GENERALES', lightTheme: 'Tema claro', disableAnimations: 'Desactivar animaciones', customScrollbar: 'Barra de desplazamiento personalizada', forceHex: 'Forzar modo HEX', privacy: 'Política de privacidad', terms: 'Términos de uso', activeFiles: 'ARCHIVOS ACTIVOS', searchFiles: 'Buscar archivos...', openNew: 'Abrir nuevo', downloadAll: 'Descargar todo como ZIP', clearAll: 'Borrar todo', share: 'Compartir', settings: 'Ajustes', converterMaintenanceTitle: 'Temporalmente no disponible', converterMaintenanceText: 'La conversión de audio y vídeo está en mantenimiento. La función se restaurará pronto.<br><br>Aún puedes reproducir audio/vídeo y descargar archivos sin conversión.', addFiles: '＋ Añadir archivos del espacio de trabajo', send: '📤 Enviar', receive: '📥 Recibir', cancel: 'Cancelar', close: 'Cerrar', delete: 'Eliminar', rename: 'Renombrar', convert: 'Convertir y guardar', targetFormat: 'Formato de destino', startSharing: '🚀 Iniciar uso compartido', stopSharing: '✖ Detener uso compartido'
+    },
+    it: {
+        language: 'Lingua', globalSettings: 'IMPOSTAZIONI GLOBALI', lightTheme: 'Tema chiaro', disableAnimations: 'Disabilita animazioni', customScrollbar: 'Barra di scorrimento personalizzata', forceHex: 'Forza modalità HEX', privacy: 'Informativa sulla privacy', terms: 'Termini di utilizzo', activeFiles: 'FILE ATTIVI', searchFiles: 'Cerca file...', openNew: 'Apri nuovo', downloadAll: 'Scarica tutto come ZIP', clearAll: 'Cancella tutto', share: 'Condividi', settings: 'Impostazioni', converterMaintenanceTitle: 'Temporaneamente non disponibile', converterMaintenanceText: 'La conversione audio e video è in manutenzione. La funzione sarà ripristinata presto.<br><br>Puoi ancora riprodurre audio/video e scaricare file senza conversione.', addFiles: '＋ Aggiungi file dall’area di lavoro', send: '📤 Invia', receive: '📥 Ricevi', cancel: 'Annulla', close: 'Chiudi', delete: 'Elimina', rename: 'Rinomina', convert: 'Converti e salva', targetFormat: 'Formato di destinazione', startSharing: '🚀 Avvia condivisione', stopSharing: '✖ Interrompi condivisione'
+    },
+    fr: {
+        language: 'Langue', globalSettings: 'PARAMÈTRES GÉNÉRAUX', lightTheme: 'Thème clair', disableAnimations: 'Désactiver les animations', customScrollbar: 'Barre de défilement personnalisée', forceHex: 'Forcer le mode HEX', privacy: 'Politique de confidentialité', terms: 'Conditions d’utilisation', activeFiles: 'FICHIERS ACTIFS', searchFiles: 'Rechercher des fichiers...', openNew: 'Ouvrir nouveau', downloadAll: 'Tout télécharger en ZIP', clearAll: 'Tout effacer', share: 'Partager', settings: 'Paramètres', converterMaintenanceTitle: 'Temporairement indisponible', converterMaintenanceText: 'La conversion audio et vidéo est actuellement en maintenance. La fonction sera rétablie bientôt.<br><br>Vous pouvez toujours lire l’audio/vidéo et télécharger les fichiers sans conversion.', addFiles: '＋ Ajouter des fichiers de l’espace de travail', send: '📤 Envoyer', receive: '📥 Recevoir', cancel: 'Annuler', close: 'Fermer', delete: 'Supprimer', rename: 'Renommer', convert: 'Convertir et enregistrer', targetFormat: 'Format cible', startSharing: '🚀 Démarrer le partage', stopSharing: '✖ Arrêter le partage'
+    }
+};
+
+const sharedUiTranslations = {
+    en: { lightTheme:'Light Theme', disableAnimations:'Disable Animations', customScrollbar:'Custom Scrollbar', forceHex:'Force Hex Mode', noActiveFiles:'No active files', metadata:'METADATA', back:'⬅ Back', convertShort:'🔄 Convert', download:'📥 Download', deleteAllQuestion:'Delete All Files?', deleteAllText:'All files will be removed from local storage. This cannot be undone.', deleteAll:'Delete All', openViewFile:'Open & View Any File', dropFiles:'Drag files here or click to browse', supportedTypes:'Media · Archives · Scripts · Images · JSON · CSV · Configs', p2pTitle:'📡 P2P QuickShare', p2pSendHelp:'Add files from workspace. Multiple receivers can connect simultaneously.', p2pReceiveHelp:'Enter the 6-character code from the sender:', connectReceive:'🔗 Connect & Receive', cookieTitle:'We use cookies', cookieDescription:'We save your UI preferences locally. Third-party ads may also set cookies. By continuing you agree to our', decline:'Decline', acceptAll:'Accept All' },
+    uk: { lightTheme:'Світла тема', disableAnimations:'Вимкнути анімації', customScrollbar:'Власна смуга прокручування', forceHex:'Режим HEX', noActiveFiles:'Немає активних файлів', metadata:'МЕТАДАНІ', back:'⬅ Назад', convertShort:'🔄 Конвертувати', download:'📥 Завантажити', deleteAllQuestion:'Видалити всі файли?', deleteAllText:'Усі файли буде видалено з локального сховища. Цю дію не можна скасувати.', deleteAll:'Видалити все', p2pTitle:'📡 P2P QuickShare', p2pSendHelp:'Додайте файли з робочого простору. Кілька отримувачів можуть підключатися одночасно.', p2pReceiveHelp:'Введіть 6-символьний код від відправника:', connectReceive:'🔗 Підключитися й отримати', cookieTitle:'Ми використовуємо cookie', cookieDescription:'Ми зберігаємо налаштування інтерфейсу локально. Стороння реклама також може встановлювати cookie. Продовжуючи, ви погоджуєтеся з', decline:'Відхилити', acceptAll:'Прийняти все' },
+    ru: { lightTheme:'Светлая тема', disableAnimations:'Отключить анимации', customScrollbar:'Своя полоса прокрутки', forceHex:'Режим HEX', noActiveFiles:'Нет активных файлов', metadata:'МЕТАДАННЫЕ', back:'⬅ Назад', convertShort:'🔄 Конвертировать', download:'📥 Скачать', deleteAllQuestion:'Удалить все файлы?', deleteAllText:'Все файлы будут удалены из локального хранилища. Это действие нельзя отменить.', deleteAll:'Удалить всё', p2pTitle:'📡 P2P QuickShare', p2pSendHelp:'Добавьте файлы из рабочего пространства. Несколько получателей могут подключаться одновременно.', p2pReceiveHelp:'Введите 6-символьный код отправителя:', connectReceive:'🔗 Подключиться и получить', cookieTitle:'Мы используем cookie', cookieDescription:'Мы сохраняем настройки интерфейса локально. Сторонняя реклама также может устанавливать cookie. Продолжая, вы соглашаетесь с', decline:'Отклонить', acceptAll:'Принять всё' },
+    pl: { lightTheme:'Jasny motyw', disableAnimations:'Wyłącz animacje', customScrollbar:'Niestandardowy pasek przewijania', forceHex:'Tryb HEX', noActiveFiles:'Brak aktywnych plików', metadata:'METADANE', back:'⬅ Wstecz', convertShort:'🔄 Konwertuj', download:'📥 Pobierz', deleteAllQuestion:'Usunąć wszystkie pliki?', deleteAllText:'Wszystkie pliki zostaną usunięte z pamięci lokalnej. Tej operacji nie można cofnąć.', deleteAll:'Usuń wszystko', p2pTitle:'📡 P2P QuickShare', p2pSendHelp:'Dodaj pliki z obszaru roboczego. Wielu odbiorców może połączyć się jednocześnie.', p2pReceiveHelp:'Wpisz 6-znakowy kod od nadawcy:', connectReceive:'🔗 Połącz i odbierz', cookieTitle:'Używamy plików cookie', cookieDescription:'Zapisujemy ustawienia interfejsu lokalnie. Reklamy zewnętrzne mogą również ustawiać pliki cookie. Kontynuując, zgadzasz się z', decline:'Odrzuć', acceptAll:'Akceptuj wszystko' },
+    de: { lightTheme:'Helles Design', disableAnimations:'Animationen deaktivieren', customScrollbar:'Benutzerdefinierte Bildlaufleiste', forceHex:'HEX-Modus erzwingen', noActiveFiles:'Keine aktiven Dateien', metadata:'METADATEN', back:'⬅ Zurück', convertShort:'🔄 Konvertieren', download:'📥 Herunterladen', deleteAllQuestion:'Alle Dateien löschen?', deleteAllText:'Alle Dateien werden aus dem lokalen Speicher entfernt. Dies kann nicht rückgängig gemacht werden.', deleteAll:'Alle löschen', p2pTitle:'📡 P2P QuickShare', p2pSendHelp:'Füge Dateien aus dem Arbeitsbereich hinzu. Mehrere Empfänger können gleichzeitig verbunden sein.', p2pReceiveHelp:'Gib den 6-stelligen Code des Senders ein:', connectReceive:'🔗 Verbinden und empfangen', cookieTitle:'Wir verwenden Cookies', cookieDescription:'Wir speichern deine UI-Einstellungen lokal. Drittanbieterwerbung kann ebenfalls Cookies setzen. Mit der Fortsetzung stimmst du', decline:'Ablehnen', acceptAll:'Alle akzeptieren' },
+    es: { lightTheme:'Tema claro', disableAnimations:'Desactivar animaciones', customScrollbar:'Barra de desplazamiento personalizada', forceHex:'Forzar modo HEX', noActiveFiles:'No hay archivos activos', metadata:'METADATOS', back:'⬅ Atrás', convertShort:'🔄 Convertir', download:'📥 Descargar', deleteAllQuestion:'¿Eliminar todos los archivos?', deleteAllText:'Todos los archivos se eliminarán del almacenamiento local. Esta acción no se puede deshacer.', deleteAll:'Eliminar todo', p2pTitle:'📡 P2P QuickShare', p2pSendHelp:'Añade archivos del espacio de trabajo. Varios receptores pueden conectarse a la vez.', p2pReceiveHelp:'Introduce el código de 6 caracteres del remitente:', connectReceive:'🔗 Conectar y recibir', cookieTitle:'Usamos cookies', cookieDescription:'Guardamos tus preferencias de interfaz localmente. Los anuncios de terceros también pueden establecer cookies. Al continuar aceptas', decline:'Rechazar', acceptAll:'Aceptar todo' },
+    it: { lightTheme:'Tema chiaro', disableAnimations:'Disabilita animazioni', customScrollbar:'Barra di scorrimento personalizzata', forceHex:'Forza modalità HEX', noActiveFiles:'Nessun file attivo', metadata:'METADATI', back:'⬅ Indietro', convertShort:'🔄 Converti', download:'📥 Scarica', deleteAllQuestion:'Eliminare tutti i file?', deleteAllText:'Tutti i file verranno rimossi dalla memoria locale. Questa azione non può essere annullata.', deleteAll:'Elimina tutto', p2pTitle:'📡 P2P QuickShare', p2pSendHelp:'Aggiungi file dall’area di lavoro. Più destinatari possono connettersi contemporaneamente.', p2pReceiveHelp:'Inserisci il codice di 6 caratteri del mittente:', connectReceive:'🔗 Connetti e ricevi', cookieTitle:'Usiamo i cookie', cookieDescription:'Salviamo localmente le preferenze dell’interfaccia. Anche gli annunci di terze parti possono impostare cookie. Continuando accetti', decline:'Rifiuta', acceptAll:'Accetta tutto' },
+    fr: { lightTheme:'Thème clair', disableAnimations:'Désactiver les animations', customScrollbar:'Barre de défilement personnalisée', forceHex:'Forcer le mode HEX', noActiveFiles:'Aucun fichier actif', metadata:'MÉTADONNÉES', back:'⬅ Retour', convertShort:'🔄 Convertir', download:'📥 Télécharger', deleteAllQuestion:'Supprimer tous les fichiers ?', deleteAllText:'Tous les fichiers seront supprimés du stockage local. Cette action est irréversible.', deleteAll:'Tout supprimer', p2pTitle:'📡 P2P QuickShare', p2pSendHelp:'Ajoutez des fichiers depuis l’espace de travail. Plusieurs destinataires peuvent se connecter simultanément.', p2pReceiveHelp:'Saisissez le code à 6 caractères de l’expéditeur :', connectReceive:'🔗 Se connecter et recevoir', cookieTitle:'Nous utilisons des cookies', cookieDescription:'Nous enregistrons vos préférences localement. Les publicités tierces peuvent également définir des cookies. En continuant, vous acceptez', decline:'Refuser', acceptAll:'Tout accepter' }
+};
+Object.keys(sharedUiTranslations).forEach(language => Object.assign(uiTranslations[language], sharedUiTranslations[language]));
+Object.assign(uiTranslations.en, { insertTemplate:'📋 Insert template...', htmlTemplate:'HTML5 Skeleton', jsonTemplate:'JSON config template', cssTemplate:'CSS Boilerplate', jsTemplate:'JS Fetch Template', markdownTemplate:'Markdown Template', undo:'↶ Undo', redo:'↷ Redo' });
+Object.assign(uiTranslations.uk, { insertTemplate:'📋 Вставити шаблон...', htmlTemplate:'HTML5 каркас', jsonTemplate:'Шаблон конфігурації JSON', cssTemplate:'Заготовка CSS', jsTemplate:'Шаблон JS Fetch', markdownTemplate:'Шаблон Markdown', undo:'↶ Скасувати', redo:'↷ Повторити' });
+Object.assign(uiTranslations.ru, { insertTemplate:'📋 Вставить шаблон...', htmlTemplate:'Каркас HTML5', jsonTemplate:'Шаблон конфигурации JSON', cssTemplate:'Заготовка CSS', jsTemplate:'Шаблон JS Fetch', markdownTemplate:'Шаблон Markdown', undo:'↶ Отменить', redo:'↷ Повторить' });
+Object.assign(uiTranslations.pl, { insertTemplate:'📋 Wstaw szablon...', htmlTemplate:'Szkielet HTML5', jsonTemplate:'Szablon konfiguracji JSON', cssTemplate:'Szkielet CSS', jsTemplate:'Szablon JS Fetch', markdownTemplate:'Szablon Markdown', undo:'↶ Cofnij', redo:'↷ Ponów' });
+Object.assign(uiTranslations.de, { insertTemplate:'📋 Vorlage einfügen...', htmlTemplate:'HTML5-Grundgerüst', jsonTemplate:'JSON-Konfigurationsvorlage', cssTemplate:'CSS-Grundgerüst', jsTemplate:'JS-Fetch-Vorlage', markdownTemplate:'Markdown-Vorlage', undo:'↶ Rückgängig', redo:'↷ Wiederholen' });
+Object.assign(uiTranslations.es, { insertTemplate:'📋 Insertar plantilla...', htmlTemplate:'Esqueleto HTML5', jsonTemplate:'Plantilla de configuración JSON', cssTemplate:'Plantilla CSS', jsTemplate:'Plantilla JS Fetch', markdownTemplate:'Plantilla Markdown', undo:'↶ Deshacer', redo:'↷ Rehacer' });
+Object.assign(uiTranslations.it, { insertTemplate:'📋 Inserisci modello...', htmlTemplate:'Struttura HTML5', jsonTemplate:'Modello di configurazione JSON', cssTemplate:'Boilerplate CSS', jsTemplate:'Modello JS Fetch', markdownTemplate:'Modello Markdown', undo:'↶ Annulla', redo:'↷ Ripeti' });
+Object.assign(uiTranslations.fr, { insertTemplate:'📋 Insérer un modèle...', htmlTemplate:'Structure HTML5', jsonTemplate:'Modèle de configuration JSON', cssTemplate:'Structure CSS', jsTemplate:'Modèle JS Fetch', markdownTemplate:'Modèle Markdown', undo:'↶ Annuler', redo:'↷ Rétablir' });
+Object.assign(uiTranslations.uk, { openViewFile:'Відкрити й переглянути файл', dropFiles:'Перетягніть файли сюди або натисніть для вибору', supportedTypes:'Медіа · Архіви · Скрипти · Зображення · JSON · CSV · Конфігурації' });
+Object.assign(uiTranslations.ru, { openViewFile:'Открыть и просмотреть файл', dropFiles:'Перетащите файлы сюда или нажмите для выбора', supportedTypes:'Медиа · Архивы · Скрипты · Изображения · JSON · CSV · Конфигурации' });
+Object.assign(uiTranslations.pl, { openViewFile:'Otwórz i wyświetl dowolny plik', dropFiles:'Przeciągnij pliki tutaj lub kliknij, aby wybrać', supportedTypes:'Media · Archiwa · Skrypty · Obrazy · JSON · CSV · Konfiguracje' });
+Object.assign(uiTranslations.de, { openViewFile:'Datei öffnen und anzeigen', dropFiles:'Dateien hierher ziehen oder zum Auswählen klicken', supportedTypes:'Medien · Archive · Skripte · Bilder · JSON · CSV · Konfigurationen' });
+Object.assign(uiTranslations.es, { openViewFile:'Abrir y ver cualquier archivo', dropFiles:'Arrastra archivos aquí o haz clic para explorar', supportedTypes:'Multimedia · Archivos · Scripts · Imágenes · JSON · CSV · Configuraciones' });
+Object.assign(uiTranslations.it, { openViewFile:'Apri e visualizza qualsiasi file', dropFiles:'Trascina qui i file o fai clic per sfogliare', supportedTypes:'Media · Archivi · Script · Immagini · JSON · CSV · Configurazioni' });
+Object.assign(uiTranslations.fr, { openViewFile:'Ouvrir et afficher un fichier', dropFiles:'Déposez les fichiers ici ou cliquez pour parcourir', supportedTypes:'Médias · Archives · Scripts · Images · JSON · CSV · Configurations' });
+const actionTranslations = {
+    uk: { share:'📡 Поділитися', settings:'⚙️ Налаштування', raw:'〈/〉 Сирий код', edit:'✏️ Редагувати' },
+    ru: { share:'📡 Поделиться', settings:'⚙️ Настройки', raw:'〈/〉 Исходный код', edit:'✏️ Редактировать' },
+    pl: { share:'📡 Udostępnij', settings:'⚙️ Ustawienia', raw:'〈/〉 Surowy kod', edit:'✏️ Edytuj' },
+    de: { share:'📡 Teilen', settings:'⚙️ Einstellungen', raw:'〈/〉 Rohdaten', edit:'✏️ Bearbeiten' },
+    es: { share:'📡 Compartir', settings:'⚙️ Ajustes', raw:'〈/〉 Código bruto', edit:'✏️ Editar' },
+    it: { share:'📡 Condividi', settings:'⚙️ Impostazioni', raw:'〈/〉 Grezzo', edit:'✏️ Modifica' },
+    fr: { share:'📡 Partager', settings:'⚙️ Paramètres', raw:'〈/〉 Brut', edit:'✏️ Modifier' }
+};
+Object.entries(actionTranslations).forEach(([language, translations]) => Object.assign(uiTranslations[language], translations));
+Object.assign(uiTranslations.en, { supportProject:'Support Project' });
+Object.assign(uiTranslations.uk, { supportProject:'Підтримати проєкт' });
+Object.assign(uiTranslations.ru, { supportProject:'Поддержать проект' });
+Object.assign(uiTranslations.pl, { supportProject:'Wesprzyj projekt' });
+Object.assign(uiTranslations.de, { supportProject:'Projekt unterstützen' });
+Object.assign(uiTranslations.es, { supportProject:'Apoyar el proyecto' });
+Object.assign(uiTranslations.it, { supportProject:'Sostieni il progetto' });
+Object.assign(uiTranslations.fr, { supportProject:'Soutenir le projet' });
+Object.assign(uiTranslations.en, { supportProjectText:'Support WebTools Utility by visiting the project on GitHub.', supportMainSite:'Main project page', supportMainSiteText:'Open the GitHub repository', supportIssues:'Issues', supportIssuesText:'Report a bug or ask a question', supportFeedback:'Write a review', supportFeedbackText:'Share feedback or suggest an improvement', supportStar:'Give the project a star', supportStarText:'Show your support on GitHub' });
+Object.assign(uiTranslations.uk, { supportProjectText:'Підтримайте WebTools Utility, відвідавши проєкт на GitHub.', supportMainSite:'Сторінка проєкту', supportMainSiteText:'Відкрити репозиторій GitHub', supportIssues:'Issues', supportIssuesText:'Повідомити про помилку або поставити запитання', supportFeedback:'Написати відгук', supportFeedbackText:'Поділитися думкою або запропонувати покращення', supportStar:'Поставити зірку проєкту', supportStarText:'Підтримати проєкт на GitHub' });
+Object.assign(uiTranslations.ru, { supportProjectText:'Поддержите WebTools Utility, посетив проект на GitHub.', supportMainSite:'Главная страница проекта', supportMainSiteText:'Открыть репозиторий GitHub', supportIssues:'Issues', supportIssuesText:'Сообщить об ошибке или задать вопрос', supportFeedback:'Написать отзыв', supportFeedbackText:'Поделиться мнением или предложить улучшение', supportStar:'Поставить проекту звезду', supportStarText:'Показать поддержку на GitHub' });
+Object.assign(uiTranslations.pl, { supportProjectText:'Wesprzyj WebTools Utility, odwiedzając projekt na GitHubie.', supportMainSite:'Główna strona projektu', supportMainSiteText:'Otwórz repozytorium GitHub', supportIssues:'Issues', supportIssuesText:'Zgłoś błąd lub zadaj pytanie', supportFeedback:'Napisz opinię', supportFeedbackText:'Podziel się opinią lub zaproponuj ulepszenie', supportStar:'Dodaj gwiazdkę projektowi', supportStarText:'Pokaż wsparcie na GitHubie' });
+Object.assign(uiTranslations.de, { supportProjectText:'Unterstütze WebTools Utility mit einem Besuch auf GitHub.', supportMainSite:'Projektseite', supportMainSiteText:'GitHub-Repository öffnen', supportIssues:'Issues', supportIssuesText:'Fehler melden oder Frage stellen', supportFeedback:'Bewertung schreiben', supportFeedbackText:'Feedback teilen oder Verbesserung vorschlagen', supportStar:'Projekt mit Stern markieren', supportStarText:'Unterstützung auf GitHub zeigen' });
+Object.assign(uiTranslations.es, { supportProjectText:'Apoya WebTools Utility visitando el proyecto en GitHub.', supportMainSite:'Página principal del proyecto', supportMainSiteText:'Abrir el repositorio de GitHub', supportIssues:'Issues', supportIssuesText:'Informar de un error o hacer una pregunta', supportFeedback:'Escribir una reseña', supportFeedbackText:'Compartir comentarios o sugerir una mejora', supportStar:'Dar una estrella al proyecto', supportStarText:'Mostrar tu apoyo en GitHub' });
+Object.assign(uiTranslations.it, { supportProjectText:'Supporta WebTools Utility visitando il progetto su GitHub.', supportMainSite:'Pagina principale del progetto', supportMainSiteText:'Apri il repository GitHub', supportIssues:'Issues', supportIssuesText:'Segnala un bug o fai una domanda', supportFeedback:'Scrivi una recensione', supportFeedbackText:'Condividi un feedback o suggerisci un miglioramento', supportStar:'Dai una stella al progetto', supportStarText:'Mostra il tuo supporto su GitHub' });
+Object.assign(uiTranslations.fr, { supportProjectText:'Soutenez WebTools Utility en visitant le projet sur GitHub.', supportMainSite:'Page principale du projet', supportMainSiteText:'Ouvrir le dépôt GitHub', supportIssues:'Issues', supportIssuesText:'Signaler un bug ou poser une question', supportFeedback:'Écrire un avis', supportFeedbackText:'Partager un retour ou suggérer une amélioration', supportStar:'Ajouter une étoile au projet', supportStarText:'Montrer votre soutien sur GitHub' });
+
+const i18nSource = new WeakMap();
+let activeLanguage = 'en';
+let isTranslating = false;
+
+function translateUi(root = document) {
+    const dictionary = uiTranslations[activeLanguage] || uiTranslations.en;
+    isTranslating = true;
+    const keyedElements = root.matches && root.matches('[data-i18n]') ? [root, ...root.querySelectorAll('[data-i18n]')] : [...root.querySelectorAll('[data-i18n]')];
+    keyedElements.forEach(element => {
+        const key = element.dataset.i18n;
+        if (i18nSource.has(element) === false) i18nSource.set(element, element.innerHTML);
+        if (dictionary[key]) element.innerHTML = dictionary[key];
+    });
+    const attributeElements = root.querySelectorAll('input[placeholder], [title], [data-i18n-placeholder], [data-i18n-title]');
+    attributeElements.forEach(element => {
+        if (!i18nSource.has(element)) i18nSource.set(element, { placeholder: element.getAttribute('placeholder'), title: element.getAttribute('title') });
+        const source = i18nSource.get(element);
+        const placeholderKey = element.dataset.i18nPlaceholder;
+        const titleKey = element.dataset.i18nTitle;
+        if (placeholderKey && dictionary[placeholderKey]) element.setAttribute('placeholder', dictionary[placeholderKey]);
+        else if (source.placeholder && dictionary[source.placeholder]) element.setAttribute('placeholder', dictionary[source.placeholder]);
+        if (titleKey && dictionary[titleKey]) element.setAttribute('title', dictionary[titleKey]);
+        else if (source.title && dictionary[source.title]) element.setAttribute('title', dictionary[source.title]);
+    });
+    root.querySelectorAll('body *:not(script):not(style)').forEach(element => {
+        if (element.children.length || element.dataset.i18n) return;
+        const text = (element.textContent || '').trim();
+        if (!text) return;
+        if (!i18nSource.has(element)) i18nSource.set(element, text);
+        const source = i18nSource.get(element);
+        const key = Object.keys(uiTranslations.en).find(name => uiTranslations.en[name] === source);
+        if (key && dictionary[key]) element.textContent = dictionary[key];
+    });
+    document.documentElement.lang = activeLanguage;
+    isTranslating = false;
+}
+
+function setLanguage(language) {
+    if (language === 'en') language = 'en-GB';
+    activeLanguage = uiTranslations[language] ? language : 'en';
+    localStorage.setItem('lang', activeLanguage);
+    localStorage.setItem('wt_language_v2', activeLanguage);
+    langSelector.value = activeLanguage;
+    const selectedOption = languagePickerOptions.querySelector(`[data-language="${activeLanguage}"]`);
+    if (selectedOption) {
+        languagePickerValue.textContent = selectedOption.textContent;
+        languagePickerOptions.querySelectorAll('[data-language]').forEach(option => option.setAttribute('aria-selected', option === selectedOption ? 'true' : 'false'));
+    }
+    translateUi();
+}
+
+langSelector.addEventListener('change', event => setLanguage(event.target.value));
+languagePickerTrigger.addEventListener('click', event => {
+    event.stopPropagation();
+    const isOpen = languagePicker.classList.toggle('open');
+    languagePickerTrigger.setAttribute('aria-expanded', String(isOpen));
+});
+languagePickerOptions.querySelectorAll('[data-language]').forEach(option => option.addEventListener('click', event => {
+    event.stopPropagation();
+    setLanguage(option.dataset.language);
+    languagePicker.classList.remove('open');
+    languagePickerTrigger.setAttribute('aria-expanded', 'false');
+}));
+document.addEventListener('click', () => {
+    languagePicker.classList.remove('open');
+    languagePickerTrigger.setAttribute('aria-expanded', 'false');
+});
+const uiObserver = new MutationObserver(records => {
+    if (isTranslating) return;
+    records.forEach(record => record.addedNodes.forEach(node => {
+        if (node.nodeType === Node.ELEMENT_NODE) translateUi(node);
+    }));
+});
+uiObserver.observe(document.body, { childList: true, subtree: true });
+const savedLang = (localStorage.getItem('lang') || '').trim().toLowerCase();
+const initialLanguage = savedLang === 'en' || savedLang === 'en-gb' ? 'en-GB' : (Object.prototype.hasOwnProperty.call(uiTranslations, savedLang) ? savedLang : 'en-GB');
+uiTranslations['en-GB'] = uiTranslations.en;
+setLanguage(initialLanguage);
 
 // ═══════════════════════════════════════════════════════════
 //  STATE
@@ -672,10 +868,12 @@ let _internalImageUrl     = null;
 //  SETTINGS & THEME HANDLERS
 // ═══════════════════════════════════════════════════════════
 function loadSettings() {
-    if (localStorage.getItem('wt_theme') === 'light') {
-        themeToggle.checked = true;
-        document.documentElement.setAttribute('data-theme', 'light');
-    }
+    let savedTheme = '';
+    try {
+        savedTheme = (localStorage.getItem('wt_theme') || '').trim().toLowerCase();
+    } catch (error) {}
+    themeToggle.checked = savedTheme === 'light';
+    document.documentElement.setAttribute('data-theme', themeToggle.checked ? 'light' : 'dark');
     if (localStorage.getItem('wt_disable_animations') === 'true') {
         animationsToggle.checked = true;
         document.body.classList.add('no-animations');
@@ -1075,6 +1273,10 @@ function resetViewers() {
     mediaWrapper.style.display          = 'none';
     pdfViewer.style.display             = 'none';
     unsupportedView.style.display       = 'none';
+    document.getElementById('editorToolsToolbar').style.display = 'none';
+    isEditMode = false;
+    editorToggleBtn.classList.remove('active');
+    editorToggleBtn.textContent = uiTranslations[activeLanguage]?.edit || '✏️ Edit';
     mediaWrapper.innerHTML              = '';
     if (rawMediaUrl) { URL.revokeObjectURL(rawMediaUrl); rawMediaUrl = null; }
 }
@@ -1589,6 +1791,7 @@ function displayFileContent(fileType, data, fileItem) {
     
     viewRawBtn.style.display     = 'inline-block';
     editorToggleBtn.style.display = 'none';
+    document.getElementById('editorToolsToolbar').style.display = 'none';
     backToArchiveBtn.style.display = 'none';
 
     const ext = (fileItem.displayName || fileItem.name).split('.').pop().toLowerCase();
@@ -1755,18 +1958,102 @@ function displayFileContent(fileType, data, fileItem) {
 //  CODE HIGHLIGHTING ENGINE
 // ═══════════════════════════════════════════════════════════
 function highlightCodeSyntax(text) {
-    let s = text.replace(/&/g, '&amp;').replace(new RegExp('<', 'g'), '&lt;').replace(new RegExp('>', 'g'), '&gt;');
-    s = s.replace(/("(?:[^"\\]|\\.)*")/g, '<span class="code-string">$1<\/span>');
-    s = s.replace(/('(?:[^'\\]|\\.)*')/g, '<span class="code-string">$1<\/span>');
-    s = s.replace(/(`(?:[^`\\]|\\.)*`)/g, '<span class="code-string">$1<\/span>');
-    s = s.replace(/(\/\/[^\n]*)/g, '<span class="code-comment">$1<\/span>');
-    s = s.replace(/\b(function|let|const|var|if|else|return|for|while|switch|case|class|[i]mport|[e]xport|async|await|typeof|new|this|try|catch|finally|throw|delete|void|null|undefined|true|false)\b/g, '<span class="code-keyword">$1<\/span>');
-    s = s.replace(/\b(\d+\.?\d*)\b/g, '<span class="code-number">$1<\/span>');
-    s = s.replace(/([{}()\[\]=+\-*/&|!<>:;,.])/g, '<span class="code-operator">$1<\/span>');
-    return s;
+    const escaped = escapeHtml(text);
+    const tokenPattern = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`|\b(?:function|let|const|var|if|else|return|for|while|switch|case|class|import|export|async|await|typeof|new|this|try|catch|finally|throw|delete|void|null|undefined|true|false)\b|\b\d+\.?\d*\b|[{}()\[\]=+\-*\/&|!<>:;,.])/g;
+    return escaped.replace(tokenPattern, token => {
+        if (token.startsWith('//') || token.startsWith('/*')) return `<span class="code-comment">${token}</span>`;
+        if (/^["'`]/.test(token)) return `<span class="code-string">${token}</span>`;
+        if (/^\d/.test(token)) return `<span class="code-number">${token}</span>`;
+        if (/^[A-Za-z]/.test(token)) return `<span class="code-keyword">${token}</span>`;
+        return `<span class="code-operator">${token}</span>`;
+    });
+}
+
+function highlightMarkupSyntax(text) {
+    const escaped = escapeHtml(text).replace(/"/g, '&quot;');
+    const tokenPattern = /(&lt;!--[\s\S]*?--&gt;|&lt;\/?[\w:.\-]+(?:\s[^&]*?)?\/?&gt;|&quot;[^&]*?&quot;|\b\d+\.?\d*\b|\/\*[\s\S]*?\*\/|\/\/[^\n]*)/g;
+    return escaped.replace(tokenPattern, token => {
+        if (token.startsWith('&lt;!--') || token.startsWith('/*') || token.startsWith('//')) return `<span class="code-comment">${token}</span>`;
+        if (token.startsWith('&lt;')) return token.replace(/^(&lt;\/?)([\w:.\-]+)/, '$1<span class="code-keyword">$2</span>');
+        if (token.startsWith('&quot;')) return `<span class="code-string">${token}</span>`;
+        return `<span class="code-number">${token}</span>`;
+    });
 }
 
 let _currentFileExt = '';
+let editorSaveTimer = 0;
+let editorLineUpdateFrame = 0;
+let editorHistory = [];
+let editorHistoryIndex = -1;
+let editorHistoryFileId = '__uninitialized__';
+
+function resetEditorHistory(text) {
+    editorHistory = [text];
+    editorHistoryIndex = 0;
+    updateHistoryButtons();
+}
+
+function recordEditorHistory(text) {
+    if (editorHistory[editorHistoryIndex] === text) return;
+    editorHistory = editorHistory.slice(0, editorHistoryIndex + 1);
+    editorHistory.push(text);
+    editorHistoryIndex = editorHistory.length - 1;
+    updateHistoryButtons();
+}
+
+function updateHistoryButtons() {
+    if (editorUndoBtn) editorUndoBtn.disabled = editorHistoryIndex <= 0;
+    if (editorRedoBtn) editorRedoBtn.disabled = editorHistoryIndex < 0 || editorHistoryIndex >= editorHistory.length - 1;
+}
+
+function applyEditorHistory(index) {
+    if (index < 0 || index >= editorHistory.length) return;
+    editorHistoryIndex = index;
+    renderEditorContent(editorHistory[index]);
+    scheduleEditorSave(editorHistory[index]);
+    updateHistoryButtons();
+}
+
+function getEditorText() {
+    return virtualConsole.textContent || virtualConsole.innerText || '';
+}
+
+function persistEditorText(item, text) {
+    if (!item) return;
+    item.isEdited = true;
+    item.editedContent = text;
+    saveEditToStore(getFileKey(item.fileObject), text);
+    if (!db) return;
+    try {
+        db.transaction('files', 'readwrite').objectStore('files').put(item);
+    } catch (error) {
+        console.warn('Could not persist editor changes:', error);
+    }
+}
+
+function scheduleEditorSave(text) {
+    const item = activeFilesCache.find(f => f.id === loadedFileIndex);
+    if (!item) return;
+    item.isEdited = true;
+    item.editedContent = text;
+    clearTimeout(editorSaveTimer);
+    editorSaveTimer = setTimeout(() => persistEditorText(item, item.editedContent), 350);
+}
+
+function scheduleLineCounterUpdate() {
+    if (editorLineUpdateFrame) return;
+    editorLineUpdateFrame = requestAnimationFrame(() => {
+        editorLineUpdateFrame = 0;
+        updateLineCounters();
+        updateEditorStats();
+    });
+}
+
+function setEditorPlainText(text) {
+    virtualConsole.textContent = text;
+    scheduleLineCounterUpdate();
+}
+
 function renderEditorContent(rawText) {
     if (!rawText) rawText = '';
     // Truncate very large text to prevent browser crash on huge base64/hex files
@@ -1782,31 +2069,21 @@ function renderEditorContent(rawText) {
     if (plainExts.has(e)) {
         virtualConsole.textContent = rawText;
     } else if (markupExts.has(e)) {
-        const esc = rawText
-            .replace(/&/g, '&amp;')
-            .replace(new RegExp('<', 'g'), '&lt;')
-            .replace(new RegExp('>', 'g'), '&gt;')
-            .replace(/"/g, '&quot;');
-        
-        const coloured = esc
-            .replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="code-comment">$1<\/span>')
-            .replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="code-comment">$1<\/span>')
-            .replace(/(\/\/[^\n]*)/g, '<span class="code-comment">$1<\/span>')
-            .replace(/(&lt;\/?)([\w\-:.]+)/g, '$1<span class="code-keyword">$2<\/span>')
-            .replace(/=(&quot;[^&]*?&quot;)/g, '=<span class="code-string">$1<\/span>')
-            .replace(/(:\s*)([^{};,\n<"&]+)/g, '$1<span class="code-string">$2<\/span>')
-            .replace(/\b(\d+\.?\d*)(px|em|rem|%|vh|vw|s|ms)?\b/g, '<span class="code-number">$1$2<\/span>');
-        virtualConsole.innerHTML = coloured;
+        virtualConsole.innerHTML = highlightMarkupSyntax(rawText);
     } else if (codeExts.has(e)) {
         virtualConsole.innerHTML = highlightCodeSyntax(rawText);
     } else {
         virtualConsole.textContent = rawText;
     }
+    if (editorHistoryFileId !== loadedFileIndex) {
+        editorHistoryFileId = loadedFileIndex;
+        resetEditorHistory(rawText);
+    }
     updateLineCounters();
 }
 
 function updateLineCounters() {
-    const lines = virtualConsole.innerText.split('\n').length;
+    const lines = getEditorText().split('\n').length;
     // Limit to 5000 lines to prevent browser crash on huge files (e.g. base64)
     const renderLines = Math.min(lines, 5000);
     lineCounterBlock.innerHTML = Array.from({ length: renderLines }, (_, i) => `<div>${i + 1}<\/div>`).join('');
@@ -1831,6 +2108,35 @@ editorToggleBtn.addEventListener('click', () => {
     }
 });
 
+editorSnippetTrigger.addEventListener('click', event => {
+    event.stopPropagation();
+    clearTimeout(editorSnippetCloseTimer);
+    if (editorSnippetOptions.classList.contains('show')) closeEditorSnippetMenu();
+    else {
+        editorSnippetSelect.classList.add('open');
+        editorSnippetOptions.classList.remove('closing');
+        editorSnippetOptions.classList.add('show');
+        editorSnippetTrigger.setAttribute('aria-expanded', 'true');
+    }
+});
+editorSnippetOptions.querySelectorAll('[data-value]').forEach(option => option.addEventListener('click', event => {
+    event.stopPropagation();
+    insertEditorSnippet(option.dataset.value);
+    closeEditorSnippetMenu();
+}));
+function closeEditorSnippetMenu() {
+    editorSnippetSelect.classList.remove('open');
+    editorSnippetTrigger.setAttribute('aria-expanded', 'false');
+    if (!editorSnippetOptions.classList.contains('show')) return;
+    editorSnippetOptions.classList.add('closing');
+    editorSnippetCloseTimer = setTimeout(() => {
+        editorSnippetOptions.classList.remove('show', 'closing');
+    }, 170);
+}
+document.addEventListener('click', () => {
+    closeEditorSnippetMenu();
+});
+
 function updateEditorStats() {
     const statsEl = document.getElementById('editorToolbarStats');
     if (!statsEl) return;
@@ -1842,13 +2148,12 @@ function updateEditorStats() {
 }
 
 virtualConsole.addEventListener('input', () => {
-    updateLineCounters();
-    updateEditorStats();
+    scheduleLineCounterUpdate();
 });
 
 // Formatting & Editing helpers
 document.getElementById('editorFormatBtn').addEventListener('click', () => {
-    const text = virtualConsole.innerText;
+    const text = getEditorText();
     try {
         const obj = JSON.parse(text);
         const formatted = JSON.stringify(obj, null, 2);
@@ -1865,41 +2170,72 @@ document.getElementById('editorFormatBtn').addEventListener('click', () => {
 
 document.getElementById('editorUpperCaseBtn').addEventListener('click', () => {
     const sel = window.getSelection();
-    if (!sel || !sel.toString()) {
-        const up = virtualConsole.innerText.toUpperCase();
-        renderEditorContent(up);
-        virtualConsole.dispatchEvent(new Event('input'));
-        showToast('🔠 Converted entire file to UPPERCASE');
-        return;
-    }
-    const range = sel.getRangeAt(0);
-    const selectedText = sel.toString();
-    range.deleteContents();
-    range.insertNode(document.createTextNode(selectedText.toUpperCase()));
-    virtualConsole.dispatchEvent(new Event('input'));
-    showToast('🔠 Selected text to UPPERCASE');
+    transformEditorText(text => text.toUpperCase(), sel, '🔠');
 });
 
 document.getElementById('editorLowerCaseBtn').addEventListener('click', () => {
     const sel = window.getSelection();
-    if (!sel || !sel.toString()) {
-        const low = virtualConsole.innerText.toLowerCase();
-        renderEditorContent(low);
-        virtualConsole.dispatchEvent(new Event('input'));
-        showToast('🔡 Converted entire file to lowercase');
-        return;
-    }
-    const range = sel.getRangeAt(0);
-    const selectedText = sel.toString();
-    range.deleteContents();
-    range.insertNode(document.createTextNode(selectedText.toLowerCase()));
-    virtualConsole.dispatchEvent(new Event('input'));
-    showToast('🔡 Selected text to lowercase');
+    transformEditorText(text => text.toLowerCase(), sel, '🔡');
 });
 
-document.getElementById('editorSnippetSelect').addEventListener('change', (e) => {
-    const val = e.target.value;
-    if (!val) return;
+function transformEditorText(transform, selection, icon) {
+    const editor = virtualConsole;
+    const currentText = getEditorText();
+    const hasEditorSelection = selection && selection.rangeCount &&
+        selection.toString() && editor.contains(selection.anchorNode) && editor.contains(selection.focusNode);
+
+    if (hasEditorSelection) {
+        const range = selection.getRangeAt(0);
+        const selectedText = range.toString();
+        range.deleteContents();
+        const replacement = document.createTextNode(transform(selectedText));
+        range.insertNode(replacement);
+        range.setStartAfter(replacement);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        scheduleEditorSave(getEditorText());
+        recordEditorHistory(getEditorText());
+        scheduleLineCounterUpdate();
+        showToast(icon + ' Selected text transformed');
+        return;
+    }
+
+    setEditorPlainText(transform(currentText));
+    scheduleEditorSave(getEditorText());
+    recordEditorHistory(getEditorText());
+    showToast(icon + ' Entire file transformed');
+}
+
+editorUndoBtn.addEventListener('click', () => applyEditorHistory(editorHistoryIndex - 1));
+editorRedoBtn.addEventListener('click', () => applyEditorHistory(editorHistoryIndex + 1));
+
+virtualConsole.addEventListener('paste', event => {
+    if (!isEditMode) return;
+    event.preventDefault();
+    const pastedText = event.clipboardData && event.clipboardData.getData('text/plain');
+    if (typeof pastedText !== 'string') return;
+    const selection = window.getSelection();
+    if (!selection || !selection.rangeCount || !virtualConsole.contains(selection.anchorNode) || !virtualConsole.contains(selection.focusNode)) {
+        setEditorPlainText(getEditorText() + pastedText);
+        recordEditorHistory(getEditorText());
+        scheduleEditorSave(getEditorText());
+        return;
+    }
+    const range = selection.getRangeAt(0);
+    range.deleteContents();
+    const textNode = document.createTextNode(pastedText);
+    range.insertNode(textNode);
+    range.setStartAfter(textNode);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    recordEditorHistory(getEditorText());
+    scheduleEditorSave(getEditorText());
+    scheduleLineCounterUpdate();
+});
+
+function insertEditorSnippet(val) {
     
     let snippet = "";
     if (val === "html") {
@@ -1916,19 +2252,18 @@ document.getElementById('editorSnippetSelect').addEventListener('change', (e) =>
     
     if (snippet) {
         const sel = window.getSelection();
-        if (sel && sel.rangeCount > 0) {
+        if (sel && sel.rangeCount > 0 && virtualConsole.contains(sel.anchorNode) && virtualConsole.contains(sel.focusNode)) {
             const range = sel.getRangeAt(0);
             range.deleteContents();
             range.insertNode(document.createTextNode(snippet));
         } else {
             const text = virtualConsole.innerText;
-            renderEditorContent(text + (text ? "\n" : "") + snippet);
+            setEditorPlainText(text + (text ? "\n" : "") + snippet);
         }
         virtualConsole.dispatchEvent(new Event('input'));
-        showToast('📋 Template template inserted');
+        showToast('📋 Template inserted');
     }
-    e.target.value = "";
-});
+}
 
 // Editor interactions & autocompletion
 virtualConsole.addEventListener('keydown', e => {
@@ -1985,50 +2320,21 @@ virtualConsole.addEventListener('keydown', e => {
 });
 
 virtualConsole.addEventListener('input', () => {
-    const raw = virtualConsole.innerText;
-    const item = activeFilesCache.find(f => f.id === loadedFileIndex);
-    if (item) {
-        item.isEdited = true; 
-        item.editedContent = raw;
-        db.transaction('files', 'readwrite').objectStore('files').put(item);
-        saveEditToStore(getFileKey(item.fileObject), raw);
+    const text = getEditorText();
+    recordEditorHistory(text);
+    scheduleEditorSave(text);
+    scheduleLineCounterUpdate();
+});
+
+virtualConsole.addEventListener('keydown', event => {
+    if (!isEditMode || !(event.ctrlKey || event.metaKey)) return;
+    if (event.key.toLowerCase() === 'z') {
+        event.preventDefault();
+        applyEditorHistory(editorHistoryIndex - 1);
+    } else if (event.key.toLowerCase() === 'y' || (event.shiftKey && event.key.toLowerCase() === 'z')) {
+        event.preventDefault();
+        applyEditorHistory(editorHistoryIndex + 1);
     }
-    
-    const sel = window.getSelection();
-    if (!sel.rangeCount) return;
-    const range = sel.getRangeAt(0);
-    const pre = range.cloneRange();
-    pre.selectNodeContents(virtualConsole);
-    pre.setEnd(range.endContainer, range.endOffset);
-    const caret = pre.toString().length;
-    
-    virtualConsole.innerHTML = highlightCodeSyntax(raw);
-    updateLineCounters();
-    
-    // Restore caret position
-    const newRange = document.createRange();
-    newRange.setStart(virtualConsole, 0); 
-    newRange.collapse(true);
-    const stack = [virtualConsole]; 
-    let count = 0, done = false;
-    
-    while (!done && stack.length) {
-        const n = stack.pop();
-        if (n.nodeType === 3) {
-            const next = count + n.length;
-            if (caret >= count && caret <= next) { 
-                newRange.setStart(n, caret - count); 
-                newRange.setEnd(n, caret - count); 
-                done = true; 
-            }
-            count = next;
-        } else { 
-            let i = n.childNodes.length; 
-            while (i--) stack.push(n.childNodes[i]); 
-        }
-    }
-    sel.removeAllRanges(); 
-    sel.addRange(newRange);
 });
 
 virtualConsole.addEventListener('scroll', () => { 
@@ -2132,111 +2438,76 @@ function renderVideoPlayer(url, name) {
     archiveTreeViewer.style.display = 'none';
     const wrap = document.createElement('div');
     wrap.className = 'vid-wrap';
-    wrap.innerHTML = `
-      <video class="vid-el" id="vidEl" src="${url}" preload="metadata"><\/video>
-      <div class="vid-overlay" id="vidOverlay">
-        <div class="vid-big-play" id="vidBigPlay">▶<\/div>
-      <\/div>
-      <div class="vid-controls" id="vidControls">
-        <div class="vid-progress-wrap">
-          <div class="vid-progress-track" id="vidTrack">
-            <div class="vid-progress-buf" id="vidBuf"><\/div>
-            <div class="vid-progress-fill" id="vidFill"><\/div>
-            <div class="vid-progress-thumb" id="vidThumb"><\/div>
-          <\/div>
-          <div class="vid-time"><span id="vidCur">0:00<\/span> / <span id="vidDur">0:00<\/span><\/div>
-        <\/div>
-        <div class="vid-btn-row">
-          <button class="vid-btn" id="vidPlay">▶<\/button>
-          <button class="vid-btn" id="vidMute">🔊<\/button>
-          <input type="range" class="vid-vol" id="vidVol" min="0" max="1" step="0.01" value="1">
-          <span class="vid-spacer"><\/span>
-          <button class="vid-btn" id="vidFs">⛶<\/button>
-        <\/div>
-      <\/div>
-    `;
+    wrap.innerHTML = `<video class="vid-el" id="vidEl" preload="metadata" playsinline></video>
+      <div class="vid-overlay" id="vidOverlay"><button class="vid-big-play" id="vidBigPlay" type="button">▶</button></div>
+      <div class="vid-controls" id="vidControls"><div class="vid-progress-wrap"><div class="vid-progress-track" id="vidTrack">
+      <div class="vid-progress-buf" id="vidBuf"></div><div class="vid-progress-fill" id="vidFill"></div><div class="vid-progress-thumb" id="vidThumb"></div>
+      </div><div class="vid-time"><span id="vidCur">0:00</span> / <span id="vidDur">0:00</span></div></div>
+      <div class="vid-btn-row"><button class="vid-btn" id="vidPlay" type="button">▶</button><button class="vid-btn" id="vidMute" type="button">🔊</button>
+      <input type="range" class="vid-vol" id="vidVol" min="0" max="1" step="0.01" value="1"><span class="vid-spacer"></span>
+      <button class="vid-btn" id="vidFs" type="button">⛶</button></div></div>`;
     mediaWrapper.appendChild(wrap);
-    
-    const vid     = wrap.querySelector('#vidEl');
-    const play    = wrap.querySelector('#vidPlay');
-    const mute    = wrap.querySelector('#vidMute');
-    const vol     = wrap.querySelector('#vidVol');
-    const cur     = wrap.querySelector('#vidCur');
-    const dur     = wrap.querySelector('#vidDur');
-    const fill    = wrap.querySelector('#vidFill');
-    const buf     = wrap.querySelector('#vidBuf');
-    const thumb   = wrap.querySelector('#vidThumb');
-    const track   = wrap.querySelector('#vidTrack');
+
+    const vid = wrap.querySelector('#vidEl');
+    const play = wrap.querySelector('#vidPlay');
+    const mute = wrap.querySelector('#vidMute');
+    const vol = wrap.querySelector('#vidVol');
+    const cur = wrap.querySelector('#vidCur');
+    const dur = wrap.querySelector('#vidDur');
+    const fill = wrap.querySelector('#vidFill');
+    const buf = wrap.querySelector('#vidBuf');
+    const thumb = wrap.querySelector('#vidThumb');
+    const track = wrap.querySelector('#vidTrack');
     const bigPlay = wrap.querySelector('#vidBigPlay');
     const overlay = wrap.querySelector('#vidOverlay');
-    const fs      = wrap.querySelector('#vidFs');
-    
-    const fmt = t => { 
-        const m = Math.floor(t / 60);
-        const s = Math.floor(t % 60); 
-        return `${m}:${s.toString().padStart(2, '0')}`; 
-    };
-    
-    vid.addEventListener('loadedmetadata', () => { dur.textContent = fmt(vid.duration); });
-    vid.addEventListener('timeupdate', () => {
-        const p = vid.duration ? vid.currentTime / vid.duration : 0;
-        fill.style.width = (p * 100) + '%'; 
-        thumb.style.left = (p * 100) + '%';
-        cur.textContent = fmt(vid.currentTime);
-        if (vid.buffered.length) {
-            buf.style.width = ((vid.buffered.end(vid.buffered.length - 1) / vid.duration) * 100) + '%';
-        }
-    });
-    
-    const togglePlay = () => { 
-        if (vid.paused) {
-            vid.play().catch(e => console.error("Play interrupted:", e));
-        } else {
-            vid.pause();
-        }
-    };
-    vid.addEventListener('play', () => { play.textContent='⏸'; overlay.classList.add('hidden'); bigPlay.style.opacity='0'; });
-    vid.addEventListener('pause', () => { play.textContent='▶'; if(!vid.ended) { bigPlay.style.opacity='1'; setTimeout(()=>{bigPlay.style.opacity='0';}, 800); } });
-    vid.addEventListener('ended', () => { play.textContent='↺'; overlay.classList.remove('hidden'); bigPlay.textContent='↺'; bigPlay.style.opacity='1'; });
-    
-    play.addEventListener('click', togglePlay);
-    bigPlay.addEventListener('click', () => { if (vid.ended) vid.currentTime = 0; togglePlay(); });
-    overlay.addEventListener('click', () => { if (vid.ended) vid.currentTime = 0; togglePlay(); });
-    
-    wrap.addEventListener('click', e => { if (e.target === wrap || e.target === vid) togglePlay(); });
-    mute.addEventListener('click', () => { vid.muted = !vid.muted; mute.textContent = vid.muted ? '🔇' : '🔊'; });
-    vol.addEventListener('input', () => { vid.volume = parseFloat(vol.value); mute.textContent = vid.volume === 0 ? '🔇' : '🔊'; });
-    track.addEventListener('click', e => { const r = track.getBoundingClientRect(); vid.currentTime = ((e.clientX - r.left) / r.width) * vid.duration; });
-    fs.addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen(); else wrap.requestFullscreen(); });
-    document.addEventListener('fullscreenchange', () => { wrap.classList.toggle('vid-fullscreen', !!document.fullscreenElement); });
-
-    let _hideTimer = null;
     const controls = wrap.querySelector('#vidControls');
+    let frameId = 0;
+    let hideTimer = 0;
+
+    vid.src = url;
+    const fmt = seconds => {
+        if (!Number.isFinite(seconds)) return '0:00';
+        return `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
+    };
+    const updateProgress = () => {
+        const progress = vid.duration > 0 ? Math.min(1, Math.max(0, vid.currentTime / vid.duration)) : 0;
+        const buffered = vid.duration > 0 && vid.buffered.length ? vid.buffered.end(vid.buffered.length - 1) / vid.duration : 0;
+        fill.style.width = `${progress * 100}%`;
+        thumb.style.left = `${progress * 100}%`;
+        buf.style.width = `${Math.min(100, buffered * 100)}%`;
+        cur.textContent = fmt(vid.currentTime);
+        if (!vid.paused) frameId = requestAnimationFrame(updateProgress);
+    };
+    const stopProgress = () => { if (frameId) cancelAnimationFrame(frameId); frameId = 0; updateProgress(); };
     const showControls = () => {
         controls.classList.remove('vid-controls-hidden');
         wrap.style.cursor = '';
-        clearTimeout(_hideTimer);
-        if (!vid.paused) {
-            _hideTimer = setTimeout(() => {
-                controls.classList.add('vid-controls-hidden');
-                wrap.style.cursor = 'none';
-            }, 3000);
-        }
+        clearTimeout(hideTimer);
+        if (!vid.paused) hideTimer = setTimeout(() => { controls.classList.add('vid-controls-hidden'); wrap.style.cursor = 'none'; }, 3000);
     };
+    const togglePlay = () => {
+        if (vid.ended) vid.currentTime = 0;
+        if (vid.paused) vid.play().catch(() => showToast('Unable to play this video')); else vid.pause();
+    };
+    vid.addEventListener('loadedmetadata', () => { dur.textContent = fmt(vid.duration); updateProgress(); });
+    vid.addEventListener('play', () => { play.textContent = '⏸'; bigPlay.textContent = '▶'; overlay.classList.add('hidden'); showControls(); updateProgress(); });
+    vid.addEventListener('pause', () => { play.textContent = '▶'; stopProgress(); showControls(); if (!vid.ended) { overlay.classList.remove('hidden'); bigPlay.style.opacity = '1'; } });
+    vid.addEventListener('ended', () => { play.textContent = '↺'; stopProgress(); overlay.classList.remove('hidden'); bigPlay.textContent = '↺'; bigPlay.style.opacity = '1'; showControls(); });
+    play.addEventListener('click', togglePlay);
+    bigPlay.addEventListener('click', togglePlay);
+    overlay.addEventListener('click', event => { if (event.target === overlay) togglePlay(); });
+    vid.addEventListener('click', togglePlay);
+    mute.addEventListener('click', () => { vid.muted = !vid.muted; mute.textContent = vid.muted ? '🔇' : '🔊'; });
+    vol.addEventListener('input', () => { vid.volume = Number(vol.value); vid.muted = vid.volume === 0; mute.textContent = vid.muted ? '🔇' : '🔊'; });
+    track.addEventListener('pointerdown', event => {
+        if (!Number.isFinite(vid.duration)) return;
+        const rect = track.getBoundingClientRect();
+        vid.currentTime = Math.min(vid.duration, Math.max(0, (event.clientX - rect.left) / rect.width * vid.duration));
+        updateProgress();
+    });
+    wrap.querySelector('#vidFs').addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen(); else wrap.requestFullscreen?.(); });
     wrap.addEventListener('mousemove', showControls);
-    wrap.addEventListener('mousedown', showControls);
-    wrap.addEventListener('keydown', showControls);
-    vid.addEventListener('play',  () => { showControls(); });
-    vid.addEventListener('pause', () => {
-        clearTimeout(_hideTimer);
-        controls.classList.remove('vid-controls-hidden');
-        wrap.style.cursor = '';
-    });
-    vid.addEventListener('ended', () => {
-        clearTimeout(_hideTimer);
-        controls.classList.remove('vid-controls-hidden');
-        wrap.style.cursor = '';
-    });
+    wrap.addEventListener('pointerdown', showControls);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -3474,6 +3745,19 @@ document.getElementById('p2pStartBroadcastBtn').addEventListener('click', async 
             document.getElementById('p2pSendStatus').textContent='📤 Sending '+_p2pSendQueue.length+' file(s)…';
             await _sendAllFiles(conn, pid);
         });
+        conn.on('data', data => {
+            if (!data || data.type !== 'progress') return;
+            const fill = document.getElementById(`psf_${pid}_${data.fileIndex}`);
+            const pct = document.getElementById(`psp_${pid}_${data.fileIndex}`);
+            if (fill) fill.style.width = `${data.percent}%`;
+            if (pct) pct.textContent = `${data.percent}%`;
+            if (data.complete) {
+                if (fill) { fill.style.width = '100%'; fill.style.background = '#22c55e'; }
+                if (pct) pct.textContent = '✅';
+                const waiter = conn._p2pCompleteWaiters?.[data.fileIndex];
+                if (waiter) { delete conn._p2pCompleteWaiters[data.fileIndex]; waiter(); }
+            }
+        });
         conn.on('close', () => { delete _peerConns[pid]; _updatePeersBadge(); });
         conn.on('error', err => showToast('⚠️ Receiver error: '+(err.message||err)));
     });
@@ -3489,6 +3773,7 @@ function _updatePeersBadge() {
 async function _sendAllFiles(conn, peerId) {
     const plist = document.getElementById('p2pSendProgressList');
     plist.innerHTML = '';
+    conn._p2pCompleteWaiters = {};
     // Create progress rows up front
     _p2pSendQueue.forEach((item, idx) => {
         const row = document.createElement('div');
@@ -3509,7 +3794,7 @@ async function _sendAllFiles(conn, peerId) {
         conn.send({type:'meta', name:nm, size:file.size, mime:file.type, totalChunks:total, fileIndex:idx, totalFiles:_p2pSendQueue.length});
         await new Promise(resolve => {
             const PIPE = 6;
-            let nextRead = 0, bytesSent = 0, doneCount = 0;
+            let nextRead = 0, doneCount = 0;
             function kick() {
                 for (let b=0; b<PIPE && nextRead<total; b++) {
                     const i = nextRead++;
@@ -3517,13 +3802,10 @@ async function _sendAllFiles(conn, peerId) {
                     const rd = new FileReader();
                     rd.onload = () => {
                         conn.send({type:'chunk', fileIndex:idx, index:i, data:rd.result});
-                        bytesSent += (rd.result?.byteLength||0);
                         doneCount++;
-                        const pct = Math.min(100,Math.round(bytesSent/file.size*100));
-                        if (fillEl) fillEl.style.width=pct+'%';
-                        if (pctEl)  pctEl.textContent=pct+'%';
                         if (doneCount===total) {
-                            setTimeout(()=>{ conn.send({type:'done',fileIndex:idx}); if(fillEl)fillEl.style.width='100%'; if(pctEl)pctEl.textContent='✅'; resolve(); },60);
+                            conn._p2pCompleteWaiters[idx] = resolve;
+                            conn.send({type:'done',fileIndex:idx});
                         } else if (doneCount % PIPE === 0) {
                             setTimeout(kick,0);
                         }
@@ -3533,7 +3815,6 @@ async function _sendAllFiles(conn, peerId) {
             }
             kick();
         });
-        await new Promise(r=>setTimeout(r,40));
     }
     document.getElementById('p2pSendStatus').textContent=`✅ All ${_p2pSendQueue.length} file(s) sent!`;
     showToast('✅ All files sent!');
@@ -3589,6 +3870,10 @@ async function _p2pConnect() {
                 const pct=Math.min(100,Math.round(st.got/st.meta.totalChunks*100));
                 const f=document.getElementById(`prf_${fi}`), p=document.getElementById(`prp_${fi}`);
                 if(f) f.style.width=pct+'%'; if(p) p.textContent=pct+'%';
+                if (pct !== st.lastPercent) {
+                    st.lastPercent = pct;
+                    conn.send({type:'progress', fileIndex:fi, percent:pct});
+                }
             } else if (data.type==='done') {
                 const fi=data.fileIndex, st=states[fi]; if(!st)return;
                 const blob=new Blob(st.chunks.filter(Boolean),{type:st.meta.mime||'application/octet-stream'});
@@ -3596,6 +3881,7 @@ async function _p2pConnect() {
                 showToast('✅ Received: '+st.meta.name);
                 const f=document.getElementById(`prf_${fi}`), p=document.getElementById(`prp_${fi}`);
                 if(f){f.style.width='100%';f.style.background='#22c55e';} if(p)p.textContent='✅';
+                conn.send({type:'progress', fileIndex:fi, percent:100, complete:true});
                 const allDone = Object.keys(states).length===st.meta.totalFiles &&
                     Object.values(states).every(s=>s.got>=s.meta.totalChunks);
                 statusEl.textContent = allDone ? '✅ All files received!' : `✅ ${fi+1}/${st.meta.totalFiles} done…`;
@@ -3669,7 +3955,7 @@ const privacyText = `
   <p>WebTools Utility uses minimal localStorage entries only to remember your UI preferences (theme, animations). No tracking cookies, advertising cookies, or third-party cookies are set by this application.<\/p>
 
   <h3>6. Third-Party Advertising<\/h3>
-  <p>This site may display advertisements served by third parties such as Google AdSense. These third-party ad networks may use cookies and similar technologies in accordance with their own privacy policies. We do not control the data practices of such third parties.<\/p>
+    <p>WebTools Utility does not display third-party advertisements or use advertising cookies.<\/p>
 
   <h3>7. Device & Browser Damage Disclaimer<\/h3>
   <p>We make no warranties regarding the safety of files you choose to open. If a file you open causes harm to your device, software, or data, WebTools Utility and its operators bear no liability. Use this tool at your own risk.<\/p>
@@ -3727,8 +4013,8 @@ const termsText = `
   <h3>10. Intellectual Property<\/h3>
   <p>All source code, design elements, and original content of WebTools Utility are protected by applicable intellectual property laws. You may not reproduce or redistribute the Service without permission.<\/p>
 
-  <h3>11. Third-Party Advertising<\/h3>
-  <p>The Service may display third-party advertisements. We are not responsible for the content of those advertisements or the practices of the advertising networks.<\/p>
+    <h3>11. Third-Party Services<\/h3>
+    <p>The Service may use external services required for optional features such as P2P connections. We are not responsible for the availability or practices of those services.<\/p>
 
   <h3>12. Changes to Terms<\/h3>
   <p>We reserve the right to modify these Terms at any time. Continued use of the Service after changes constitutes acceptance of the new Terms.<\/p>
@@ -3749,6 +4035,9 @@ document.getElementById('termsContent').innerHTML   = termsText;
 
 document.getElementById('openPrivacyBtn').addEventListener('click', () => document.getElementById('privacyModal').classList.add('active'));
 document.getElementById('openTermsBtn').addEventListener('click',   () => document.getElementById('termsModal').classList.add('active'));
+document.getElementById('supportProjectBtn').addEventListener('click', () => document.getElementById('supportModal').classList.add('active'));
+document.getElementById('supportCloseBtn').addEventListener('click', () => document.getElementById('supportModal').classList.remove('active'));
+document.getElementById('supportModal').addEventListener('click', e => { if (e.target === document.getElementById('supportModal')) document.getElementById('supportModal').classList.remove('active'); });
 
 document.querySelectorAll('.settings-link-btn').forEach(btn => {
     btn.addEventListener('mouseenter', () => { btn.style.transform = 'translateY(-2px) scale(1.02)'; });
@@ -3902,8 +4191,8 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
             converterExtraOptions.innerHTML = `<div style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);border-radius:10px;padding:14px 16px;display:flex;gap:10px;align-items:flex-start;width:100%;box-sizing:border-box;">
               <span style="font-size:24px;flex-shrink:0;line-height:1">🛠️</span>
               <div>
-                <div style="font-weight:700;color:#fbbf24;font-size:13px;margin-bottom:5px;">Тимчасово не працює</div>
-                <div style="font-size:12px;color:rgba(255,255,255,0.65);line-height:1.55">Конвертація аудіо та відео наразі на технічних роботах. Функція буде відновлена найближчим часом.<br><br>Ви все ще можете грати аудіо/відео та завантажувати файли без конвертації.</div>
+                <div data-i18n="converterMaintenanceTitle" style="font-weight:700;color:#fbbf24;font-size:13px;margin-bottom:5px;">Temporarily unavailable</div>
+                <div data-i18n="converterMaintenanceText" style="font-size:12px;color:rgba(255,255,255,0.65);line-height:1.55">Audio and video conversion is currently under maintenance. The feature will be restored soon.<br><br>You can still play audio/video and download files without conversion.</div>
               </div>
             </div>`;
             converterConvertBtn.disabled = true;
@@ -4346,6 +4635,16 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
             showToast('⚠️ Could not save file');
         };
     }
+})();
+
+
+(function () {
+    function fixHeight() {
+        document.documentElement.style.setProperty('--dvh', window.innerHeight * 0.01 + 'px');
+    }
+    fixHeight();
+    window.addEventListener('resize', fixHeight);
+    window.addEventListener('orientationchange', fixHeight);
 })();
 </script>
 </body>
