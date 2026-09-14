@@ -37,7 +37,11 @@ Stop uploading sensitive files to random servers. WebTools Utility brings **desk
 
 <div align="center">
 
-### 👉 [**Open WebTools Utility**](https://ivan155off.github.io/WebTools-Utility/)
+### 👉 <p align="center">
+  <a href="https://ivan155off.github.io/WebTools-Utility">
+    <img src="button.svg" alt="Open WebTools Utility" width="680"/>
+  </a>
+</p>
 
 </div>
 
