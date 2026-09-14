@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://ivan155off.github.io/WebTools-Utility">
-    <img src="button.svg" alt="Open WebTools Utility" width="300"/>
+    <img src="button.svg" alt="Open WebTools Utility" width="680"/>
   </a>
 </p>
 
