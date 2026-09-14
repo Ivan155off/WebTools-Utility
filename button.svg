@@ -1,20 +1,128 @@
-<svg width="300" height="56" viewBox="0 0 300 56" xmlns="http://www.w3.org/2000/svg">
+<svg width="680" height="150" viewBox="0 0 680 150" xmlns="http://www.w3.org/2000/svg" role="img" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYToxZGZkMjQ0Ny0yYmMxLTRjZmQtYmRiOC0xOTc3Njg5YjhlZTIAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaBB2/B8jVkvCTTsAgNKMV2wAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDo4NDcyYjZiYy03ZmY4LTRlNGMtODQxYS04M2VkZDNhM2U3NTRscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoKDbl89a9zerjL4RURWsMawAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggvEOFpaICgccTXFYYPK7uHD/JvMCyR+CmM2/yDwQssCikZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaCTPXP0H9C8b22hxh0H5IiIAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCCDb5Pw8nRcVPXYbcXtdUB8Br05l2eJbwyVpwQSkITiN2RuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBihZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjFkZmQyNDQ3LTJiYzEtNGNmZC1iZGI4LTE5Nzc2ODliOGVlMi9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjdjMTVjOGQ5LWRmODAtNGFmNy04YTNmLTVhZWExNWFjOWE4NXJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCC8Q4WlogKBxxNcVhg8ru4cP8m8wLJH4KYzb/IPBCywKKJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggg3a2mQFh7FY0OoQeZJq0LhEQoYjsK3cRh9dSCgvvhbKiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggWM1YdAd9tYgPOn7JGaWK2byW0bVu5o2LuVVxJ5Uv5QN0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQDVOma2xl/DIkDbuQpEqPNPxfZFC3i47rvsVqhSzh41SFn2Nb2Qwc1Sfr6/XabrCLeoexZHec7p7IwLNdBaSFDY=</c2pa:manifest></metadata>
+  <title>Open WebTools Utility</title>
+  <desc>Cyberpunk animated button — click to open WebTools Utility</desc>
   <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#4A90E2"/>
-      <stop offset="100%" stop-color="#7B5EA7"/>
+    <linearGradient id="sh" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="rgba(0,200,150,0)"/>
+      <stop offset="50%" stop-color="rgba(0,200,150,0.15)"/>
+      <stop offset="100%" stop-color="rgba(0,200,150,0)"/>
+      <animateTransform attributeName="gradientTransform" type="translate" from="-1 0" to="1 0" dur="2.5s" repeatCount="indefinite"/>
     </linearGradient>
-    <linearGradient id="s" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="rgba(255,255,255,0)"/>
-      <stop offset="50%" stop-color="rgba(255,255,255,0.25)"/>
-      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-      <animateTransform attributeName="gradientTransform" type="translate" from="-1 0" to="1 0" dur="2s" repeatCount="indefinite"/>
+    <linearGradient id="sl" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(0,200,150,0)"/>
+      <stop offset="50%" stop-color="rgba(0,200,150,0.07)"/>
+      <stop offset="100%" stop-color="rgba(0,200,150,0)"/>
+      <animateTransform attributeName="gradientTransform" type="translate" from="0 -1" to="0 1" dur="3s" repeatCount="indefinite"/>
     </linearGradient>
+    <clipPath id="bc">
+      <rect x="115" y="42" width="450" height="56" rx="6"/>
+    </clipPath>
   </defs>
-  <rect width="300" height="56" rx="28" fill="url(#g)"/>
-  <rect width="300" height="56" rx="28" fill="url(#s)"/>
-  <rect width="300" height="56" rx="28" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1">
-    <animate attributeName="stroke-opacity" values="0.3;0.7;0.3" dur="2s" repeatCount="indefinite"/>
+
+  <!-- Outer glow pulse -->
+  <rect x="110" y="37" width="460" height="66" rx="8" fill="none" stroke="#00C896" stroke-width="6" opacity="0.06">
+    <animate attributeName="opacity" values="0.06;0.14;0.06" dur="3s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-width" values="6;14;6" dur="3s" repeatCount="indefinite"/>
   </rect>
-  <text x="150" y="33" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="600" fill="white" letter-spacing="1">🌐 OPEN WEBTOOLS UTILITY</text>
+
+  <!-- Button body -->
+  <rect x="115" y="42" width="450" height="56" rx="6" fill="#070e0c"/>
+  <rect x="115" y="42" width="450" height="56" rx="6" fill="url(#sh)" clip-path="url(#bc)"/>
+  <rect x="115" y="42" width="450" height="56" rx="6" fill="url(#sl)" clip-path="url(#bc)"/>
+
+  <!-- Main border -->
+  <rect x="115" y="42" width="450" height="56" rx="6" fill="none" stroke="#00C896" stroke-width="1.2">
+    <animate attributeName="stroke-opacity" values="0.7;1;0.7" dur="2.5s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- Cut corner fills -->
+  <polygon points="115,52 125,42 135,42" fill="#00C896" opacity="0.15"/>
+  <polygon points="565,52 555,42 545,42" fill="#00C896" opacity="0.15"/>
+  <polygon points="115,88 125,98 135,98" fill="#00C896" opacity="0.15"/>
+  <polygon points="565,88 555,98 545,98" fill="#00C896" opacity="0.15"/>
+
+  <!-- L-brackets TL -->
+  <path d="M118 58 L118 45 L131 45" fill="none" stroke="#00C896" stroke-width="2" stroke-linecap="square">
+    <animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite" begin="0s"/>
+  </path>
+  <!-- TR -->
+  <path d="M562 58 L562 45 L549 45" fill="none" stroke="#00C896" stroke-width="2" stroke-linecap="square">
+    <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite" begin="0s"/>
+  </path>
+  <!-- BL -->
+  <path d="M118 82 L118 95 L131 95" fill="none" stroke="#00C896" stroke-width="2" stroke-linecap="square">
+    <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite" begin="1s"/>
+  </path>
+  <!-- BR -->
+  <path d="M562 82 L562 95 L549 95" fill="none" stroke="#00C896" stroke-width="2" stroke-linecap="square">
+    <animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite" begin="1s"/>
+  </path>
+
+  <!-- Side dashes left -->
+  <line x1="115" y1="64" x2="115" y2="68" stroke="#00C896" stroke-width="2">
+    <animate attributeName="opacity" values="1;0.2;1" dur="1.5s" repeatCount="indefinite" begin="0.2s"/>
+  </line>
+  <line x1="115" y1="72" x2="115" y2="76" stroke="#00C896" stroke-width="2">
+    <animate attributeName="opacity" values="0.2;1;0.2" dur="1.5s" repeatCount="indefinite" begin="0.4s"/>
+  </line>
+  <!-- Side dashes right -->
+  <line x1="565" y1="64" x2="565" y2="68" stroke="#00C896" stroke-width="2">
+    <animate attributeName="opacity" values="0.2;1;0.2" dur="1.5s" repeatCount="indefinite" begin="0.6s"/>
+  </line>
+  <line x1="565" y1="72" x2="565" y2="76" stroke="#00C896" stroke-width="2">
+    <animate attributeName="opacity" values="1;0.2;1" dur="1.5s" repeatCount="indefinite" begin="0.8s"/>
+  </line>
+
+  <!-- Floating particles -->
+  <circle cx="148" cy="70" r="2" fill="#00C896">
+    <animate attributeName="opacity" values="0;1;0" dur="3s" repeatCount="indefinite" begin="0s"/>
+    <animate attributeName="cy" values="80;60;80" dur="3s" repeatCount="indefinite" begin="0s"/>
+  </circle>
+  <circle cx="532" cy="70" r="2" fill="#00C896">
+    <animate attributeName="opacity" values="0;1;0" dur="3s" repeatCount="indefinite" begin="1.5s"/>
+    <animate attributeName="cy" values="60;80;60" dur="3s" repeatCount="indefinite" begin="1.5s"/>
+  </circle>
+  <circle cx="160" cy="70" r="1.2" fill="#00C896" opacity="0.4">
+    <animate attributeName="opacity" values="0.4;0.1;0.4" dur="2s" repeatCount="indefinite" begin="0.7s"/>
+  </circle>
+  <circle cx="520" cy="70" r="1.2" fill="#00C896" opacity="0.4">
+    <animate attributeName="opacity" values="0.1;0.4;0.1" dur="2s" repeatCount="indefinite" begin="1.2s"/>
+  </circle>
+
+  <!-- Horizontal scan line -->
+  <line x1="115" y1="70" x2="565" y2="70" stroke="#00C896" stroke-width="0.5" opacity="0">
+    <animate attributeName="opacity" values="0;0.12;0" dur="4s" repeatCount="indefinite"/>
+    <animate attributeName="y1" values="44;98;44" dur="4s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="44;98;44" dur="4s" repeatCount="indefinite"/>
+  </line>
+
+  <!-- Left status labels -->
+  <text x="130" y="67" font-family="monospace" font-size="8" fill="#00C896" opacity="0.4" letter-spacing="1">SYS</text>
+  <text x="130" y="77" font-family="monospace" font-size="8" fill="#00C896" letter-spacing="1">
+    <animate attributeName="opacity" values="0.8;0.2;0.8" dur="1.8s" repeatCount="indefinite"/>
+    ON
+  </text>
+
+  <!-- Right status labels -->
+  <text x="536" y="67" font-family="monospace" font-size="8" fill="#00C896" opacity="0.4" letter-spacing="1">v1.0</text>
+  <text x="536" y="77" font-family="monospace" font-size="8" fill="#00C896" opacity="0.5" letter-spacing="1">P2P</text>
+
+  <!-- Main text -->
+  <text x="340" y="75" text-anchor="middle" font-family="monospace" font-size="15" font-weight="700" fill="#00C896" letter-spacing="3">
+    ⬡ OPEN WEBTOOLS UTILITY ⬡
+    <animate attributeName="opacity" values="1;0.88;1" dur="2.5s" repeatCount="indefinite"/>
+  </text>
+
+  <!-- Bottom tagline fade in/out -->
+  <text x="340" y="120" text-anchor="middle" font-family="monospace" font-size="9" fill="#00C896" opacity="0" letter-spacing="2">
+    ◈ ZERO UPLOADS · ZERO TRACKING · OPEN SOURCE ◈
+    <animate attributeName="opacity" values="0;0.45;0.45;0" dur="5s" repeatCount="indefinite" begin="1s"/>
+  </text>
+
+  <!-- Top tagline fade in/out -->
+  <text x="340" y="32" text-anchor="middle" font-family="monospace" font-size="9" fill="#00C896" opacity="0" letter-spacing="2">
+    ◈ BROWSER-BASED FILE TOOLKIT ◈
+    <animate attributeName="opacity" values="0.45;0.45;0;0;0.45" dur="5s" repeatCount="indefinite" begin="0s"/>
+  </text>
+
 </svg>
