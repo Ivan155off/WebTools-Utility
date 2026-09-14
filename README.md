@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://ivan155off.github.io/WebTools-Utility">
-    <img src="https://img.shields.io/badge/⚡%20OPEN%20WEBTOOLS%20UTILITY-FF6B6B?style=for-the-badge&logoColor=white" alt="Open WebTools Utility"/>
+    <img src="https://img.shields.io/badge/🌐 Open WebTools Utility-4A90E2?style=for-the-badge&logoColor=white" alt="Open WebTools Utility"/>
   </a>
 </p>
 
