@@ -4,7 +4,11 @@
 
 ### **High-Performance, Privacy-First File Hub in Your Browser**
 
-[![Open WebTools Utility](https://img.shields.io/badge/🌐%20Open%20WebTools%20Utility-blue?style=for-the-badge)](https://ivan155off.github.io/WebTools-Utility)
+<p align="center">
+  <a href="https://ivan155off.github.io/WebTools-Utility">
+    <img src="button.svg" alt="Open WebTools Utility" width="300"/>
+  </a>
+</p>
 
 > **⚠️ Zero uploads. Zero tracking. 100% Client-Side.**
 > A powerful browser-based suite for viewing, analyzing, and sharing files **without ever leaving your device**.
