@@ -31,18 +31,11 @@ Stop uploading sensitive files to random servers. WebTools Utility brings **desk
 
 ---
 
-## 🚀 **Getting Started**
+## 🚀 Getting Started
 
 **No installation required.** Simply open the app in any modern browser:
 
-<div align="center">
-
-###  <p align="center">
-  <a href="https://ivan155off.github.io/WebTools-Utility">
-    <img src="button.svg" alt="Open WebTools Utility" width="680"/>
-  </a>
-</p>
-
+**→ [ivan155off.github.io/WebTools-Utility](https://ivan155off.github.io/WebTools-Utility)**
 </div>
 
 ### **How it works**
