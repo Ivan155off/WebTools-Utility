@@ -1,17 +1,27 @@
-importScripts('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
-
 let activeZipInstance = null;
+const MAX_TEXT_PREVIEW_BYTES = 256 * 1024;
+const MAX_IN_MEMORY_ARCHIVE_BYTES = 32 * 1024 * 1024;
+const TEXT_EXTENSIONS = new Set([
+    'txt', 'log', 'md', 'json', 'xml', 'html', 'htm', 'js', 'ts', 'jsx', 'tsx',
+    'css', 'scss', 'sass', 'less', 'py', 'sh', 'bash', 'bat', 'ps1', 'rb', 'php', 'go', 'rs', 'c', 'cpp',
+    'h', 'hpp', 'java', 'kt', 'swift', 'dart', 'lua', 'pl', 'r', 'm', 'yaml', 'yml', 'toml', 'ini', 'cfg',
+    'conf', 'env', 'gitignore', 'gitattributes', 'editorconfig', 'eslintrc', 'prettierrc', 'babelrc',
+    'sql', 'graphql', 'gql', 'vue', 'svelte', 'astro', 'njk', 'jinja', 'twig', 'hbs', 'mustache',
+    'tex', 'cls', 'sty', 'gradle', 'cmake', 'makefile', 'dockerfile', 'properties',
+    'lock', 'pem', 'crt', 'key', 'reg', 'inf', 'nfo', 'svg', 'csv', 'tsv'
+]);
 
 const EXT_GROUPS = {
-    ARCHIVE: ['zip', 'jar', 'pptx', 'docx', 'xlsx'],
-    MEDIA: ['mp3', 'mp4', 'avi', 'wav', 'ogg', 'webm', 'mkv', 'flac', 'aac', 'm4a'],
-    HEX: ['exe', 'dll', 'bin', 'thanos', 'class'],
-    NBT: ['nbt', 'dat', 'dta', 'mca', 'mcworld'],
+    ARCHIVE: ['zip', 'jar', 'pptx', 'pptm', 'docx', 'docm', 'xlsx', 'xlsm', 'odt', 'odp', 'ods', 'epub', 'vsdx'],
+    MEDIA: ['mp3', 'mp4', 'avi', 'wav', 'ogg', 'webm', 'mkv', 'flac', 'aac', 'm4a', 'opus', 'oga', '3gp', 'm4v', 'm2ts'],
+    HEX: ['exe', 'dll', 'bin', 'thanos', 'class', 'cpc', 'psd', 'heic', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'zst', 'doc', 'ppt', 'mmo'],
+    NBT: ['nbt', 'dat', 'dta', 'mca', 'mcworld', 'mcstructure', 'schem', 'schematic', 'litematic'],
+    GAME_DATA: ['dbc', 'wdb', 'm2', 'blp', 'pak', 'uasset', 'umap', 'utoc', 'ucas', 'assets'],
     PDF: ['pdf'],
     JSON: ['json'],
     CSV: ['csv'],
     YAML: ['yaml', 'yml'],
-    IMAGE: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico']
+    IMAGE: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif', 'tif', 'tiff']
 };
 
 self.onmessage = async function(e) {
@@ -22,28 +32,41 @@ self.onmessage = async function(e) {
             const file = msg.file;
             const ext = file.name.toLowerCase().split('.').pop();
 
-            if (msg.forceHex) {
-                handleHex(file);
+            if (!msg.forceHex && file.size > MAX_TEXT_PREVIEW_BYTES && TEXT_EXTENSIONS.has(ext)) {
+                await processAsText(file, msg.requestId);
+            } else if (EXT_GROUPS.ARCHIVE.includes(ext) && file.size > MAX_IN_MEMORY_ARCHIVE_BYTES) {
+                self.postMessage({
+                    type: 'ANALYSIS_COMPLETE',
+                    fileType: 'archive',
+                    data: { previewOnly: true, message: 'This archive is too large to unpack in memory. It is still available to download and share.' },
+                    requestId: msg.requestId
+                });
+            } else if (EXT_GROUPS.NBT.includes(ext) && file.size > MAX_IN_MEMORY_ARCHIVE_BYTES) {
+                handleHex(file, msg.requestId);
+            } else if (msg.forceHex) {
+                handleHex(file, msg.requestId);
             } else if (EXT_GROUPS.NBT.includes(ext)) {
-                await handleNBT(file);
+                await handleNBT(file, msg.requestId);
             } else if (EXT_GROUPS.ARCHIVE.includes(ext)) {
-                handleArchive(file);
+                handleArchive(file, msg.requestId);
             } else if (EXT_GROUPS.HEX.includes(ext)) {
-                handleHex(file);
+                handleHex(file, msg.requestId);
+            } else if (EXT_GROUPS.GAME_DATA.includes(ext)) {
+                handleHex(file, msg.requestId);
             } else if (EXT_GROUPS.MEDIA.includes(ext)) {
-                self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'media', data: { mime: getMimeType(ext) } });
+                self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'media', data: { mime: getMimeType(ext) }, requestId: msg.requestId });
             } else if (EXT_GROUPS.PDF.includes(ext)) {
-                self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'pdf', data: {} });
+                self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'pdf', data: {}, requestId: msg.requestId });
             } else if (EXT_GROUPS.IMAGE.includes(ext)) {
-                self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'image', data: {} });
+                self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'image', data: {}, requestId: msg.requestId });
             } else if (EXT_GROUPS.JSON.includes(ext)) {
-                handleJSON(file);
+                handleJSON(file, msg.requestId);
             } else if (EXT_GROUPS.CSV.includes(ext)) {
-                handleCSV(file);
+                handleCSV(file, msg.requestId);
             } else if (EXT_GROUPS.YAML.includes(ext)) {
-                processAsYaml(file);
+                processAsYaml(file, msg.requestId);
             } else {
-                processAsText(file);
+                processAsText(file, msg.requestId);
             }
         } else if (msg.type === 'REQUEST_LINES') {
             const file = msg.file;
@@ -80,12 +103,12 @@ self.onmessage = async function(e) {
             }
         }
     } catch (err) {
-        self.postMessage({ type: 'ERROR', error: err.message });
+        self.postMessage({ type: 'ERROR', error: err.message, requestId: msg.requestId });
     }
 };
 
 // ── HEX ──────────────────────────────────────────────────────────────────────
-function handleHex(file) {
+function handleHex(file, requestId) {
     const reader = new FileReader();
     reader.onload = ev => {
         const buffer = new Uint8Array(ev.target.result);
@@ -103,14 +126,17 @@ function handleHex(file) {
             }
             lines.push(`${addr}: ${hex.join(' ')} |${asc.join('')}|`);
         }
-        if (buffer.length > maxBytes) lines.push(`... [DUMP TRUNCATED — TOTAL: ${(buffer.length / 1024).toFixed(1)} KB]`);
-        self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'hex', data: { lines } });
+        if (file.size > maxBytes) lines.push(`... [DUMP TRUNCATED — TOTAL: ${(file.size / 1024).toFixed(1)} KB]`);
+        self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'hex', data: { lines }, requestId });
     };
-    reader.readAsArrayBuffer(file);
+    reader.readAsArrayBuffer(file.slice(0, 4096));
 }
 
 // ── ARCHIVE ───────────────────────────────────────────────────────────────────
-function handleArchive(file) {
+function handleArchive(file, requestId) {
+    if (typeof JSZip === 'undefined') {
+        importScripts('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+    }
     const reader = new FileReader();
     reader.onload = ev => {
         JSZip.loadAsync(ev.target.result).then(zip => {
@@ -125,47 +151,47 @@ function handleArchive(file) {
                     });
                 }
             });
-            self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'archive', data: filesArray });
-        }).catch(() => processAsText(file));
+            self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'archive', data: filesArray, requestId });
+        }).catch(() => processAsText(file, requestId));
     };
     reader.readAsArrayBuffer(file);
 }
 
 // ── JSON ──────────────────────────────────────────────────────────────────────
-function handleJSON(file) {
+function handleJSON(file, requestId) {
     const reader = new FileReader();
     reader.onload = ev => {
         try {
             const parsed = JSON.parse(ev.target.result);
             const pretty = JSON.stringify(parsed, null, 2);
-            self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'text', data: { offsets: [], directText: pretty, lang: 'json' } });
+            self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'text', data: { offsets: [], directText: pretty, lang: 'json' }, requestId });
         } catch(err) {
-            self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'text', data: { offsets: [], directText: ev.target.result, lang: 'json', parseError: err.message } });
+            self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'text', data: { offsets: [], directText: ev.target.result, lang: 'json', parseError: err.message }, requestId });
         }
     };
     reader.readAsText(file);
 }
 
 // ── CSV ───────────────────────────────────────────────────────────────────────
-function handleCSV(file) {
+function handleCSV(file, requestId) {
     const reader = new FileReader();
     reader.onload = ev => {
         const raw = ev.target.result;
         const lines = raw.split('\n').filter(l => l.trim());
         const rows = lines.map(l => l.split(',').map(c => c.trim().replace(/^"|"$/g, '')));
-        self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'csv', data: { rows } });
+        self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'csv', data: { rows }, requestId });
     };
     reader.readAsText(file);
 }
 
-function processAsYaml(file) {
+function processAsYaml(file, requestId) {
     const reader = new FileReader();
-    reader.onload = ev => self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'yaml', data: { offsets: [], directText: ev.target.result, lang: 'yaml' } });
+    reader.onload = ev => self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'yaml', data: { offsets: [], directText: ev.target.result, lang: 'yaml' }, requestId });
     reader.readAsText(file);
 }
 
 // ── NBT / DAT / DTA (FIXED ASYNC GZIP) ───────────────────────────────────────────
-async function handleNBT(file) {
+async function handleNBT(file, requestId) {
     const reader = new FileReader();
     reader.onload = async ev => {
         const raw = new Uint8Array(ev.target.result);
@@ -178,16 +204,16 @@ async function handleNBT(file) {
 
         try {
             const tree = parseNBTBuffer(buffer, 0);
-            self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'nbt', data: { tree: tree.value, name: tree.name } });
+            self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'nbt', data: { tree: tree.value, name: tree.name }, requestId });
         } catch(e) {
             // Fallback to hex
-            handleHexFromBuffer(raw);
+            handleHexFromBuffer(raw, requestId);
         }
     };
     reader.readAsArrayBuffer(file);
 }
 
-function handleHexFromBuffer(buffer) {
+function handleHexFromBuffer(buffer, requestId) {
     const lines = [];
     const maxBytes = Math.min(buffer.length, 4096);
     for (let i = 0; i < maxBytes; i += 16) {
@@ -203,7 +229,7 @@ function handleHexFromBuffer(buffer) {
         lines.push(`${addr}: ${hex.join(' ')} |${asc.join('')}|`);
     }
     if (buffer.length > maxBytes) lines.push(`... [DUMP TRUNCATED — TOTAL: ${(buffer.length / 1024).toFixed(1)} KB]`);
-    self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'hex', data: { lines } });
+    self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'hex', data: { lines }, requestId });
 }
 
 // Fixed decompressGzip using DecompressionStream
@@ -306,35 +332,25 @@ function readPayload(view, offset, type) {
 }
 
 // ── TEXT ────────────────────────────────────────────────────────────────────── 
-function processAsText(file) {
-    const chunkSize = 1024 * 1024 * 4;
-    let offset = 0;
-    const offsets = [];
-    let totalBytes = 0;
-    function scan() {
-        if (offset >= file.size) {
-            self.postMessage({ type: 'ANALYSIS_COMPLETE', fileType: 'text', data: { offsets } });
-            return;
-        }
-        const slice = file.slice(offset, offset + chunkSize);
-        const reader = new FileReader();
-        reader.onload = ev => {
-            const buf = new Uint8Array(ev.target.result);
-            for (let i = 0; i < buf.length; i++) if (buf[i] === 10) offsets.push(totalBytes + i);
-            totalBytes += buf.length;
-            offset += chunkSize;
-            scan();
-        };
-        reader.readAsArrayBuffer(slice);
-    }
-    scan();
+async function processAsText(file, requestId) {
+    const preview = await file.slice(0, MAX_TEXT_PREVIEW_BYTES).text();
+    const previewOnly = file.size > MAX_TEXT_PREVIEW_BYTES;
+    const directText = previewOnly
+        ? preview + '\n\n[Large file preview — remaining contents are not loaded to keep the app responsive.]'
+        : preview;
+    self.postMessage({
+        type: 'ANALYSIS_COMPLETE',
+        fileType: 'text',
+        data: { directText, previewOnly },
+        requestId
+    });
 }
 
 function getMimeType(ext) {
     const map = {
-        'mp3':'audio/mpeg','mp4':'video/mp4','avi':'video/x-msvideo',
+        'mp3':'audio/mpeg','mp4':'video/mp4','avi':'video/x-msvideo','3gp':'video/3gpp','m4v':'video/x-m4v','m2ts':'video/mp2t',
         'wav':'audio/wav','ogg':'audio/ogg','webm':'video/webm',
-        'mkv':'video/x-matroska','flac':'audio/flac','aac':'audio/aac','m4a':'audio/mp4'
+        'mkv':'video/x-matroska','flac':'audio/flac','aac':'audio/aac','m4a':'audio/mp4','opus':'audio/opus','oga':'audio/ogg'
     };
     return map[ext] || 'application/octet-stream';
 }
