@@ -13,6 +13,11 @@
             initialTheme = storedTheme === 'light' ? 'light' : 'dark';
         } catch (error) {}
         document.documentElement.setAttribute('data-theme', initialTheme);
+        try {
+            if ((navigator.deviceMemory && navigator.deviceMemory <= 4) || navigator.hardwareConcurrency <= 4) {
+                document.documentElement.classList.add('low-memory');
+            }
+        } catch (error) {}
 
         // Silence benign Vite websocket connection errors and unhandled rejections
         window.addEventListener('unhandledrejection', function(event) {
@@ -42,9 +47,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     
-    <!-- JSZip Official CDN (Ensures static 3-file bundle runs perfectly) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <!-- FFmpeg.wasm is loaded dynamically on demand (avoids CDN blocking) -->
+    <!-- Archive helpers load on demand to keep initial startup lightweight. -->
 
 <style>
 /* ═══════════════════════════════════════════════════════
@@ -122,6 +125,18 @@
   transition:background 0.12s;color:#fff;
 }
 .p2p-picker-opt:hover{ background:rgba(255,255,255,0.08); }
+.p2p-text-composer{display:flex;gap:7px;margin:0 0 8px;align-items:stretch}
+.p2p-text-composer textarea{flex:1;min-width:0;resize:vertical;max-height:140px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-console);color:var(--text-light);font:12px 'JetBrains Mono',monospace}
+.p2p-text-composer button{flex-shrink:0}
+.p2p-picker-sheet{max-height:0;opacity:0;overflow:hidden;transform:translateY(-7px);pointer-events:none;border:1px solid transparent;border-radius:9px;margin:0 0 8px;transition:max-height .24s ease,opacity .18s ease,transform .24s ease,border-color .2s ease}
+.p2p-picker-sheet.open{max-height:230px;opacity:1;transform:none;pointer-events:auto;border-color:var(--border-hi);padding:7px;background:var(--bg-panel)}
+.p2p-picker-sheet.closing{opacity:0;transform:translateY(-5px)}
+.p2p-picker-sheet input{width:100%;padding:8px 9px;margin-bottom:5px;border:1px solid var(--border);border-radius:7px;background:var(--bg-console);color:var(--text-light);font:12px 'Space Grotesk',sans-serif}
+.p2p-picker-options{max-height:165px;overflow:auto}
+.p2p-type-filters{display:flex;gap:4px;overflow-x:auto;margin-bottom:6px;padding-bottom:2px}
+.p2p-type-filters button{flex:0 0 auto;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text-main);font:11px 'Space Grotesk',sans-serif;cursor:pointer;white-space:nowrap}
+.p2p-type-filters button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+.p2p-picker-options{max-height:135px;overflow:auto}
 
 /* Progress rows */
 .p2p-progress-row {
@@ -166,6 +181,7 @@
   .modal-box{ max-width:95vw!important;width:95vw!important;margin:10px;max-height:85vh;overflow-y:auto; }
   .p2p-slot{ width:38px;height:46px;font-size:18px; }
   .p2p-code-display{ font-size:22px;letter-spacing:5px;padding:10px 16px; }
+    .p2p-text-composer{flex-direction:column}
 }
 
 /* PDF / Image viewer fixes */
@@ -321,7 +337,6 @@
             <span id="viewerHeader" class="viewer-title">FILE VIEWER</span>
           </div>
           <div class="header-right">
-            <button class="control-btn" id="viewRawBtn" data-i18n="raw" style="display:none;">〈/〉 Raw</button>
             <button class="control-btn editor-toggle-btn" id="editorToggleBtn" data-i18n="edit" style="display:none;">✏️ Edit</button>
             <button class="control-btn" id="convertFileBtn" data-i18n="convertShort" style="display:inline-block;">🔄 Convert</button>
             <button class="control-btn download-btn" id="downloadSliceBtn" data-i18n="download">📥 Download</button>
@@ -401,7 +416,7 @@
 <!-- Delete All -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal-box glass-modal">
-    <div class="modal-title danger-title" data-i18n="deleteAllQuestion">Delete All Files?</div>
+    <div class="confirm-modal-heading"><span class="confirm-modal-icon" aria-hidden="true">🗑️</span><div class="modal-title danger-title" data-i18n="deleteAllQuestion">Delete All Files?</div></div>
     <div class="modal-text" data-i18n="deleteAllText">All files will be removed from local storage. This cannot be undone.</div>
     <div class="modal-buttons">
     <button class="modal-btn btn-cancel" id="modalCancelBtn" data-i18n="cancel">Cancel</button>
@@ -448,6 +463,31 @@
   </div>
 </div>
 
+<!-- Video Quality -->
+<div class="modal-overlay" id="videoQualityModal" aria-hidden="true">
+  <div class="modal-box glass-modal video-quality-modal" role="dialog" aria-modal="true" aria-labelledby="videoQualityTitle">
+    <div class="video-quality-header">
+      <div>
+        <div class="modal-title accent-title" id="videoQualityTitle">Video quality</div>
+        <p class="video-quality-description">Choose the displayed render resolution. A local file keeps its original encoded bitrate.</p>
+      </div>
+      <button class="p2p-close-btn" id="videoQualityCloseBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="video-quality-options" id="videoQualityOptions" role="group" aria-label="Video render resolution">
+      <button class="video-quality-option" type="button" data-quality="auto">Auto<span>Source resolution</span></button>
+      <button class="video-quality-option" type="button" data-quality="144">144p</button>
+      <button class="video-quality-option" type="button" data-quality="240">240p</button>
+      <button class="video-quality-option" type="button" data-quality="360">360p</button>
+      <button class="video-quality-option" type="button" data-quality="480">480p</button>
+      <button class="video-quality-option" type="button" data-quality="720">720p</button>
+      <button class="video-quality-option" type="button" data-quality="1080">1080p</button>
+      <button class="video-quality-option" type="button" data-quality="1440">1440p</button>
+      <button class="video-quality-option" type="button" data-quality="2160">2160p (4K)</button>
+    </div>
+    <p class="video-quality-note">Lower settings downsample the displayed image. Decoding still uses the source video, so this does not reduce its bitrate.</p>
+  </div>
+</div>
+
 <!-- Archive Rename -->
 <div class="modal-overlay" id="arcRenameModal">
   <div class="modal-box glass-modal">
@@ -476,7 +516,7 @@
 <!-- Privacy Policy Modal -->
 <div class="modal-overlay" id="privacyModal">
   <div class="modal-box legal-modal glass-modal">
-    <div class="legal-header"><span class="nbt-badge">LEGAL</span><span class="modal-title accent-title" style="-webkit-text-fill-color:initial;color:var(--text-light)">Privacy Policy</span></div>
+    <div class="legal-header"><span class="nbt-badge">LEGAL</span><span class="modal-title accent-title" data-i18n="privacy" style="-webkit-text-fill-color:initial;color:var(--text-light)">Privacy Policy</span></div>
     <div class="legal-scroll" id="privacyContent"></div>
     <div class="modal-buttons"><button class="modal-btn btn-accent" id="closePrivacyBtn" data-i18n="close">Close</button></div>
   </div>
@@ -485,7 +525,7 @@
 <!-- Terms of Use Modal -->
 <div class="modal-overlay" id="termsModal">
   <div class="modal-box legal-modal glass-modal">
-    <div class="legal-header"><span class="nbt-badge">LEGAL</span><span class="modal-title accent-title" style="-webkit-text-fill-color:initial;color:var(--text-light)">Terms of Use</span></div>
+    <div class="legal-header"><span class="nbt-badge">LEGAL</span><span class="modal-title accent-title" data-i18n="terms" style="-webkit-text-fill-color:initial;color:var(--text-light)">Terms of Use</span></div>
     <div class="legal-scroll" id="termsContent"></div>
     <div class="modal-buttons"><button class="modal-btn btn-accent" id="closeTermsBtn" data-i18n="close">Close</button></div>
   </div>
@@ -542,8 +582,24 @@
       <div class="p2p-view" id="p2pSendView">
         <p class="p2p-help-text" data-i18n="p2pSendHelp" style="margin-bottom:10px;">Add files from workspace. Multiple receivers can connect simultaneously.</p>
         <div id="p2pFileQueueList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;max-height:140px;overflow-y:auto;"></div>
+                <div class="p2p-text-composer">
+                    <textarea id="p2pTextInput" rows="3" maxlength="1000000" data-i18n-placeholder="p2pTextPlaceholder" placeholder="Paste a message to send directly"></textarea>
+                    <button class="control-btn" id="p2pAddTextBtn" type="button" data-i18n="p2pAddText">＋ Queue text</button>
+                </div>
         <button class="control-btn btn-accent" id="p2pAddFilesBtn" data-i18n="addFiles" style="width:100%;margin-bottom:8px;font-size:13px;">＋ Add Files from Workspace</button>
-        <div id="p2pFilePickerDropdown" style="display:none;background:var(--bg-panel,#1a1a2e);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:6px;max-height:160px;overflow-y:auto;margin-bottom:8px;"></div>
+                <div id="p2pFilePickerDropdown" class="p2p-picker-sheet" aria-hidden="true">
+                    <input id="p2pFileSearch" type="search" data-i18n-placeholder="p2pSearchFiles" placeholder="Filter workspace files..." autocomplete="off">
+                    <div class="p2p-type-filters" role="group" aria-label="File type">
+                        <button type="button" data-p2p-filter="all" data-i18n="p2pTypeAll" aria-pressed="true">All types</button>
+                        <button type="button" data-p2p-filter="image" data-i18n="p2pTypeImages" aria-pressed="false">Images</button>
+                        <button type="button" data-p2p-filter="media" data-i18n="p2pTypeMedia" aria-pressed="false">Media</button>
+                        <button type="button" data-p2p-filter="document" data-i18n="p2pTypeDocuments" aria-pressed="false">Documents</button>
+                        <button type="button" data-p2p-filter="code" data-i18n="p2pTypeCode" aria-pressed="false">Code</button>
+                        <button type="button" data-p2p-filter="game" data-i18n="p2pTypeGame" aria-pressed="false">Game data</button>
+                        <button type="button" data-p2p-filter="archive" data-i18n="p2pTypeArchives" aria-pressed="false">Archives</button>
+                    </div>
+                    <div id="p2pFilePickerOptions" class="p2p-picker-options"></div>
+                </div>
         <button class="modal-btn btn-accent" id="p2pStartBroadcastBtn" data-i18n="startSharing" style="margin-top:4px;width:100%;">🚀 Start Sharing</button>
         <div id="p2pSenderPanel" style="display:none;margin-top:16px;text-align:center;">
           <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:10px;">Share this code or QR with receivers:</div>
@@ -590,8 +646,8 @@
     <div class="cookie-banner-left">
       <div class="cookie-banner-icon-wrap">🍪</div>
       <div class="cookie-banner-body">
-                <div class="cookie-banner-title" data-i18n="cookieTitle">We use cookies</div>
-                <div class="cookie-banner-desc"><span data-i18n="cookieDescription">We save your UI preferences locally. Third-party ads (Google AdSense) may also set cookies. By continuing you agree to our</span>
+                <div class="cookie-banner-title" data-i18n="cookieTitle">Local preferences</div>
+                <div class="cookie-banner-desc"><span data-i18n="cookieDescription">We save interface preferences in your browser. This app does not use advertising or tracking cookies. By continuing, you agree to our</span>
                     <button class="cb-link" id="cbPrivacyBtn" data-i18n="privacy">Privacy Policy</button> and
                     <button class="cb-link" id="cbTermsBtn" data-i18n="terms">Terms of Use</button>.
         </div>
@@ -628,7 +684,6 @@ const fileSearchInput   = document.getElementById('fileSearchInput');
 const metaSection       = document.getElementById('metaSection');
 const metaFormat        = document.getElementById('metaFormat');
 const editorToggleBtn   = document.getElementById('editorToggleBtn');
-const viewRawBtn        = document.getElementById('viewRawBtn');
 const themeToggle       = document.getElementById('themeThemeToggle');
 const animationsToggle  = document.getElementById('animationsToggle');
 const scrollbarToggle   = document.getElementById('scrollbarToggle');
@@ -648,6 +703,45 @@ const unsupportedView   = document.getElementById('unsupportedView');
 const p2pShareToggle    = document.getElementById('p2pShareToggle');
 const p2pShareModal     = document.getElementById('p2pShareModal');
 const p2pCloseBtn       = document.getElementById('p2pCloseBtn');
+const videoQualityModal = document.getElementById('videoQualityModal');
+const videoQualityOptions = document.getElementById('videoQualityOptions');
+const videoQualityCloseBtn = document.getElementById('videoQualityCloseBtn');
+let activeVideoQualitySetter = null;
+let activeVideoQualityTrigger = null;
+let videoQualityCloseTimer = null;
+function closeVideoQualityModal() {
+    videoQualityModal.classList.remove('active');
+    videoQualityModal.classList.add('closing');
+    videoQualityModal.setAttribute('aria-hidden', 'true');
+    activeVideoQualitySetter = null;
+    const trigger = activeVideoQualityTrigger;
+    activeVideoQualityTrigger = null;
+    if (trigger?.isConnected) trigger.focus();
+    clearTimeout(videoQualityCloseTimer);
+    const closeDelay = document.body.classList.contains('no-animations') ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 360;
+    videoQualityCloseTimer = setTimeout(() => {
+        if (!videoQualityModal.classList.contains('active')) videoQualityModal.classList.remove('closing');
+    }, closeDelay);
+}
+videoQualityCloseBtn.addEventListener('click', closeVideoQualityModal);
+videoQualityModal.addEventListener('click', event => {
+    if (event.target === videoQualityModal) closeVideoQualityModal();
+});
+videoQualityOptions.addEventListener('click', event => {
+    const option = event.target.closest('[data-quality]');
+    if (!option || !activeVideoQualitySetter) return;
+    const quality = option.dataset.quality;
+    activeVideoQualitySetter(quality === 'auto' ? 0 : Number(quality));
+    videoQualityOptions.querySelectorAll('.video-quality-option').forEach(button => {
+        button.classList.toggle('selected', button === option);
+        button.setAttribute('aria-pressed', button === option ? 'true' : 'false');
+    });
+    closeVideoQualityModal();
+});
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && videoQualityModal.classList.contains('active')) closeVideoQualityModal();
+});
 const p2pTabSend        = document.getElementById('p2pTabSend');
 const p2pTabReceive     = document.getElementById('p2pTabReceive');
 const p2pSendView       = document.getElementById('p2pSendView');
@@ -681,7 +775,7 @@ const languagePickerValue = document.getElementById('languagePickerValue');
 const languagePickerOptions = document.getElementById('languagePickerOptions');
 const uiTranslations = {
     en: {
-        language: 'Language', globalSettings: 'GLOBAL SETTINGS', lightTheme: 'Light Theme', disableAnimations: 'Disable Animations', customScrollbar: 'Custom Scrollbar', forceHex: 'Force Hex Mode', privacy: 'Privacy Policy', terms: 'Terms of Use', activeFiles: 'ACTIVE FILES', searchFiles: 'Search files...', openNew: 'Open New', downloadAll: 'Download All as ZIP', clearAll: 'Clear All', share: '📡 Share', settings: '⚙️ Settings', raw: '〈/〉 Raw', edit: '✏️ Edit', converterMaintenanceTitle: 'Temporarily unavailable', converterMaintenanceText: 'Audio and video conversion is currently under maintenance. The feature will be restored soon.<br><br>You can still play audio/video and download files without conversion.', addFiles: '＋ Add Files from Workspace', send: '📤 Send', receive: '📥 Receive', cancel: 'Cancel', close: 'Close', delete: 'Delete', convert: 'Convert & Save', targetFormat: 'Target Format', startSharing: '🚀 Start Sharing', stopSharing: '✖ Stop Sharing'
+        language: 'Language', globalSettings: 'GLOBAL SETTINGS', lightTheme: 'Light Theme', disableAnimations: 'Disable Animations', customScrollbar: 'Custom Scrollbar', forceHex: 'Force Hex Mode', privacy: 'Privacy Policy', terms: 'Terms of Use', activeFiles: 'ACTIVE FILES', searchFiles: 'Search files...', openNew: 'Open New', downloadAll: 'Download All as ZIP', clearAll: 'Clear All', share: '📡 Share', settings: '⚙️ Settings', edit: '✏️ Edit', converterMaintenanceTitle: 'Temporarily unavailable', converterMaintenanceText: 'Audio and video conversion is currently under maintenance. The feature will be restored soon.<br><br>You can still play audio/video and download files without conversion.', addFiles: '＋ Add Files from Workspace', send: '📤 Send', receive: '📥 Receive', cancel: 'Cancel', close: 'Close', delete: 'Delete', convert: 'Convert & Save', targetFormat: 'Target Format', startSharing: '🚀 Start Sharing', stopSharing: '✖ Stop Sharing'
     },
     uk: {
         language: 'Мова', globalSettings: 'ЗАГАЛЬНІ НАЛАШТУВАННЯ', lightTheme: 'Світла тема', disableAnimations: 'Вимкнути анімації', customScrollbar: 'Власна смуга прокручування', forceHex: 'Режим HEX', privacy: 'Політика конфіденційності', terms: 'Умови використання', activeFiles: 'АКТИВНІ ФАЙЛИ', searchFiles: 'Пошук файлів...', openNew: 'Відкрити новий', downloadAll: 'Завантажити все як ZIP', clearAll: 'Очистити все', share: 'Поділитися', settings: 'Налаштування', converterMaintenanceTitle: 'Тимчасово недоступно', converterMaintenanceText: 'Конвертація аудіо та відео наразі на технічному обслуговуванні. Функцію буде відновлено найближчим часом.<br><br>Ви все ще можете відтворювати аудіо/відео та завантажувати файли без конвертації.', addFiles: '＋ Додати файли з робочого простору', send: '📤 Надіслати', receive: '📥 Отримати', cancel: 'Скасувати', close: 'Закрити', delete: 'Видалити', rename: 'Перейменувати', convert: 'Конвертувати й зберегти', targetFormat: 'Цільовий формат', startSharing: '🚀 Почати обмін', stopSharing: '✖ Зупинити обмін'
@@ -716,7 +810,48 @@ const sharedUiTranslations = {
     it: { lightTheme:'Tema chiaro', disableAnimations:'Disabilita animazioni', customScrollbar:'Barra di scorrimento personalizzata', forceHex:'Forza modalità HEX', noActiveFiles:'Nessun file attivo', metadata:'METADATI', back:'⬅ Indietro', convertShort:'🔄 Converti', download:'📥 Scarica', deleteAllQuestion:'Eliminare tutti i file?', deleteAllText:'Tutti i file verranno rimossi dalla memoria locale. Questa azione non può essere annullata.', deleteAll:'Elimina tutto', p2pTitle:'📡 P2P QuickShare', p2pSendHelp:'Aggiungi file dall’area di lavoro. Più destinatari possono connettersi contemporaneamente.', p2pReceiveHelp:'Inserisci il codice di 6 caratteri del mittente:', connectReceive:'🔗 Connetti e ricevi', cookieTitle:'Usiamo i cookie', cookieDescription:'Salviamo localmente le preferenze dell’interfaccia. Anche gli annunci di terze parti possono impostare cookie. Continuando accetti', decline:'Rifiuta', acceptAll:'Accetta tutto' },
     fr: { lightTheme:'Thème clair', disableAnimations:'Désactiver les animations', customScrollbar:'Barre de défilement personnalisée', forceHex:'Forcer le mode HEX', noActiveFiles:'Aucun fichier actif', metadata:'MÉTADONNÉES', back:'⬅ Retour', convertShort:'🔄 Convertir', download:'📥 Télécharger', deleteAllQuestion:'Supprimer tous les fichiers ?', deleteAllText:'Tous les fichiers seront supprimés du stockage local. Cette action est irréversible.', deleteAll:'Tout supprimer', p2pTitle:'📡 P2P QuickShare', p2pSendHelp:'Ajoutez des fichiers depuis l’espace de travail. Plusieurs destinataires peuvent se connecter simultanément.', p2pReceiveHelp:'Saisissez le code à 6 caractères de l’expéditeur :', connectReceive:'🔗 Se connecter et recevoir', cookieTitle:'Nous utilisons des cookies', cookieDescription:'Nous enregistrons vos préférences localement. Les publicités tierces peuvent également définir des cookies. En continuant, vous acceptez', decline:'Refuser', acceptAll:'Tout accepter' }
 };
+
+const qualityUiTranslations = {
+    en: { title: 'Video quality', description: 'Choose the displayed render resolution. A local file keeps its original encoded bitrate.', note: 'Lower settings downsample the displayed image. Decoding still uses the source video, so this does not reduce its bitrate.', quality: 'Quality', auto: 'Auto', source: 'Source resolution', dialog: 'Video render resolution', close: 'Close' },
+    uk: { title: 'Якість відео', description: 'Виберіть роздільну здатність відображення. Локальний файл зберігає початковий бітрейт.', note: 'Нижчі значення зменшують роздільну здатність зображення. Декодування все одно виконується з джерела, тому бітрейт не зменшується.', quality: 'Якість', auto: 'Авто', source: 'Роздільна здатність джерела', dialog: 'Роздільна здатність відео', close: 'Закрити' },
+    ru: { title: 'Качество видео', description: 'Выберите разрешение отображения. Локальный файл сохраняет исходный битрейт.', note: 'Низкие значения уменьшают разрешение изображения. Декодирование по-прежнему выполняется из исходного видео, поэтому битрейт не снижается.', quality: 'Качество', auto: 'Авто', source: 'Разрешение источника', dialog: 'Разрешение видео', close: 'Закрыть' },
+    pl: { title: 'Jakość wideo', description: 'Wybierz rozdzielczość wyświetlania. Lokalny plik zachowuje oryginalną szybkość transmisji.', note: 'Niższe ustawienia zmniejszają rozdzielczość wyświetlanego obrazu. Dekodowanie nadal korzysta z filmu źródłowego, więc szybkość transmisji się nie zmienia.', quality: 'Jakość', auto: 'Auto', source: 'Rozdzielczość źródłowa', dialog: 'Rozdzielczość wideo', close: 'Zamknij' },
+    de: { title: 'Videoqualität', description: 'Wähle die angezeigte Renderauflösung. Eine lokale Datei behält ihre ursprüngliche Bitrate.', note: 'Niedrigere Einstellungen reduzieren die Auflösung des angezeigten Bildes. Die Dekodierung verwendet weiterhin das Quellvideo; die Bitrate wird daher nicht reduziert.', quality: 'Qualität', auto: 'Auto', source: 'Quellauflösung', dialog: 'Video-Renderauflösung', close: 'Schließen' },
+    es: { title: 'Calidad de vídeo', description: 'Elige la resolución de visualización. Un archivo local conserva su tasa de bits original.', note: 'Los ajustes inferiores reducen la resolución de la imagen mostrada. La decodificación sigue usando el vídeo original, por lo que la tasa de bits no disminuye.', quality: 'Calidad', auto: 'Auto', source: 'Resolución de origen', dialog: 'Resolución de vídeo', close: 'Cerrar' },
+    it: { title: 'Qualità video', description: 'Scegli la risoluzione di visualizzazione. Un file locale mantiene il bitrate originale.', note: 'Le impostazioni inferiori riducono la risoluzione dell’immagine visualizzata. La decodifica continua a usare il video originale, quindi il bitrate non diminuisce.', quality: 'Qualità', auto: 'Auto', source: 'Risoluzione sorgente', dialog: 'Risoluzione video', close: 'Chiudi' },
+    fr: { title: 'Qualité vidéo', description: 'Choisissez la résolution d’affichage. Un fichier local conserve son débit binaire d’origine.', note: 'Les réglages inférieurs réduisent la résolution de l’image affichée. Le décodage utilise toujours la vidéo source : le débit binaire n’est donc pas réduit.', quality: 'Qualité', auto: 'Auto', source: 'Résolution source', dialog: 'Résolution vidéo', close: 'Fermer' }
+};
+const quickShareTranslations = {
+    en: { p2pTextPlaceholder:'Paste text to send directly', p2pAddText:'＋ Queue text', p2pSearchFiles:'Filter workspace files...', p2pPickerEmpty:'No matching files' },
+    uk: { p2pTextPlaceholder:'Вставте текст для надсилання', p2pAddText:'＋ Додати текст у чергу', p2pSearchFiles:'Фільтр файлів робочого простору...', p2pPickerEmpty:'Файли не знайдено' },
+    ru: { p2pTextPlaceholder:'Вставьте текст для отправки', p2pAddText:'＋ Добавить текст в очередь', p2pSearchFiles:'Фильтр файлов рабочего пространства...', p2pPickerEmpty:'Файлы не найдены' },
+    pl: { p2pTextPlaceholder:'Wklej tekst do wysłania', p2pAddText:'＋ Dodaj tekst do kolejki', p2pSearchFiles:'Filtruj pliki obszaru roboczego...', p2pPickerEmpty:'Nie znaleziono plików' },
+    de: { p2pTextPlaceholder:'Text zum direkten Senden einfügen', p2pAddText:'＋ Text vormerken', p2pSearchFiles:'Arbeitsbereichsdateien filtern...', p2pPickerEmpty:'Keine passenden Dateien' },
+    es: { p2pTextPlaceholder:'Pega el texto que quieres enviar', p2pAddText:'＋ Añadir texto a la cola', p2pSearchFiles:'Filtrar archivos del espacio...', p2pPickerEmpty:'No se encontraron archivos' },
+    it: { p2pTextPlaceholder:'Incolla il testo da inviare', p2pAddText:'＋ Aggiungi testo alla coda', p2pSearchFiles:'Filtra i file dell’area di lavoro...', p2pPickerEmpty:'Nessun file trovato' },
+    fr: { p2pTextPlaceholder:'Collez le texte à envoyer directement', p2pAddText:'＋ Ajouter le texte à la file', p2pSearchFiles:'Filtrer les fichiers de l’espace...', p2pPickerEmpty:'Aucun fichier correspondant' }
+};
+Object.entries(quickShareTranslations).forEach(([language, translations]) => Object.assign(uiTranslations[language], translations));
+const pickerTypeTranslations = {
+    en:{p2pTypeAll:'All types',p2pTypeImages:'Images',p2pTypeMedia:'Media',p2pTypeDocuments:'Documents',p2pTypeCode:'Code',p2pTypeGame:'Game data',p2pTypeArchives:'Archives'},
+    uk:{p2pTypeAll:'Усі типи',p2pTypeImages:'Зображення',p2pTypeMedia:'Медіа',p2pTypeDocuments:'Документи',p2pTypeCode:'Код',p2pTypeGame:'Ігрові дані',p2pTypeArchives:'Архіви'},
+    ru:{p2pTypeAll:'Все типы',p2pTypeImages:'Изображения',p2pTypeMedia:'Медиа',p2pTypeDocuments:'Документы',p2pTypeCode:'Код',p2pTypeGame:'Игровые данные',p2pTypeArchives:'Архивы'},
+    pl:{p2pTypeAll:'Wszystkie typy',p2pTypeImages:'Obrazy',p2pTypeMedia:'Media',p2pTypeDocuments:'Dokumenty',p2pTypeCode:'Kod',p2pTypeGame:'Dane gry',p2pTypeArchives:'Archiwa'},
+    de:{p2pTypeAll:'Alle Typen',p2pTypeImages:'Bilder',p2pTypeMedia:'Medien',p2pTypeDocuments:'Dokumente',p2pTypeCode:'Code',p2pTypeGame:'Spieldaten',p2pTypeArchives:'Archive'},
+    es:{p2pTypeAll:'Todos los tipos',p2pTypeImages:'Imágenes',p2pTypeMedia:'Multimedia',p2pTypeDocuments:'Documentos',p2pTypeCode:'Código',p2pTypeGame:'Datos de juego',p2pTypeArchives:'Archivos'},
+    it:{p2pTypeAll:'Tutti i tipi',p2pTypeImages:'Immagini',p2pTypeMedia:'Media',p2pTypeDocuments:'Documenti',p2pTypeCode:'Codice',p2pTypeGame:'Dati di gioco',p2pTypeArchives:'Archivi'},
+    fr:{p2pTypeAll:'Tous les types',p2pTypeImages:'Images',p2pTypeMedia:'Médias',p2pTypeDocuments:'Documents',p2pTypeCode:'Code',p2pTypeGame:'Données de jeu',p2pTypeArchives:'Archives'}
+};
+Object.entries(pickerTypeTranslations).forEach(([language, translations]) => Object.assign(uiTranslations[language], translations));
 Object.keys(sharedUiTranslations).forEach(language => Object.assign(uiTranslations[language], sharedUiTranslations[language]));
+Object.assign(uiTranslations.en, { cookieTitle:'Local preferences', cookieDescription:'We save interface preferences in your browser. This app does not use advertising or tracking cookies. By continuing, you agree to our' });
+Object.assign(uiTranslations.uk, { cookieTitle:'Локальні налаштування', cookieDescription:'Ми зберігаємо налаштування інтерфейсу у вашому браузері. Застосунок не використовує рекламні cookie чи cookie для відстеження. Продовжуючи, ви погоджуєтеся з' });
+Object.assign(uiTranslations.ru, { cookieTitle:'Локальные настройки', cookieDescription:'Мы сохраняем настройки интерфейса в вашем браузере. Приложение не использует рекламные cookie или cookie для отслеживания. Продолжая, вы соглашаетесь с' });
+Object.assign(uiTranslations.pl, { cookieTitle:'Ustawienia lokalne', cookieDescription:'Zapisujemy ustawienia interfejsu w Twojej przeglądarce. Aplikacja nie używa reklamowych plików cookie ani plików cookie śledzących. Kontynuując, akceptujesz' });
+Object.assign(uiTranslations.de, { cookieTitle:'Lokale Einstellungen', cookieDescription:'Wir speichern Oberflächeneinstellungen in deinem Browser. Diese App verwendet keine Werbe- oder Tracking-Cookies. Wenn du fortfährst, stimmst du unseren' });
+Object.assign(uiTranslations.es, { cookieTitle:'Preferencias locales', cookieDescription:'Guardamos las preferencias de interfaz en tu navegador. Esta aplicación no utiliza cookies publicitarias ni de seguimiento. Al continuar, aceptas nuestra' });
+Object.assign(uiTranslations.it, { cookieTitle:'Preferenze locali', cookieDescription:'Salviamo le preferenze dell’interfaccia nel tuo browser. Questa applicazione non usa cookie pubblicitari o di tracciamento. Continuando, accetti la nostra' });
+Object.assign(uiTranslations.fr, { cookieTitle:'Préférences locales', cookieDescription:'Nous enregistrons les préférences d’interface dans votre navigateur. Cette application n’utilise pas de cookies publicitaires ni de suivi. En continuant, vous acceptez notre' });
 Object.assign(uiTranslations.en, { insertTemplate:'📋 Insert template...', htmlTemplate:'HTML5 Skeleton', jsonTemplate:'JSON config template', cssTemplate:'CSS Boilerplate', jsTemplate:'JS Fetch Template', markdownTemplate:'Markdown Template', undo:'↶ Undo', redo:'↷ Redo' });
 Object.assign(uiTranslations.uk, { insertTemplate:'📋 Вставити шаблон...', htmlTemplate:'HTML5 каркас', jsonTemplate:'Шаблон конфігурації JSON', cssTemplate:'Заготовка CSS', jsTemplate:'Шаблон JS Fetch', markdownTemplate:'Шаблон Markdown', undo:'↶ Скасувати', redo:'↷ Повторити' });
 Object.assign(uiTranslations.ru, { insertTemplate:'📋 Вставить шаблон...', htmlTemplate:'Каркас HTML5', jsonTemplate:'Шаблон конфигурации JSON', cssTemplate:'Заготовка CSS', jsTemplate:'Шаблон JS Fetch', markdownTemplate:'Шаблон Markdown', undo:'↶ Отменить', redo:'↷ Повторить' });
@@ -733,13 +868,13 @@ Object.assign(uiTranslations.es, { openViewFile:'Abrir y ver cualquier archivo',
 Object.assign(uiTranslations.it, { openViewFile:'Apri e visualizza qualsiasi file', dropFiles:'Trascina qui i file o fai clic per sfogliare', supportedTypes:'Media · Archivi · Script · Immagini · JSON · CSV · Configurazioni' });
 Object.assign(uiTranslations.fr, { openViewFile:'Ouvrir et afficher un fichier', dropFiles:'Déposez les fichiers ici ou cliquez pour parcourir', supportedTypes:'Médias · Archives · Scripts · Images · JSON · CSV · Configurations' });
 const actionTranslations = {
-    uk: { share:'📡 Поділитися', settings:'⚙️ Налаштування', raw:'〈/〉 Сирий код', edit:'✏️ Редагувати' },
-    ru: { share:'📡 Поделиться', settings:'⚙️ Настройки', raw:'〈/〉 Исходный код', edit:'✏️ Редактировать' },
-    pl: { share:'📡 Udostępnij', settings:'⚙️ Ustawienia', raw:'〈/〉 Surowy kod', edit:'✏️ Edytuj' },
-    de: { share:'📡 Teilen', settings:'⚙️ Einstellungen', raw:'〈/〉 Rohdaten', edit:'✏️ Bearbeiten' },
-    es: { share:'📡 Compartir', settings:'⚙️ Ajustes', raw:'〈/〉 Código bruto', edit:'✏️ Editar' },
-    it: { share:'📡 Condividi', settings:'⚙️ Impostazioni', raw:'〈/〉 Grezzo', edit:'✏️ Modifica' },
-    fr: { share:'📡 Partager', settings:'⚙️ Paramètres', raw:'〈/〉 Brut', edit:'✏️ Modifier' }
+    uk: { share:'📡 Поділитися', settings:'⚙️ Налаштування', edit:'✏️ Редагувати' },
+    ru: { share:'📡 Поделиться', settings:'⚙️ Настройки', edit:'✏️ Редактировать' },
+    pl: { share:'📡 Udostępnij', settings:'⚙️ Ustawienia', edit:'✏️ Edytuj' },
+    de: { share:'📡 Teilen', settings:'⚙️ Einstellungen', edit:'✏️ Bearbeiten' },
+    es: { share:'📡 Compartir', settings:'⚙️ Ajustes', edit:'✏️ Editar' },
+    it: { share:'📡 Condividi', settings:'⚙️ Impostazioni', edit:'✏️ Modifica' },
+    fr: { share:'📡 Partager', settings:'⚙️ Paramètres', edit:'✏️ Modifier' }
 };
 Object.entries(actionTranslations).forEach(([language, translations]) => Object.assign(uiTranslations[language], translations));
 Object.assign(uiTranslations.en, { supportProject:'Support Project' });
@@ -762,6 +897,7 @@ Object.assign(uiTranslations.fr, { supportProjectText:'Soutenez WebTools Utility
 const i18nSource = new WeakMap();
 let activeLanguage = 'en';
 let isTranslating = false;
+let localizedLegalDocs = null;
 
 function translateUi(root = document) {
     const dictionary = uiTranslations[activeLanguage] || uiTranslations.en;
@@ -783,7 +919,7 @@ function translateUi(root = document) {
         if (titleKey && dictionary[titleKey]) element.setAttribute('title', dictionary[titleKey]);
         else if (source.title && dictionary[source.title]) element.setAttribute('title', dictionary[source.title]);
     });
-    root.querySelectorAll('body *:not(script):not(style)').forEach(element => {
+    root.querySelectorAll('*:not(script):not(style)').forEach(element => {
         if (element.children.length || element.dataset.i18n) return;
         const text = (element.textContent || '').trim();
         if (!text) return;
@@ -794,6 +930,22 @@ function translateUi(root = document) {
     });
     document.documentElement.lang = activeLanguage;
     isTranslating = false;
+}
+
+function translateVideoQualityUi() {
+    const text = qualityUiTranslations[activeLanguage] || qualityUiTranslations.en;
+    document.getElementById('videoQualityTitle').textContent = text.title;
+    document.querySelector('.video-quality-description').textContent = text.description;
+    document.querySelector('.video-quality-note').textContent = text.note;
+    videoQualityOptions.setAttribute('aria-label', text.dialog);
+    const autoOption = videoQualityOptions.querySelector('[data-quality="auto"]');
+    autoOption.firstChild.textContent = text.auto;
+    autoOption.querySelector('span').textContent = text.source;
+    videoQualityCloseBtn.setAttribute('aria-label', text.close);
+    document.querySelectorAll('.vid-quality-button').forEach(button => {
+        const selected = button.dataset.selectedQuality || 'auto';
+        button.textContent = `${text.quality}: ${selected === 'auto' ? text.auto : `${selected}p`}`;
+    });
 }
 
 function setLanguage(language) {
@@ -808,29 +960,49 @@ function setLanguage(language) {
         languagePickerOptions.querySelectorAll('[data-language]').forEach(option => option.setAttribute('aria-selected', option === selectedOption ? 'true' : 'false'));
     }
     translateUi();
+    translateVideoQualityUi();
+    if (localizedLegalDocs) renderLegalDocuments();
 }
 
+let languagePickerCloseTimer = 0;
+function closeLanguagePicker() {
+    if (!languagePicker.classList.contains('open')) return;
+    languagePicker.classList.add('closing');
+    languagePickerTrigger.setAttribute('aria-expanded', 'false');
+    clearTimeout(languagePickerCloseTimer);
+    languagePickerCloseTimer = setTimeout(() => languagePicker.classList.remove('open', 'closing'), 180);
+}
 langSelector.addEventListener('change', event => setLanguage(event.target.value));
 languagePickerTrigger.addEventListener('click', event => {
     event.stopPropagation();
-    const isOpen = languagePicker.classList.toggle('open');
-    languagePickerTrigger.setAttribute('aria-expanded', String(isOpen));
+    if (languagePicker.classList.contains('open') && !languagePicker.classList.contains('closing')) closeLanguagePicker();
+    else { clearTimeout(languagePickerCloseTimer); languagePicker.classList.remove('closing'); languagePicker.classList.add('open'); languagePickerTrigger.setAttribute('aria-expanded', 'true'); }
 });
 languagePickerOptions.querySelectorAll('[data-language]').forEach(option => option.addEventListener('click', event => {
     event.stopPropagation();
     setLanguage(option.dataset.language);
-    languagePicker.classList.remove('open');
-    languagePickerTrigger.setAttribute('aria-expanded', 'false');
+    closeLanguagePicker();
 }));
 document.addEventListener('click', () => {
-    languagePicker.classList.remove('open');
-    languagePickerTrigger.setAttribute('aria-expanded', 'false');
+    closeLanguagePicker();
 });
+const pendingTranslationRoots = new Set();
+let translationFrame = 0;
 const uiObserver = new MutationObserver(records => {
     if (isTranslating) return;
     records.forEach(record => record.addedNodes.forEach(node => {
-        if (node.nodeType === Node.ELEMENT_NODE) translateUi(node);
+        if (node.nodeType !== Node.ELEMENT_NODE || [...pendingTranslationRoots].some(root => root.contains(node))) return;
+        pendingTranslationRoots.forEach(root => { if (node.contains(root)) pendingTranslationRoots.delete(root); });
+        pendingTranslationRoots.add(node);
     }));
+    if (pendingTranslationRoots.size && !translationFrame) {
+        translationFrame = requestAnimationFrame(() => {
+            const roots = [...pendingTranslationRoots];
+            pendingTranslationRoots.clear();
+            translationFrame = 0;
+            roots.forEach(root => { if (root.isConnected) translateUi(root); });
+        });
+    }
 });
 uiObserver.observe(document.body, { childList: true, subtree: true });
 const savedLang = (localStorage.getItem('lang') || '').trim().toLowerCase();
@@ -850,19 +1022,21 @@ try {
 let db               = null;
 let activeFilesCache = [];
 let loadedFileIndex  = null;
+let nextPendingFileId = -1;
+const pendingFileWrites = [];
+let isPersistingFiles = false;
+let pendingFileCount = 0;
+let fileIngestTotal = 0;
+let fileIngestProcessed = 0;
+const DIRECT_TEXT_LIMIT = 128 * 1024;
+const MAX_FILE_PREVIEW_BYTES = 256 * 1024;
 let fullActiveHash   = '';
 let isEditMode       = false;
 let currentArchiveFiles = [];
 let currentInternalPath = null;
-let rawMediaUrl      = null;
+let mediaPreviewUrl  = null;
 let arcActionTarget  = null;
 const expandedArchivePaths = new Set();
-let currentViewMode  = 'viewer';
-
-let _currentMediaViewType = null;
-let _currentMediaViewUrl  = null;
-let _currentMediaViewName = null;
-let _internalViewType     = null;
 let _internalImageUrl     = null;
 
 // ═══════════════════════════════════════════════════════════
@@ -920,6 +1094,10 @@ dbRequest.onsuccess = e => {
     db = e.target.result; 
     loadFilesFromDB(); 
 };
+dbRequest.onerror = () => {
+    console.error('Could not open the local file database:', dbRequest.error);
+    showToast('⚠️ Local storage is unavailable');
+};
 
 function getFileKey(file) { 
     return file.name + '|' + file.size; 
@@ -976,39 +1154,150 @@ function loadFilesFromDB() {
     const store = tx.objectStore('files');
     const req = store.getAll();
     req.onsuccess = () => {
-        activeFilesCache = _applyDisplayNames(req.result);
+        const pending = activeFilesCache.filter(file => file.isIngesting || file.ingestError);
+        const pendingIds = new Set(pending.map(file => file.id));
+        const storedFiles = _applyDisplayNames(req.result);
+        activeFilesCache = [...pending, ...storedFiles.filter(file => !pendingIds.has(file.id))];
         renderActiveFilesSidebar(fileSearchInput.value);
     };
 }
 
 function saveMultipleFiles(fileList) {
-    if (!db) return;
-    const tx = db.transaction('files', 'readwrite');
-    const store = tx.objectStore('files');
-    
-    let processed = 0;
-    for (let i = 0; i < fileList.length; i++) {
-        const f = fileList[i];
-        const record = {
-            name: f.name,
-            size: f.size,
-            type: f.type,
-            lastModified: f.lastModified,
-            fileObject: f
-        };
-        const req = store.add(record);
-        req.onsuccess = () => {
-            processed++;
-            if (processed === fileList.length) {
-                showToast('📁 Ingested ' + fileList.length + ' files');
-                loadFilesFromDB();
-            }
-        };
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+    if (!db) {
+        showToast('⚠️ Local storage is not ready yet');
+        return;
     }
+
+    const pending = files.map(file => ({
+        id: nextPendingFileId--,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        fileObject: file,
+        isIngesting: true
+    }));
+    if (!isPersistingFiles) {
+        fileIngestTotal = 0;
+        fileIngestProcessed = 0;
+    }
+    fileIngestTotal += pending.length;
+    pendingFileCount += pending.length;
+    activeFilesCache.push(...pending);
+    pendingFileWrites.push(...pending);
+    renderActiveFilesSidebar(fileSearchInput.value);
+    showToast('📁 Added ' + pending.length + ' file(s) to the workspace');
+    _updateFileIngestProgress();
+    if (!isPersistingFiles) _persistPendingFiles();
+}
+
+function _updateFileIngestProgress() {
+    const container = document.getElementById('progressContainer');
+    const fill = document.getElementById('progressFill');
+    const status = document.getElementById('progressStatus');
+    if (!container || !pendingFileCount) {
+        if (container) container.style.display = 'none';
+        return;
+    }
+
+    const percent = fileIngestTotal ? Math.round(fileIngestProcessed / fileIngestTotal * 100) : 0;
+    container.style.display = 'block';
+    if (fill) fill.style.width = percent + '%';
+    if (status) status.textContent = 'Saving files in background… ' + pendingFileCount + ' remaining';
+}
+
+async function _persistPendingFiles() {
+    if (isPersistingFiles || !db) return;
+    isPersistingFiles = true;
+    const batchSize = 8;
+
+    while (pendingFileWrites.length) {
+        const batch = pendingFileWrites.splice(0, batchSize);
+        try {
+            const persisted = await new Promise((resolve, reject) => {
+                const tx = db.transaction('files', 'readwrite');
+                const store = tx.objectStore('files');
+                const results = [];
+
+                batch.forEach(item => {
+                    if (!item.isIngesting || !activeFilesCache.includes(item)) return;
+                    const request = store.add({
+                        name: item.name,
+                        size: item.size,
+                        type: item.type,
+                        lastModified: item.lastModified,
+                        fileObject: item.fileObject
+                    });
+                    request.onsuccess = () => results.push({ item, id: request.result });
+                });
+                tx.oncomplete = () => resolve(results);
+                tx.onerror = () => reject(tx.error || new Error('Could not save files locally.'));
+                tx.onabort = () => reject(tx.error || new Error('File saving was cancelled.'));
+            });
+
+            persisted.forEach(({item, id}) => {
+                if (!item.isIngesting || !activeFilesCache.includes(item)) {
+                    const cleanup = db.transaction('files', 'readwrite');
+                    cleanup.objectStore('files').delete(id);
+                    return;
+                }
+                if (loadedFileIndex === item.id) loadedFileIndex = id;
+                item.id = id;
+                item.isIngesting = false;
+                pendingFileCount--;
+                item._sidebarRow?.classList.toggle('active-file', id === loadedFileIndex);
+                item._sidebarRow?.querySelector('.file-ingest-state')?.remove();
+            });
+        } catch (error) {
+            batch.forEach(item => {
+                if (item.isIngesting) {
+                    item.isIngesting = false;
+                    item.ingestError = true;
+                    pendingFileCount--;
+                    const status = item._sidebarRow?.querySelector('.file-ingest-state');
+                    if (status) {
+                        status.textContent = 'Not saved';
+                        status.classList.add('failed');
+                    }
+                }
+            });
+            console.error('Could not save selected files:', error);
+            showToast('⚠️ Could not save some files: ' + (error.message || error));
+        }
+
+        fileIngestProcessed += batch.length;
+        _updateFileIngestProgress();
+        await new Promise(resolve => setTimeout(resolve, 0));
+    }
+
+    isPersistingFiles = false;
+    fileIngestTotal = 0;
+    fileIngestProcessed = 0;
+    renderActiveFilesSidebar(fileSearchInput.value);
+    const container = document.getElementById('progressContainer');
+    if (container) container.style.display = 'none';
 }
 
 function deleteSingleFileFromDB(id) {
     const item = activeFilesCache.find(f => f.id === id);
+    if (item && id < 0) {
+        if (item.isIngesting) pendingFileCount--;
+        item.isIngesting = false;
+        item.ingestError = false;
+        const queuedIndex = pendingFileWrites.indexOf(item);
+        if (queuedIndex >= 0) {
+            pendingFileWrites.splice(queuedIndex, 1);
+            fileIngestProcessed++;
+        }
+        activeFilesCache = activeFilesCache.filter(file => file !== item);
+        if (loadedFileIndex === id) resetToHome();
+        renderActiveFilesSidebar(fileSearchInput.value);
+        _updateFileIngestProgress();
+        showToast('🗑️ File removed');
+        return;
+    }
     if (loadedFileIndex === id) {
         if (typeof _stopAudio === 'function') _stopAudio();
         document.querySelectorAll('video').forEach(v => { try { v.pause(); v.src = ''; } catch(e){} });
@@ -1044,7 +1333,7 @@ function getFileIcon(name) {
     const e = name.split('.').pop().toLowerCase();
     if (['zip','pptx','docx','xlsx','gz','tar','7z'].includes(e)) return '📦';
     if (['jar'].includes(e)) return '📜';
-    if (['exe','dll','bin','class','thanos'].includes(e)) return '⚙️';
+    if (['exe','dll','bin','class','thanos','mmo'].includes(e)) return '⚙️';
     if (['mp3','wav','flac','ogg','aac','m4a'].includes(e)) return '🎵';
     if (['mp4','avi','mov','mkv','webm'].includes(e)) return '🎥';
     if (['png','jpg','jpeg','gif','webp','svg','bmp','ico'].includes(e)) return '🖼️';
@@ -1074,18 +1363,21 @@ function highlightMatch(name, query) {
 }
 
 function renderActiveFilesSidebar(query = '') {
+    const scrollTop = sidebarFiles.scrollTop;
+    const fragment = document.createDocumentFragment();
     sidebarFiles.innerHTML = '';
-    let list = [...activeFilesCache].sort((a,b) => a.name.localeCompare(b.name));
+    const normalizedQuery = query.toLowerCase();
+    let list = query
+        ? activeFilesCache.filter(file => file.name.toLowerCase().includes(normalizedQuery))
+        : activeFilesCache;
+    list = [...list].sort((a,b) => a.name.localeCompare(b.name));
 
     let arcMatches = [];
     if (query && currentArchiveFiles && currentArchiveFiles.length) {
-        const q = query.toLowerCase();
         arcMatches = currentArchiveFiles
-            .filter(f => !f.name.endsWith('/') && f.name.toLowerCase().split('/').pop().includes(q))
+            .filter(f => !f.name.endsWith('/') && f.name.toLowerCase().split('/').pop().includes(normalizedQuery))
             .slice(0, 12);
     }
-
-    if (query) list = list.filter(f => f.name.toLowerCase().includes(query.toLowerCase()));
 
     if (!list.length && !arcMatches.length) {
         sidebarFiles.innerHTML = `<div class="tree-item empty">${query ? 'No matches' : 'No active files'}<\/div>`;
@@ -1096,14 +1388,13 @@ function renderActiveFilesSidebar(query = '') {
         const arcHeader = document.createElement('div');
         arcHeader.className = 'sidebar-arc-header';
         arcHeader.textContent = 'In archive:';
-        sidebarFiles.appendChild(arcHeader);
+        fragment.appendChild(arcHeader);
         arcMatches.forEach((af, idx) => {
             const fname = af.name.split('/').pop();
             const parts = af.name.split('/').filter(Boolean);
             const folderParts = parts.slice(0, -1);
             const div = document.createElement('div');
             div.className = 'tree-item active-list-node arc-search-result';
-            div.style.animationDelay = (idx * 0.04) + 's';
             div.title = af.name;
             div.innerHTML =
                 '<span class="arc-sr-file">' +
@@ -1122,13 +1413,13 @@ function renderActiveFilesSidebar(query = '') {
                 webWorker.postMessage({ type: 'READ_INTERNAL_FILE', file: archiveItem.fileObject, internalPath: af.name });
                 showToast('📂 Opening ' + af.name.split('/').pop());
             });
-            sidebarFiles.appendChild(div);
+            fragment.appendChild(div);
         });
         if (list.length) {
             const sep = document.createElement('div');
             sep.className = 'sidebar-arc-header';
             sep.textContent = 'Files:';
-            sidebarFiles.appendChild(sep);
+            fragment.appendChild(sep);
         }
     }
 
@@ -1136,14 +1427,18 @@ function renderActiveFilesSidebar(query = '') {
         const displayName = item.displayName || item.name;
         const div = document.createElement('div');
         div.className = 'tree-item active-list-node' + (item.id === loadedFileIndex ? ' active-file' : '');
-        div.style.animationDelay = (idx * 0.04) + 's';
+        item._sidebarRow = div;
         
         const _ext = (item.displayName || item.name).split('.').pop().toLowerCase();
         const _isText = TEXT_EXTS.has(_ext);
+        const ingestStatus = item.isIngesting
+            ? '<span class="file-ingest-state" role="status">Saving…</span>'
+            : item.ingestError ? '<span class="file-ingest-state failed" role="status">Not saved</span>' : '';
         
         div.innerHTML =
           '<span class="file-click-zone" title="' + escapeHtml(displayName) + '">' +
             getFileIcon(displayName) + ' <span class="file-label">' + highlightMatch(displayName, query) + '<\/span>' +
+            ingestStatus +
             (item.isEdited ? '<span class="edited-dot" title="Unsaved edits">●<\/span>' : '') +
           '<\/span>' +
           '<div class="file-node-actions">' +
@@ -1206,8 +1501,10 @@ function renderActiveFilesSidebar(query = '') {
                 }
             });
         }
-        sidebarFiles.appendChild(div);
+        fragment.appendChild(div);
     });
+    sidebarFiles.appendChild(fragment);
+    sidebarFiles.scrollTop = scrollTop;
 }
 
 // ── Text extensions for direct plain text processing ──
@@ -1218,14 +1515,19 @@ const TEXT_EXTS = new Set([
     'conf', 'env', 'gitignore', 'gitattributes', 'editorconfig', 'eslintrc', 'prettierrc', 'babelrc',
     'sql', 'graphql', 'gql', 'vue', 'svelte', 'astro', 'njk', 'jinja', 'twig', 'hbs', 'mustache',
     'tex', 'cls', 'sty', 'gradle', 'cmake', 'makefile', 'dockerfile', 'properties',
-    'lock', 'pem', 'crt', 'key', 'reg', 'inf', 'nfo'
+    'lock', 'pem', 'crt', 'key', 'reg', 'inf', 'nfo', 'svg', 'mm'
 ]);
+
+let fileAnalysisRequestId = 0;
+let activeFileAnalysisRequestId = 0;
 
 function parseSelectedCacheFile(id) {
     loadedFileIndex = id;
     renderActiveFilesSidebar(fileSearchInput.value);
     const item = activeFilesCache.find(f => f.id === id);
     if (!item) return;
+    const requestId = ++fileAnalysisRequestId;
+    activeFileAnalysisRequestId = requestId;
     
     metaHash.textContent = 'Calculate SHA-256';
     metaHash.className = 'hash-calc-btn';
@@ -1239,15 +1541,15 @@ function parseSelectedCacheFile(id) {
     
     const ext = ((item.displayName || item.name).split('.').pop() || '').toLowerCase();
     _currentFileExt = ext;
-    if (TEXT_EXTS.has(ext)) {
+    if (TEXT_EXTS.has(ext) && item.fileObject.size <= DIRECT_TEXT_LIMIT) {
         item.fileObject.text().then(t => {
-            displayFileContent('text', { directText: t }, item);
+            if (loadedFileIndex === id && activeFileAnalysisRequestId === requestId) displayFileContent('text', { directText: t }, item);
         }).catch(() => {
-            displayFileContent('text', { directText: '(Could not read file)' }, item);
+            if (loadedFileIndex === id && activeFileAnalysisRequestId === requestId) displayFileContent('text', { directText: '(Could not read file)' }, item);
         });
         return;
     }
-    webWorker.postMessage({ type: 'ANALYZE_FILE', file: item.fileObject, forceHex: forceHexToggle.checked });
+    webWorker.postMessage({ type: 'ANALYZE_FILE', file: item.fileObject, forceHex: forceHexToggle.checked, requestId });
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1255,7 +1557,11 @@ function parseSelectedCacheFile(id) {
 // ═══════════════════════════════════════════════════════════
 webWorker.onmessage = function(e) {
     const msg = e.data;
-    if (msg.type === 'ANALYSIS_COMPLETE') {
+    if (msg.requestId !== undefined && msg.requestId !== activeFileAnalysisRequestId) return;
+    if (msg.type === 'ERROR') {
+        console.error('File analysis failed:', msg.error);
+        showToast('⚠️ File analysis failed: ' + msg.error);
+    } else if (msg.type === 'ANALYSIS_COMPLETE') {
         const item = activeFilesCache.find(f => f.id === loadedFileIndex);
         if (item) displayFileContent(msg.fileType, msg.data, item);
     } else if (msg.type === 'TEXT_CHUNK_LOADED') {
@@ -1271,15 +1577,29 @@ webWorker.onmessage = function(e) {
 function resetViewers() {
     editorLayoutContainer.style.display = 'none';
     archiveTreeViewer.style.display     = 'none';
+    archiveTreeViewer.classList.remove('office-preview');
     mediaWrapper.style.display          = 'none';
     pdfViewer.style.display             = 'none';
+    pdfViewer.removeAttribute('src');
     unsupportedView.style.display       = 'none';
     document.getElementById('editorToolsToolbar').style.display = 'none';
     isEditMode = false;
     editorToggleBtn.classList.remove('active');
     editorToggleBtn.textContent = uiTranslations[activeLanguage]?.edit || '✏️ Edit';
+    mediaWrapper.querySelectorAll('video').forEach(video => {
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+    });
+    videoPlayerResizeObserver?.disconnect();
+    videoPlayerResizeObserver = null;
+    if (videoFullscreenChangeHandler) {
+        document.removeEventListener('fullscreenchange', videoFullscreenChangeHandler);
+        document.removeEventListener('webkitfullscreenchange', videoFullscreenChangeHandler);
+        videoFullscreenChangeHandler = null;
+    }
     mediaWrapper.innerHTML              = '';
-    if (rawMediaUrl) { URL.revokeObjectURL(rawMediaUrl); rawMediaUrl = null; }
+    if (mediaPreviewUrl) { URL.revokeObjectURL(mediaPreviewUrl); mediaPreviewUrl = null; }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1782,6 +2102,58 @@ function renderSvgZoomer(svgText) {
 
 
 
+async function renderOfficePreview(fileItem, ext) {
+    archiveTreeViewer.style.display = 'block';
+    archiveTreeViewer.classList.add('office-preview');
+    archiveTreeViewer.replaceChildren();
+    const preview = document.createElement('div');
+    preview.className = 'office-preview-content';
+    const status = document.createElement('p');
+    status.textContent = ext === 'pptx' ? 'Extracting slide text…' : 'Extracting document text…';
+    preview.appendChild(status);
+    archiveTreeViewer.appendChild(preview);
+
+    try {
+        await _ensureJSZip();
+        const zip = await JSZip.loadAsync(fileItem.fileObject);
+        let entries;
+        if (ext === 'docx') {
+            const documentXml = zip.file('word/document.xml');
+            if (!documentXml) throw new Error('No Word document content was found.');
+            entries = [{label: 'Document', file: documentXml}];
+        } else {
+            entries = Object.keys(zip.files)
+                .map(path => ({path, match: path.match(/^ppt\/slides\/slide(\d+)\.xml$/i)}))
+                .filter(entry => entry.match)
+                .sort((a, b) => Number(a.match[1]) - Number(b.match[1]))
+                .map(entry => ({label: `Slide ${entry.match[1]}`, file: zip.file(entry.path)}));
+            if (!entries.length) throw new Error('No presentation slides were found.');
+        }
+
+        const sections = [];
+        for (const entry of entries) {
+            const xml = await entry.file.async('string');
+            const parsed = new DOMParser().parseFromString(xml, 'application/xml');
+            if (parsed.querySelector('parsererror')) continue;
+            const text = [...parsed.getElementsByTagNameNS('*', 't')].map(node => node.textContent).filter(Boolean).join(' ');
+            if (text.trim()) sections.push({label: entry.label, text});
+        }
+        preview.replaceChildren();
+        if (!sections.length) {
+            status.textContent = 'No readable text was found in this document.';
+            preview.appendChild(status);
+            return;
+        }
+        sections.forEach(section => {
+            const heading = document.createElement('h3'); heading.textContent = section.label;
+            const body = document.createElement('p'); body.textContent = section.text;
+            preview.append(heading, body);
+        });
+    } catch (error) {
+        status.textContent = error.message;
+    }
+}
+
 function displayFileContent(fileType, data, fileItem) {
     resetViewers();
     dropZone.style.display   = 'none';
@@ -1790,26 +2162,42 @@ function displayFileContent(fileType, data, fileItem) {
     document.getElementById('metaSize').textContent = (fileItem.size / 1024).toFixed(1) + ' KB';
     viewerHeader.textContent = fileItem.displayName || fileItem.name;
     
-    viewRawBtn.style.display     = 'inline-block';
     editorToggleBtn.style.display = 'none';
     document.getElementById('editorToolsToolbar').style.display = 'none';
     backToArchiveBtn.style.display = 'none';
 
     const ext = (fileItem.displayName || fileItem.name).split('.').pop().toLowerCase();
-    rawMediaUrl = URL.createObjectURL(fileItem.fileObject);
+    mediaPreviewUrl = URL.createObjectURL(fileItem.fileObject);
 
-    if (['mp4', 'avi', 'mov', 'mkv', 'webm'].includes(ext)) {
+    if (data.previewOnly && fileType === 'archive') {
+        metaFormat.textContent = 'Archive · preview unavailable';
+        archiveTreeViewer.style.display = 'block';
+        const notice = document.createElement('p');
+        notice.className = 'large-file-notice';
+        notice.textContent = data.message;
+        archiveTreeViewer.replaceChildren(notice);
+        return;
+    }
+
+    if (data.previewOnly) {
+        metaFormat.textContent = 'Text · preview only';
+        editorLayoutContainer.style.display = 'flex';
+        renderEditorContent(data.directText || '');
+        return;
+    }
+
+    if (['mp4', 'avi', 'mov', 'mkv', 'webm', 'm4v', '3gp', 'm2ts'].includes(ext)) {
         metaFormat.textContent = 'Video';
         archiveTreeViewer.style.display = 'block';
-        renderVideoPlayer(rawMediaUrl, fileItem.displayName || fileItem.name);
-    } else if (['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a'].includes(ext)) {
+        renderVideoPlayer(mediaPreviewUrl, fileItem.displayName || fileItem.name);
+    } else if (['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'opus', 'oga'].includes(ext)) {
         metaFormat.textContent = 'Audio';
         archiveTreeViewer.style.display = 'block';
-        renderAudioPlayer(rawMediaUrl, fileItem.displayName || fileItem.name);
-    } else if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico'].includes(ext)) {
+        renderAudioPlayer(mediaPreviewUrl, fileItem.displayName || fileItem.name);
+    } else if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico', 'avif', 'tif', 'tiff'].includes(ext)) {
         metaFormat.textContent = 'Image';
         archiveTreeViewer.style.display = 'block';
-        renderImageViewer(rawMediaUrl, fileItem.displayName || fileItem.name);
+        renderImageViewer(mediaPreviewUrl, fileItem.displayName || fileItem.name);
     } else if (ext === 'svg') {
         metaFormat.textContent = 'SVG Image';
         archiveTreeViewer.style.display = 'block';
@@ -1821,8 +2209,11 @@ function displayFileContent(fileType, data, fileItem) {
         }
     } else if (ext === 'pdf') {
         metaFormat.textContent = 'PDF Document';
-        pdfViewer.src = rawMediaUrl;
+        pdfViewer.src = mediaPreviewUrl;
         pdfViewer.style.display = 'block';
+    } else if (ext === 'docx' || ext === 'pptx') {
+        metaFormat.textContent = ext === 'docx' ? 'Word Document (text preview)' : 'Presentation (slide text preview)';
+        renderOfficePreview(fileItem, ext);
     } else if (fileType === 'archive') {
         metaFormat.textContent = 'Archive';
         archiveTreeViewer.style.display = 'block';
@@ -1922,7 +2313,7 @@ function displayFileContent(fileType, data, fileItem) {
             fileItem.fileObject.text().then(t => renderEditorContent(t)).catch(() => renderEditorContent('(Could not read file)'));
         }
     } else if (fileType === 'hex') {
-        metaFormat.textContent = 'Binary / EXE Hex';
+        metaFormat.textContent = ['dbc','wdb','m2','blp','pak','uasset','umap','utoc','ucas','assets','cpc'].includes(ext) ? 'Game asset / MMO data (raw)' : 'Binary / Hex';
         editorLayoutContainer.style.display = 'flex';
         virtualConsole.innerHTML = data.lines.map(l =>
             `<span class="hex-addr">${l.slice(0,9)}<\/span><span class="hex-bytes">${l.slice(9,57)}<\/span><span class="hex-ascii">${l.slice(57)}<\/span>`
@@ -2433,19 +2824,31 @@ function renderImageViewer(url, name) {
 // ═══════════════════════════════════════════════════════════
 //  CUSTOM VIDEO PLAYER (With idle auto-hide controls)
 // ═══════════════════════════════════════════════════════════
+let videoPlayerResizeObserver = null;
+let videoFullscreenChangeHandler = null;
+
 function renderVideoPlayer(url, name) {
+    videoPlayerResizeObserver?.disconnect();
+    videoPlayerResizeObserver = null;
+    if (videoFullscreenChangeHandler) {
+        document.removeEventListener('fullscreenchange', videoFullscreenChangeHandler);
+        document.removeEventListener('webkitfullscreenchange', videoFullscreenChangeHandler);
+        videoFullscreenChangeHandler = null;
+    }
     mediaWrapper.innerHTML = '';
     mediaWrapper.style.display = 'block';
     archiveTreeViewer.style.display = 'none';
     const wrap = document.createElement('div');
     wrap.className = 'vid-wrap';
     wrap.innerHTML = `<video class="vid-el" id="vidEl" preload="metadata" playsinline></video>
+      <canvas class="vid-quality-render" id="vidQualityRender" aria-hidden="true"></canvas>
       <div class="vid-overlay" id="vidOverlay"><button class="vid-big-play" id="vidBigPlay" type="button">▶</button></div>
       <div class="vid-controls" id="vidControls"><div class="vid-progress-wrap"><div class="vid-progress-track" id="vidTrack">
       <div class="vid-progress-buf" id="vidBuf"></div><div class="vid-progress-fill" id="vidFill"></div><div class="vid-progress-thumb" id="vidThumb"></div>
       </div><div class="vid-time"><span id="vidCur">0:00</span> / <span id="vidDur">0:00</span></div></div>
       <div class="vid-btn-row"><button class="vid-btn" id="vidPlay" type="button">▶</button><button class="vid-btn" id="vidMute" type="button">🔊</button>
       <input type="range" class="vid-vol" id="vidVol" min="0" max="1" step="0.01" value="1"><span class="vid-spacer"></span>
+      <button class="vid-quality-button" id="vidQualityButton" type="button" aria-haspopup="dialog" aria-controls="videoQualityModal"></button>
       <button class="vid-btn" id="vidFs" type="button">⛶</button></div></div>`;
     mediaWrapper.appendChild(wrap);
 
@@ -2462,10 +2865,130 @@ function renderVideoPlayer(url, name) {
     const bigPlay = wrap.querySelector('#vidBigPlay');
     const overlay = wrap.querySelector('#vidOverlay');
     const controls = wrap.querySelector('#vidControls');
+    const qualityButton = wrap.querySelector('#vidQualityButton');
+    const qualityCanvas = wrap.querySelector('#vidQualityRender');
+    const qualityContext = qualityCanvas.getContext('2d', { alpha: false });
     let frameId = 0;
+    let qualityFrameId = 0;
+    let videoFrameRequest = 0;
+    const supportedQualities = [144, 240, 360, 480, 720, 1080, 1440, 2160];
+    let selectedQuality = 0;
+    try {
+        const savedQuality = localStorage.getItem('wt_video_quality');
+        const parsedQuality = savedQuality === 'auto' ? 0 : Number(savedQuality);
+        if (savedQuality !== null && (parsedQuality === 0 || supportedQualities.includes(parsedQuality))) {
+            selectedQuality = parsedQuality;
+        }
+    } catch (error) {
+        console.warn('Unable to read the saved video quality preference.', error);
+    }
     let hideTimer = 0;
 
     vid.src = url;
+    const cancelQualityRender = () => {
+        if (qualityFrameId) cancelAnimationFrame(qualityFrameId);
+        if (videoFrameRequest && vid.cancelVideoFrameCallback) vid.cancelVideoFrameCallback(videoFrameRequest);
+        qualityFrameId = 0;
+        videoFrameRequest = 0;
+    };
+    const drawQualityFrame = () => {
+        if (!selectedQuality || vid.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !vid.videoWidth || !vid.videoHeight) return false;
+        const scale = Math.min(1, selectedQuality / vid.videoHeight);
+        const width = Math.max(1, Math.round(vid.videoWidth * scale));
+        const height = Math.max(1, Math.round(vid.videoHeight * scale));
+        if (qualityCanvas.width !== width || qualityCanvas.height !== height) {
+            qualityCanvas.width = width;
+            qualityCanvas.height = height;
+        }
+        qualityContext.drawImage(vid, 0, 0, width, height);
+        qualityCanvas.style.display = 'block';
+        return true;
+    };
+    const scheduleQualityFrame = () => {
+        if (!selectedQuality || vid.paused || vid.ended) return;
+        if (typeof vid.requestVideoFrameCallback === 'function') {
+            videoFrameRequest = vid.requestVideoFrameCallback(() => {
+                drawQualityFrame();
+                scheduleQualityFrame();
+            });
+        } else {
+            qualityFrameId = requestAnimationFrame(() => {
+                drawQualityFrame();
+                scheduleQualityFrame();
+            });
+        }
+    };
+    const setVideoQuality = height => {
+        selectedQuality = supportedQualities.includes(height) ? height : 0;
+        try {
+            localStorage.setItem('wt_video_quality', selectedQuality ? String(selectedQuality) : 'auto');
+        } catch (error) {
+            console.warn('Unable to save the video quality preference.', error);
+        }
+        qualityButton.dataset.selectedQuality = selectedQuality ? String(selectedQuality) : 'auto';
+        const qualityText = qualityUiTranslations[activeLanguage] || qualityUiTranslations.en;
+        qualityButton.textContent = `${qualityText.quality}: ${selectedQuality ? `${selectedQuality}p` : qualityText.auto}`;
+        cancelQualityRender();
+        const downsample = selectedQuality > 0 && vid.videoHeight > selectedQuality;
+        if (downsample) {
+            qualityCanvas.style.display = 'none';
+            drawQualityFrame();
+            scheduleQualityFrame();
+        } else {
+            qualityCanvas.style.display = 'none';
+            qualityCanvas.width = 0;
+            qualityCanvas.height = 0;
+            if (!selectedQuality && vid.error) {
+                const resumeAt = vid.currentTime;
+                const shouldResume = !vid.paused && !vid.ended;
+                vid.pause();
+                vid.src = url;
+                vid.load();
+                vid.addEventListener('loadedmetadata', () => {
+                    if (Number.isFinite(resumeAt) && resumeAt > 0 && resumeAt < vid.duration) {
+                        vid.currentTime = resumeAt;
+                    }
+                    if (shouldResume) {
+                        vid.play().catch(() => showToast('Unable to play this video'));
+                    }
+                }, { once: true });
+            }
+        }
+    };
+    qualityButton.addEventListener('click', () => {
+        activeVideoQualitySetter = setVideoQuality;
+        activeVideoQualityTrigger = qualityButton;
+        videoQualityOptions.querySelectorAll('.video-quality-option').forEach(option => {
+            const selected = (selectedQuality ? String(selectedQuality) : 'auto') === option.dataset.quality;
+            option.classList.toggle('selected', selected);
+            option.setAttribute('aria-pressed', selected ? 'true' : 'false');
+        });
+        clearTimeout(videoQualityCloseTimer);
+        videoQualityModal.classList.remove('closing');
+        videoQualityModal.classList.add('active');
+        videoQualityModal.setAttribute('aria-hidden', 'false');
+        videoQualityOptions.querySelector('.video-quality-option.selected')?.focus();
+    });
+    vid.addEventListener('loadedmetadata', () => {
+        setVideoQuality(selectedQuality);
+    });
+    vid.addEventListener('loadeddata', () => {
+        if (selectedQuality && vid.videoHeight > selectedQuality) drawQualityFrame();
+    });
+    if (typeof ResizeObserver === 'function') {
+        videoPlayerResizeObserver = new ResizeObserver(() => {
+            if (selectedQuality && vid.videoHeight > selectedQuality) drawQualityFrame();
+        });
+        videoPlayerResizeObserver.observe(wrap);
+    }
+    videoFullscreenChangeHandler = () => {
+        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
+        if (fullscreenElement && fullscreenElement !== wrap) return;
+        if (selectedQuality && vid.videoHeight > selectedQuality) drawQualityFrame();
+        showControls();
+    };
+    document.addEventListener('fullscreenchange', videoFullscreenChangeHandler);
+    document.addEventListener('webkitfullscreenchange', videoFullscreenChangeHandler);
     const fmt = seconds => {
         if (!Number.isFinite(seconds)) return '0:00';
         return `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
@@ -2491,13 +3014,14 @@ function renderVideoPlayer(url, name) {
         if (vid.paused) vid.play().catch(() => showToast('Unable to play this video')); else vid.pause();
     };
     vid.addEventListener('loadedmetadata', () => { dur.textContent = fmt(vid.duration); updateProgress(); });
-    vid.addEventListener('play', () => { play.textContent = '⏸'; bigPlay.textContent = '▶'; overlay.classList.add('hidden'); showControls(); updateProgress(); });
-    vid.addEventListener('pause', () => { play.textContent = '▶'; stopProgress(); showControls(); if (!vid.ended) { overlay.classList.remove('hidden'); bigPlay.style.opacity = '1'; } });
-    vid.addEventListener('ended', () => { play.textContent = '↺'; stopProgress(); overlay.classList.remove('hidden'); bigPlay.textContent = '↺'; bigPlay.style.opacity = '1'; showControls(); });
+    vid.addEventListener('play', () => { play.textContent = '⏸'; bigPlay.textContent = '▶'; overlay.classList.add('hidden'); showControls(); updateProgress(); scheduleQualityFrame(); });
+    vid.addEventListener('pause', () => { play.textContent = '▶'; stopProgress(); cancelQualityRender(); drawQualityFrame(); showControls(); if (!vid.ended) { overlay.classList.remove('hidden'); bigPlay.style.opacity = '1'; } });
+    vid.addEventListener('ended', () => { play.textContent = '↺'; stopProgress(); cancelQualityRender(); drawQualityFrame(); overlay.classList.remove('hidden'); bigPlay.textContent = '↺'; bigPlay.style.opacity = '1'; showControls(); });
     play.addEventListener('click', togglePlay);
     bigPlay.addEventListener('click', togglePlay);
     overlay.addEventListener('click', event => { if (event.target === overlay) togglePlay(); });
     vid.addEventListener('click', togglePlay);
+    vid.addEventListener('seeked', drawQualityFrame);
     mute.addEventListener('click', () => { vid.muted = !vid.muted; mute.textContent = vid.muted ? '🔇' : '🔊'; });
     vol.addEventListener('input', () => { vid.volume = Number(vol.value); vid.muted = vid.volume === 0; mute.textContent = vid.muted ? '🔇' : '🔊'; });
     track.addEventListener('pointerdown', event => {
@@ -2506,7 +3030,30 @@ function renderVideoPlayer(url, name) {
         vid.currentTime = Math.min(vid.duration, Math.max(0, (event.clientX - rect.left) / rect.width * vid.duration));
         updateProgress();
     });
-    wrap.querySelector('#vidFs').addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen(); else wrap.requestFullscreen?.(); });
+    wrap.querySelector('#vidFs').addEventListener('click', async () => {
+        const wasPlaying = !vid.paused && !vid.ended;
+        const playbackPosition = vid.currentTime;
+        try {
+            const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
+            if (fullscreenElement) {
+                const exitFullscreen = document.exitFullscreen || document.webkitExitFullscreen;
+                if (!exitFullscreen) throw new Error('Fullscreen exit is unavailable.');
+                await exitFullscreen.call(document);
+            } else {
+                const requestFullscreen = wrap.requestFullscreen || wrap.webkitRequestFullscreen;
+                if (!requestFullscreen) throw new Error('Fullscreen is unavailable.');
+                await requestFullscreen.call(wrap);
+            }
+            if (wasPlaying && vid.paused && !vid.ended) {
+                if (playbackPosition - vid.currentTime > 0.25) vid.currentTime = playbackPosition;
+                await vid.play();
+            }
+        } catch (error) {
+            console.error('Unable to change video fullscreen mode.', error);
+            showToast('Unable to change fullscreen mode');
+        }
+    });
+    setVideoQuality(selectedQuality);
     wrap.addEventListener('mousemove', showControls);
     wrap.addEventListener('pointerdown', showControls);
 }
@@ -2603,49 +3150,6 @@ function renderAudioPlayer(url, name) {
     volR.addEventListener('input', () => { aud.volume = parseFloat(volR.value); });
     trackEl.addEventListener('click', e => { const r = trackEl.getBoundingClientRect(); aud.currentTime = ((e.clientX - r.left) / r.width) * aud.duration; });
 }
-
-// ═══════════════════════════════════════════════════════════
-//  RAW / INSPECT MODE DOCK TOGGLE
-// ═══════════════════════════════════════════════════════════
-viewRawBtn.addEventListener('click', () => {
-    const item = activeFilesCache.find(f => f.id === loadedFileIndex);
-    if (!item) return;
-
-    if (currentViewMode === 'viewer') {
-        currentViewMode = 'raw';
-        _currentMediaViewType = viewRawBtn.dataset.mode || 'text';
-        
-        if (typeof _stopAudio === 'function') _stopAudio();
-        document.querySelectorAll('video').forEach(v => { try { v.pause(); v.src = ''; } catch(e){} });
-        
-        archiveTreeViewer.style.display = 'none';
-        editorLayoutContainer.style.display = 'flex';
-        
-        viewRawBtn.textContent = '◀ Back to file';
-        editorToggleBtn.style.display = 'none';
-        webWorker.postMessage({ type: 'ANALYZE_FILE', file: item.fileObject, forceHex: true });
-    } else {
-        currentViewMode = 'viewer';
-        viewRawBtn.textContent = '〈/〉 Raw';
-        editorLayoutContainer.style.display = 'none';
-        editorToggleBtn.style.display = 'none';
-        virtualConsole.innerHTML = '';
-        
-        const t = _currentMediaViewType;
-        if (t === 'image' || t === 'svg') {
-            archiveTreeViewer.style.display = 'block';
-            renderImageViewer(URL.createObjectURL(item.fileObject), item.name);
-        } else if (t === 'audio') {
-            archiveTreeViewer.style.display = 'block';
-            renderAudioPlayer(URL.createObjectURL(item.fileObject), item.name);
-        } else if (t === 'video') {
-            archiveTreeViewer.style.display = 'block';
-            renderVideoPlayer(URL.createObjectURL(item.fileObject), item.name);
-        } else {
-            parseSelectedCacheFile(item.id);
-        }
-    }
-});
 
 // ═══════════════════════════════════════════════════════════
 //  ZIP ARCHIVE DYNAMIC DIRECTORY TREE
@@ -2977,28 +3481,17 @@ function openInternalFileView(name, content) {
 
     if (imgExts.includes(ext) && content instanceof Blob) {
         archiveTreeViewer.style.display = 'block';
-        const url = URL.createObjectURL(content);
-        renderImageViewer(url, fname);
-        viewRawBtn.style.display = 'inline-block';
-        viewRawBtn.dataset.mode = 'image';
-        _internalViewType = 'image';
-        _internalImageUrl = url;
+        mediaPreviewUrl = URL.createObjectURL(content);
+        renderImageViewer(mediaPreviewUrl, fname);
     } else if (audExts.includes(ext) && content instanceof Blob) {
         archiveTreeViewer.style.display = 'block';
-        const url = URL.createObjectURL(content);
-        renderAudioPlayer(url, fname);
-        viewRawBtn.style.display = 'inline-block';
-        viewRawBtn.dataset.mode = 'audio';
-        _internalViewType = 'audio';
+        mediaPreviewUrl = URL.createObjectURL(content);
+        renderAudioPlayer(mediaPreviewUrl, fname);
     } else if (vidExts.includes(ext) && content instanceof Blob) {
         archiveTreeViewer.style.display = 'block';
-        const url = URL.createObjectURL(content);
-        renderVideoPlayer(url, fname);
-        viewRawBtn.style.display = 'inline-block';
-        viewRawBtn.dataset.mode = 'video';
-        _internalViewType = 'video';
+        mediaPreviewUrl = URL.createObjectURL(content);
+        renderVideoPlayer(mediaPreviewUrl, fname);
     } else {
-        _internalViewType = 'text';
         _currentFileExt = ext;
         editorLayoutContainer.style.display = 'flex';
         editorToggleBtn.style.display = 'inline-block';
@@ -3236,9 +3729,10 @@ downloadSliceBtn.addEventListener('click', () => {
 
     const isCurrentlyOpenArchive = arcExts.has(origExt) && _arcOrigFiles.length > 0 && currentArchiveFiles.length >= 0;
 
-    if (isCurrentlyOpenArchive && typeof JSZip !== 'undefined') {
+    if (isCurrentlyOpenArchive) {
         showToast('📦 Rebuilding archive…');
-        item.fileObject.arrayBuffer()
+        _ensureJSZip()
+            .then(() => item.fileObject.arrayBuffer())
             .then(buf => JSZip.loadAsync(buf))
             .then(origZip => {
                 const newZip = new JSZip();
@@ -3387,18 +3881,25 @@ sidebarHomeBtn.addEventListener('click', resetToHome);
 clearAllFilesBtn.addEventListener('click', () => confirmModal.classList.add('active'));
 modalCancelBtn.addEventListener('click',  () => confirmModal.classList.remove('active'));
 modalConfirmBtn.addEventListener('click', () => { confirmModal.classList.remove('active'); clearEntireDatabase(); });
-fileSearchInput.addEventListener('input', () => renderActiveFilesSidebar(fileSearchInput.value));
+let fileSearchRenderTimer = 0;
+fileSearchInput.addEventListener('input', () => {
+    clearTimeout(fileSearchRenderTimer);
+    fileSearchRenderTimer = setTimeout(() => renderActiveFilesSidebar(fileSearchInput.value), 60);
+});
 
 // ═══════════════════════════════════════════════════════════
 //  DOWNLOAD ALL ACTIVE FILES AS ZIP
 // ═══════════════════════════════════════════════════════════
-downloadAllFilesBtn.addEventListener('click', () => {
+downloadAllFilesBtn.addEventListener('click', async () => {
     if (!activeFilesCache || activeFilesCache.length === 0) {
         showToast('⚠️ No active files to download');
         return;
     }
-    if (typeof JSZip === 'undefined') {
-        showToast('⚠️ JSZip helper library not loaded');
+    try {
+        await _ensureJSZip();
+    } catch (error) {
+        console.error('Could not load archive helper:', error);
+        showToast('⚠️ Could not load the ZIP helper library');
         return;
     }
     showToast('📦 Creating ZIP archive…');
@@ -3555,23 +4056,50 @@ window.addEventListener('keydown', e => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════
-//  P2P QUICKSHARE v2 — Multi-File + Multi-Device  (256KB chunks, pipelined)
+//  P2P QUICKSHARE v2 — Multi-File + Multi-Device  (buffered 256KB pipeline)
 // ═══════════════════════════════════════════════════════════════════════
 
+const _scriptLoadPromises = new Map();
 function _loadScript(src) {
-    return new Promise((res, rej) => {
-        if (document.querySelector(`script[src="${src}"]`)) return res();
-        const s = document.createElement('script');
-        s.src = src; s.onload = res; s.onerror = rej;
-        document.head.appendChild(s);
+    if (_scriptLoadPromises.has(src)) return _scriptLoadPromises.get(src);
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing?.dataset.loaded === 'true') return Promise.resolve();
+    const promise = new Promise((res, rej) => {
+        const script = existing || document.createElement('script');
+        script.async = true;
+        script.onload = () => {
+            script.dataset.loaded = 'true';
+            res();
+        };
+        script.onerror = () => {
+            script.remove();
+            _scriptLoadPromises.delete(src);
+            rej(new Error(`Failed to load ${src}`));
+        };
+        if (existing) return;
+        script.src = src;
+        document.head.appendChild(script);
     });
+    _scriptLoadPromises.set(src, promise);
+    return promise;
+}
+
+function _ensureJSZip() {
+    if (window.JSZip) return Promise.resolve();
+    return _loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js')
+        .then(() => {
+            if (!window.JSZip) throw new Error('The ZIP helper did not initialize.');
+        });
 }
 
 // ── State ──
 let _peer = null;
 let _peerConns = {};
 let _p2pSendQueue = [];
-const P2P_CHUNK = 256 * 1024; // 256 KB – 4× faster than 64 KB
+const P2P_CHUNK = 256 * 1024;
+const P2P_PIPELINE = 8;
+const P2P_BUFFER_HIGH_WATER = 2 * 1024 * 1024;
+const P2P_BUFFER_LOW_WATER = 512 * 1024;
 
 function _genCode() {
     const ch = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -3670,43 +4198,105 @@ function _renderSendQueue() {
         return;
     }
     _p2pSendQueue.forEach((item, i) => {
-        const sz = item.size > 1048576 ? (item.size/1048576).toFixed(1)+' MB' : Math.round(item.size/1024)+' KB';
+        const sz = item.size > 1048576 ? (item.size/1048576).toFixed(1)+' MB' : item.size < 1024 ? item.size+' B' : Math.round(item.size/1024)+' KB';
         const row = document.createElement('div');
         row.className = 'p2p-queue-row';
-        row.innerHTML = `<span class="p2p-queue-icon">${getFileIcon(item.name)}</span><span class="p2p-queue-name">${item.displayName||item.name}</span><span class="p2p-queue-size">${sz}</span><button class="p2p-queue-rm" data-i="${i}">×</button>`;
-        row.querySelector('.p2p-queue-rm').onclick = () => { _p2pSendQueue.splice(i,1); _renderSendQueue(); };
+        const icon = document.createElement('span'); icon.className = 'p2p-queue-icon'; icon.textContent = item.kind === 'text' ? '💬' : getFileIcon(item.name);
+        const name = document.createElement('span'); name.className = 'p2p-queue-name'; name.textContent = item.displayName || item.name;
+        const size = document.createElement('span'); size.className = 'p2p-queue-size'; size.textContent = sz;
+        const remove = document.createElement('button'); remove.className = 'p2p-queue-rm'; remove.type = 'button'; remove.textContent = '×'; remove.setAttribute('aria-label', 'Remove from queue');
+        remove.onclick = () => { _p2pSendQueue.splice(i,1); _renderSendQueue(); };
+        row.append(icon, name, size, remove);
         list.appendChild(row);
     });
 }
 
-// File picker
+function _closeFilePicker() {
+    const sheet = document.getElementById('p2pFilePickerDropdown');
+    if (!sheet.classList.contains('open')) return;
+    sheet.classList.add('closing');
+    sheet.setAttribute('aria-hidden', 'true');
+    clearTimeout(sheet._closeTimer);
+    sheet._closeTimer = setTimeout(() => sheet.classList.remove('open', 'closing'), 220);
+}
+
+let _activeP2pType = 'all';
+function _matchesP2pType(name) {
+    const ext = name.toLowerCase().split('.').pop();
+    const types = {
+        image:['png','jpg','jpeg','gif','webp','svg','bmp','ico','avif','tif','tiff'],
+        media:['mp3','mp4','avi','wav','ogg','webm','mkv','flac','aac','m4a','opus','oga','3gp','m4v','m2ts'],
+        document:['pdf','doc','docx','docm','ppt','pptx','pptm','xls','xlsx','xlsm','odt','odp','ods','epub','rtf','txt','md'],
+        code:['js','ts','jsx','tsx','html','htm','css','scss','sass','json','xml','yaml','yml','py','sh','sql','toml','ini','cfg','conf'],
+        game:['nbt','dat','dta','mca','mcworld','mcstructure','schem','schematic','litematic','dbc','wdb','m2','blp','pak','uasset','umap','utoc','ucas','cpc'],
+        archive:['zip','jar','7z','rar','tar','gz','bz2','xz','zst','epub','odt','odp','ods']
+    };
+    return _activeP2pType === 'all' || (types[_activeP2pType] || []).includes(ext);
+}
+
+function _renderFilePicker(query = '') {
+    const options = document.getElementById('p2pFilePickerOptions');
+    const normalizedQuery = query.trim().toLowerCase();
+    const available = (activeFilesCache || []).filter(file =>
+        !_p2pSendQueue.some(queued => queued.id === file.id) &&
+        _matchesP2pType(file.displayName || file.name) &&
+        (file.displayName || file.name).toLowerCase().includes(normalizedQuery)
+    );
+    options.replaceChildren();
+    if (!available.length) {
+        const empty = document.createElement('div');
+        empty.className = 'p2p-picker-opt';
+        empty.textContent = uiTranslations[activeLanguage]?.p2pPickerEmpty || 'No matching files';
+        options.appendChild(empty);
+        return;
+    }
+    available.forEach(file => {
+        const opt = document.createElement('button');
+        opt.type = 'button';
+        opt.className = 'p2p-picker-opt';
+        const icon = document.createElement('span'); icon.textContent = getFileIcon(file.name);
+        const name = document.createElement('span'); name.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'; name.textContent = file.displayName || file.name;
+        const size = document.createElement('span'); size.style.cssText = 'font-size:11px;color:rgba(255,255,255,.45)'; size.textContent = file.size > 1048576 ? (file.size/1048576).toFixed(1)+' MB' : Math.round(file.size/1024)+' KB';
+        opt.append(icon, name, size);
+        opt.addEventListener('click', () => {
+            if (!_p2pSendQueue.some(queued => queued.id === file.id)) _p2pSendQueue.push(file);
+            _renderSendQueue();
+            _renderFilePicker(document.getElementById('p2pFileSearch').value);
+            _closeFilePicker();
+        });
+        options.appendChild(opt);
+    });
+}
+
 document.getElementById('p2pAddFilesBtn').addEventListener('click', e => {
     e.stopPropagation();
     const dd = document.getElementById('p2pFilePickerDropdown');
-    if (dd.style.display !== 'none') { dd.style.display='none'; return; }
-    dd.innerHTML = '';
-    const available = (activeFilesCache||[]).filter(f => !_p2pSendQueue.find(q=>q.id===f.id));
-    if (!available.length) {
-        dd.innerHTML = '<div style="padding:10px;font-size:12px;color:rgba(255,255,255,0.4);">All files already added</div>';
-    }
-    available.forEach(file => {
-        const sz = file.size>1048576 ? (file.size/1048576).toFixed(1)+' MB' : Math.round(file.size/1024)+' KB';
-        const opt = document.createElement('div');
-        opt.className = 'p2p-picker-opt';
-        opt.innerHTML = `<span>${getFileIcon(file.name)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${file.displayName||file.name}</span><span style="font-size:11px;color:rgba(255,255,255,0.35)">${sz}</span>`;
-        opt.onclick = ev => {
-            ev.stopPropagation();
-            if (!_p2pSendQueue.find(q=>q.id===file.id)) _p2pSendQueue.push(file);
-            _renderSendQueue();
-            dd.style.display='none';
-        };
-        dd.appendChild(opt);
-    });
-    dd.style.display='block';
+    if (dd.classList.contains('open') && !dd.classList.contains('closing')) { _closeFilePicker(); return; }
+    clearTimeout(dd._closeTimer);
+    dd.classList.remove('closing');
+    _renderFilePicker(document.getElementById('p2pFileSearch').value);
+    dd.classList.add('open');
+    dd.setAttribute('aria-hidden', 'false');
+    document.getElementById('p2pFileSearch').focus();
 });
-document.addEventListener('click', () => {
-    const dd = document.getElementById('p2pFilePickerDropdown');
-    if (dd) dd.style.display='none';
+document.getElementById('p2pFileSearch').addEventListener('input', event => _renderFilePicker(event.target.value));
+document.querySelectorAll('[data-p2p-filter]').forEach(button => button.addEventListener('click', () => {
+    _activeP2pType = button.dataset.p2pFilter;
+    document.querySelectorAll('[data-p2p-filter]').forEach(option => option.setAttribute('aria-pressed', String(option === button)));
+    _renderFilePicker(document.getElementById('p2pFileSearch').value);
+}));
+document.addEventListener('click', event => {
+    const sheet = document.getElementById('p2pFilePickerDropdown');
+    if (!sheet.contains(event.target) && event.target.id !== 'p2pAddFilesBtn') _closeFilePicker();
+});
+document.getElementById('p2pAddTextBtn').addEventListener('click', () => {
+    const input = document.getElementById('p2pTextInput');
+    const text = input.value;
+    if (!text.trim()) { showToast('⚠️ Paste some text first'); input.focus(); return; }
+    const payload = new Blob([text], {type:'text/plain;charset=utf-8'});
+    _p2pSendQueue.push({name:'message.txt', displayName:'Text message', size:payload.size, fileObject:payload, kind:'text'});
+    input.value = '';
+    _renderSendQueue();
 });
 
 // ── SENDER ──
@@ -3729,7 +4319,7 @@ document.getElementById('p2pStartBroadcastBtn').addEventListener('click', async 
 
     _peer = new Peer(code, {
         host:'0.peerjs.com', port:443, secure:true, path:'/',
-        config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}
+        config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}],bundlePolicy:'max-bundle',iceCandidatePoolSize:4}
     });
     _peer.on('open', () => { document.getElementById('p2pSendStatus').textContent='⏳ Waiting for receivers…'; });
     _peer.on('error', err => {
@@ -3744,7 +4334,12 @@ document.getElementById('p2pStartBroadcastBtn').addEventListener('click', async 
         showToast('✅ New receiver connected!');
         conn.on('open', async () => {
             document.getElementById('p2pSendStatus').textContent='📤 Sending '+_p2pSendQueue.length+' file(s)…';
-            await _sendAllFiles(conn, pid);
+            try {
+                await _sendAllFiles(conn, pid);
+            } catch (error) {
+                document.getElementById('p2pSendStatus').textContent='⚠️ Transfer interrupted.';
+                showToast('⚠️ Transfer interrupted: '+(error.message||error));
+            }
         });
         conn.on('data', data => {
             if (!data || data.type !== 'progress') return;
@@ -3792,33 +4387,58 @@ async function _sendAllFiles(conn, peerId) {
         const total = Math.ceil(file.size/P2P_CHUNK);
         const fillEl = document.getElementById(`psf_${peerId}_${idx}`);
         const pctEl  = document.getElementById(`psp_${peerId}_${idx}`);
-        conn.send({type:'meta', name:nm, size:file.size, mime:file.type, totalChunks:total, fileIndex:idx, totalFiles:_p2pSendQueue.length});
-        await new Promise(resolve => {
-            const PIPE = 6;
-            let nextRead = 0, doneCount = 0;
-            function kick() {
-                for (let b=0; b<PIPE && nextRead<total; b++) {
-                    const i = nextRead++;
-                    const slice = file.slice(i*P2P_CHUNK, (i+1)*P2P_CHUNK);
-                    const rd = new FileReader();
-                    rd.onload = () => {
-                        conn.send({type:'chunk', fileIndex:idx, index:i, data:rd.result});
-                        doneCount++;
-                        if (doneCount===total) {
-                            conn._p2pCompleteWaiters[idx] = resolve;
-                            conn.send({type:'done',fileIndex:idx});
-                        } else if (doneCount % PIPE === 0) {
-                            setTimeout(kick,0);
+        conn.send({type:'meta', name:nm, size:file.size, mime:file.type, kind:item.kind || 'file', totalChunks:total, fileIndex:idx, totalFiles:_p2pSendQueue.length});
+        await new Promise((resolve, reject) => {
+            (async () => {
+                for (let batchStart = 0; batchStart < total; batchStart += P2P_PIPELINE) {
+                    const batchEnd = Math.min(batchStart + P2P_PIPELINE, total);
+                    const chunks = await Promise.all(
+                        Array.from({length: batchEnd - batchStart}, (_, offset) => {
+                            const chunkIndex = batchStart + offset;
+                            return file.slice(chunkIndex * P2P_CHUNK, (chunkIndex + 1) * P2P_CHUNK).arrayBuffer();
+                        })
+                    );
+                    for (let offset = 0; offset < chunks.length; offset++) {
+                        if (!await _waitForP2pBuffer(conn)) {
+                            throw new Error('Connection closed during transfer.');
                         }
-                    };
-                    rd.readAsArrayBuffer(slice);
+                        conn.send({type:'chunk', fileIndex:idx, index:batchStart + offset, data:chunks[offset]});
+                    }
                 }
-            }
-            kick();
+                conn._p2pCompleteWaiters[idx] = resolve;
+                conn.send({type:'done',fileIndex:idx});
+            })().catch(reject);
         });
     }
     document.getElementById('p2pSendStatus').textContent=`✅ All ${_p2pSendQueue.length} file(s) sent!`;
     showToast('✅ All files sent!');
+}
+
+function _waitForP2pBuffer(conn) {
+    const channel = conn.dataChannel;
+    if (!channel) return Promise.resolve(true);
+    if (!conn.open || channel.readyState !== 'open') return Promise.resolve(false);
+    if (channel.bufferedAmount <= P2P_BUFFER_HIGH_WATER) return Promise.resolve(true);
+
+    channel.bufferedAmountLowThreshold = P2P_BUFFER_LOW_WATER;
+    return new Promise(resolve => {
+        let timer;
+        const finish = canContinue => {
+            clearTimeout(timer);
+            channel.removeEventListener('bufferedamountlow', check);
+            channel.removeEventListener('close', check);
+            resolve(canContinue);
+        };
+        const check = () => {
+            clearTimeout(timer);
+            if (!conn.open || channel.readyState !== 'open') finish(false);
+            else if (channel.bufferedAmount <= P2P_BUFFER_LOW_WATER) finish(true);
+            else timer = setTimeout(check, 32);
+        };
+        channel.addEventListener('bufferedamountlow', check);
+        channel.addEventListener('close', check);
+        check();
+    });
 }
 
 document.getElementById('p2pStopBtn').addEventListener('click', () => {
@@ -3846,14 +4466,14 @@ async function _p2pConnect() {
     const myId='recv-'+Math.random().toString(36).slice(2,10);
     _peer = new Peer(myId, {
         host:'0.peerjs.com', port:443, secure:true, path:'/',
-        config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}
+        config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}],bundlePolicy:'max-bundle',iceCandidatePoolSize:4}
     });
     _peer.on('open', () => {
         statusEl.textContent='🔗 Reaching sender…';
         const conn = _peer.connect(code, {reliable:true, serialization:'binary'});
         let states = {};
         conn.on('open', () => { statusEl.textContent='✅ Connected! Waiting for files…'; });
-        conn.on('data', data => {
+        conn.on('data', async data => {
             const plist = document.getElementById('p2pReceiveProgressList');
             if (data.type==='meta') {
                 const fi=data.fileIndex;
@@ -3869,17 +4489,28 @@ async function _p2pConnect() {
                 const fi=data.fileIndex, st=states[fi]; if(!st)return;
                 st.chunks[data.index]=data.data; st.got++;
                 const pct=Math.min(100,Math.round(st.got/st.meta.totalChunks*100));
-                const f=document.getElementById(`prf_${fi}`), p=document.getElementById(`prp_${fi}`);
-                if(f) f.style.width=pct+'%'; if(p) p.textContent=pct+'%';
                 if (pct !== st.lastPercent) {
                     st.lastPercent = pct;
+                    const f=document.getElementById(`prf_${fi}`), p=document.getElementById(`prp_${fi}`);
+                    if(f) f.style.width=pct+'%'; if(p) p.textContent=pct+'%';
                     conn.send({type:'progress', fileIndex:fi, percent:pct});
                 }
             } else if (data.type==='done') {
                 const fi=data.fileIndex, st=states[fi]; if(!st)return;
                 const blob=new Blob(st.chunks.filter(Boolean),{type:st.meta.mime||'application/octet-stream'});
-                saveMultipleFiles([new File([blob],st.meta.name,{type:st.meta.mime})]);
-                showToast('✅ Received: '+st.meta.name);
+                st.chunks.length=0;
+                if (st.meta.kind === 'text') {
+                    const message = document.createElement('article');
+                    message.className = 'p2p-received-text';
+                    const title = document.createElement('strong'); title.textContent = 'Received text message';
+                    const content = document.createElement('pre'); content.textContent = await blob.text();
+                    message.append(title, content);
+                    document.getElementById('p2pIncomingFilesList').appendChild(message);
+                    showToast('✅ Text message received');
+                } else {
+                    saveMultipleFiles([new File([blob],st.meta.name,{type:st.meta.mime})]);
+                    showToast('✅ Received: '+st.meta.name);
+                }
                 const f=document.getElementById(`prf_${fi}`), p=document.getElementById(`prp_${fi}`);
                 if(f){f.style.width='100%';f.style.background='#22c55e';} if(p)p.textContent='✅';
                 conn.send({type:'progress', fileIndex:fi, percent:100, complete:true});
@@ -3921,7 +4552,6 @@ function resetToHome() {
     resetViewers();
     loadedFileIndex = null; 
     isEditMode = false; 
-    currentViewMode = 'viewer';
     editorToggleBtn.classList.remove('active');
     editorToggleBtn.textContent = '✏️ Edit';
     viewerPanel.style.display  = 'none';
@@ -3944,7 +4574,7 @@ const privacyText = `
   <p>WebTools Utility does not collect, transmit, store, or process any personal data on external servers. All file operations occur exclusively in your browser using the Web APIs (IndexedDB, File API, Web Workers).<\/p>
 
   <h3>2. Local File Processing<\/h3>
-  <p>Files you open or upload are processed entirely on your device. No file content, metadata, name, or size is ever sent over the network. We have no technical ability to access your files.<\/p>
+    <p>Files you open are processed on your device. File content is not uploaded unless you explicitly choose to send it with P2P QuickShare. QuickShare uses an external signaling service to establish a peer connection; we do not receive your files.<\/p>
 
   <h3>3. Content of Uploaded Files<\/h3>
   <p>WebTools Utility is a general-purpose utility and does not host, serve, or endorse any content. The Service itself contains no adult (18+), violent, or otherwise inappropriate material. However, files that users choose to open locally using this tool may contain such content — the responsibility for the content of those files lies solely with the user. We have no knowledge of or access to such files.<\/p>
@@ -3988,7 +4618,7 @@ const termsText = `
   <p>Your use of this Service constitutes your agreement to these terms. If you do not agree, please discontinue use immediately.<\/p>
 
   <h3>2. Description of Service<\/h3>
-  <p>WebTools Utility is a client-side browser tool for viewing, analyzing, and editing various file formats. The Service operates entirely within your browser — no files are transmitted to external servers.<\/p>
+    <p>WebTools Utility is a client-side browser tool for viewing, analyzing, and editing files. Processing happens in your browser. If you choose P2P QuickShare, selected content is sent to the peer you choose; a third-party signaling service may help establish the connection.<\/p>
 
   <h3>3. Permitted Use<\/h3>
   <p>You may use this Service for lawful purposes only. You agree not to use the Service to open, analyze, or distribute files that violate applicable laws, including copyright law, data protection regulations, or laws prohibiting harmful or illegal content.<\/p>
@@ -4031,8 +4661,215 @@ const termsText = `
   <div class="faq-item"><div class="faq-q">How do I report a problem?<\/div><div class="faq-a">Contact us through the repository or the website associated with this tool.<\/div><\/div>
 <\/div>`;
 
-document.getElementById('privacyContent').innerHTML = privacyText;
-document.getElementById('termsContent').innerHTML   = termsText;
+localizedLegalDocs = {
+    uk: {privacy:['WebTools Utility обробляє файли у вашому браузері. Ми не отримуємо доступу до ваших файлів або особистих даних.','Відкриті файли зберігаються у сховищі браузера на вашому пристрої. Видаліть їх кнопкою «Очистити все» або в налаштуваннях браузера.','QuickShare передає вибрані вами файли чи текст іншому користувачеві. Для сигналізації підключення може використовуватися сторонній сервіс.','Тема, мова та інші параметри інтерфейсу зберігаються локально.'],terms:['Користуючись WebTools Utility, ви погоджуєтеся з цими умовами. Сервіс надається «як є».','Використовуйте інструмент лише законно та не поширюйте вміст, на який не маєте прав.','Ви відповідаєте за файли, які відкриваєте, редагуєте або надсилаєте через QuickShare.','Ми не гарантуємо безперебійну роботу та не відповідаємо за втрату даних чи пошкодження пристрою в межах, дозволених законом.']},
+    ru: {privacy:['WebTools Utility обрабатывает файлы в вашем браузере. Мы не получаем доступ к вашим файлам или личным данным.','Открытые файлы хранятся в браузере на вашем устройстве. Удалите их кнопкой «Очистить всё» или в настройках браузера.','QuickShare передаёт выбранные вами файлы или текст другому пользователю. Для сигнализации соединения может применяться сторонний сервис.','Тема, язык и другие настройки интерфейса хранятся локально.'],terms:['Используя WebTools Utility, вы соглашаетесь с этими условиями. Сервис предоставляется «как есть».','Используйте инструмент только законно и не распространяйте материалы, на которые у вас нет прав.','Вы отвечаете за файлы, которые открываете, редактируете или отправляете через QuickShare.','Мы не гарантируем бесперебойную работу и не отвечаем за потерю данных или повреждение устройства в пределах, разрешённых законом.']},
+    pl: {privacy:['WebTools Utility przetwarza pliki w przeglądarce. Nie uzyskujemy dostępu do Twoich plików ani danych osobowych.','Otwarte pliki są przechowywane lokalnie w przeglądarce. Usuń je przyciskiem „Wyczyść wszystko” lub w ustawieniach przeglądarki.','QuickShare przesyła wybrane przez Ciebie pliki lub tekst innemu użytkownikowi. Usługa sygnalizacyjna połączenia może być zewnętrzna.','Motyw, język i inne ustawienia interfejsu są przechowywane lokalnie.'],terms:['Korzystając z WebTools Utility, akceptujesz te warunki. Usługa jest udostępniana „w stanie, w jakim się znajduje”.','Korzystaj z narzędzia zgodnie z prawem i nie rozpowszechniaj treści, do których nie masz praw.','Odpowiadasz za pliki otwierane, edytowane lub wysyłane przez QuickShare.','Nie gwarantujemy nieprzerwanego działania ani nie odpowiadamy za utratę danych lub uszkodzenie urządzenia w zakresie dozwolonym przez prawo.']},
+    de: {privacy:['WebTools Utility verarbeitet Dateien in deinem Browser. Wir erhalten keinen Zugriff auf deine Dateien oder persönlichen Daten.','Geöffnete Dateien werden lokal im Browser gespeichert. Entferne sie mit „Alle löschen“ oder in den Browsereinstellungen.','QuickShare überträgt Dateien oder Text, die du auswählst, an andere Nutzer. Für die Verbindungssignalisierung kann ein externer Dienst verwendet werden.','Design, Sprache und weitere Oberflächeneinstellungen werden lokal gespeichert.'],terms:['Mit der Nutzung von WebTools Utility stimmst du diesen Bedingungen zu. Der Dienst wird „wie besehen“ bereitgestellt.','Nutze das Werkzeug rechtmäßig und verbreite keine Inhalte, für die du keine Rechte hast.','Du bist für Dateien verantwortlich, die du öffnest, bearbeitest oder über QuickShare sendest.','Wir garantieren keinen unterbrechungsfreien Betrieb und haften im gesetzlich zulässigen Umfang nicht für Datenverlust oder Geräteschäden.']},
+    es: {privacy:['WebTools Utility procesa archivos en tu navegador. No accedemos a tus archivos ni a tus datos personales.','Los archivos abiertos se guardan localmente en el navegador. Elimínalos con «Borrar todo» o desde los ajustes del navegador.','QuickShare transfiere los archivos o el texto que selecciones a otro usuario. La señalización de conexión puede usar un servicio externo.','El tema, el idioma y otras preferencias de la interfaz se guardan localmente.'],terms:['Al usar WebTools Utility, aceptas estas condiciones. El servicio se ofrece «tal cual».','Usa la herramienta de forma legal y no distribuyas contenido sobre el que no tengas derechos.','Eres responsable de los archivos que abras, edites o envíes mediante QuickShare.','No garantizamos un servicio ininterrumpido ni respondemos por pérdida de datos o daños al dispositivo en la medida permitida por la ley.']},
+    it: {privacy:['WebTools Utility elabora i file nel browser. Non accediamo ai tuoi file né ai tuoi dati personali.','I file aperti vengono conservati localmente nel browser. Eliminali con «Cancella tutto» o dalle impostazioni del browser.','QuickShare trasferisce i file o il testo che selezioni a un altro utente. Per la segnalazione della connessione può essere usato un servizio esterno.','Tema, lingua e altre preferenze dell’interfaccia sono salvati localmente.'],terms:['Usando WebTools Utility accetti queste condizioni. Il servizio è fornito «così com’è».','Usa lo strumento nel rispetto della legge e non distribuire contenuti per cui non possiedi i diritti.','Sei responsabile dei file che apri, modifichi o invii tramite QuickShare.','Non garantiamo un servizio ininterrotto e non rispondiamo di perdita di dati o danni al dispositivo nei limiti consentiti dalla legge.']},
+    fr: {privacy:['WebTools Utility traite les fichiers dans votre navigateur. Nous n’accédons pas à vos fichiers ni à vos données personnelles.','Les fichiers ouverts sont conservés localement dans le navigateur. Supprimez-les avec « Tout effacer » ou dans les paramètres du navigateur.','QuickShare transfère les fichiers ou le texte que vous sélectionnez à un autre utilisateur. Un service tiers peut signaler la connexion.','Le thème, la langue et les autres préférences de l’interface sont enregistrés localement.'],terms:['En utilisant WebTools Utility, vous acceptez ces conditions. Le service est fourni « en l’état ».','Utilisez l’outil légalement et ne diffusez pas de contenu dont vous ne détenez pas les droits.','Vous êtes responsable des fichiers ouverts, modifiés ou envoyés via QuickShare.','Nous ne garantissons pas un service ininterrompu et déclinons toute responsabilité pour les pertes de données ou dommages dans les limites permises par la loi.']}
+};
+
+const legalDocumentTranslations = {
+    en: {
+        updated: 'Last updated: 9 November 2026',
+        privacyIntro: 'This notice explains how WebTools Utility handles information. File contents are processed on your device and are transmitted only when you explicitly choose a peer-to-peer transfer. Requests for externally hosted resources may disclose routine connection metadata to their providers.',
+        privacy: [
+            ['Local processing and access', 'File viewing, conversion and other utilities may read file data locally in your browser solely to perform the operation you request. The site owners and developers do not remotely access, receive, read or inspect your files, text or data. It stays on your device unless you explicitly send selected content using QuickShare.'],
+            ['Peer-to-peer transfers; no server file storage', 'QuickShare sends the content you select directly to the peer you identify. The application does not upload, store, cache or retain transferred files on our servers. A signaling service may help establish a connection and may handle connection metadata, but it does not receive the file contents through the application’s transfer flow. The receiving peer obtains the content you send.'],
+            ['No tracking or telemetry', 'The application does not track behavior, build usage profiles, collect personal analytics or embed third-party tracking telemetry. Interface preferences may be saved locally in your browser. Optional network services and externally hosted libraries may have their own technical logs and privacy practices.'],
+            ['Local browser storage', 'Files you add to the workspace may be kept in your browser’s IndexedDB so they remain available on that device. This is local browser storage, not server storage, and it remains under your browser and device controls until you remove it or clear site data. Avoid using persistent storage on a shared device for sensitive files.'],
+            ['Website content and private user content', 'The website and its supplied materials are intended to provide a clean, safe utility environment; the site does not host or distribute adult (18+), malicious or harmful content. We do not control, review or have access to files privately transferred between users. We therefore cannot verify their content or take responsibility for what individual users choose to send or receive.'],
+            ['Software security and limitations', 'The core utility code is made available for inspection, and we do not knowingly include malware, backdoors or trojans. We take reasonable care, but no software can be guaranteed completely secure or risk-free; browsers, devices, extensions and external dependencies may introduce risks. Review the code and use appropriate security protections.'],
+            ['Third parties, choices and updates', 'QuickShare may rely on a third-party signaling provider, and some optional libraries or assets may be delivered by external providers. Those providers may process connection or request metadata under their own policies; we do not control their systems. You choose whether to use these optional features, may clear local files and preferences through the app or browser, and should review this notice for updates.']
+        ],
+        termsIntro: 'By accessing or using WebTools Utility (“the Service”), you agree to these terms. If you do not accept them, do not use the Service.',
+        terms: [
+            ['Acceptance and scope', 'These terms apply to your use of the browser-based viewing, analysis, editing and conversion utilities and the optional QuickShare feature. You must be able to agree to these terms under the laws that apply to you.'],
+            ['How the Service handles content', 'Utilities process files locally in your browser. QuickShare sends only the files or text you select to the peer you choose; a third-party signaling service may facilitate connection setup. The site owners do not receive or inspect that content, and transferred files are not stored on our servers.'],
+            ['Lawful use and user autonomy', 'You decide what to open, process, send and receive, and you are responsible for those choices. Use the Service only in compliance with applicable law, including privacy, intellectual-property and content laws. Do not send content unless you have the right and authority to do so and the intended recipient is appropriate.'],
+            ['User content and responsibility', 'The Service itself is intended to be clean and safe and does not host or distribute adult (18+), malicious or harmful content. Private peer-to-peer content is selected and sent by users, is not controlled or moderated by us, and may not be visible to us. We take no responsibility for the specific content exchanged between users; senders and recipients remain responsible for it.'],
+            ['Security and prohibited use', 'The core utility code is open for inspection, and we do not knowingly include malware, backdoors or trojans. This is not a guarantee that every execution environment or third-party component is free of risk. Do not use the Service to distribute malware, compromise systems, violate others’ rights or facilitate unlawful harm.'],
+            ['Third-party services, availability and warranties', 'Optional network services and external dependencies are operated by their respective providers and may be subject to separate terms and privacy notices. The Service is provided “as is” and may change or become unavailable. To the extent permitted by law, we disclaim implied warranties and are not liable for indirect loss arising from use, interruptions, user content or third-party services. Nothing in these terms excludes liability that cannot legally be excluded.'],
+            ['Ownership, changes and governing rules', 'You retain rights to your own content and are responsible for respecting third-party rights. The Service’s code and materials are subject to their applicable licenses and notices. We may revise these terms as the Service changes; the current version applies when you use it. Applicable mandatory law and the competent jurisdiction govern any dispute.']
+        ]
+    },
+    uk: {
+        updated: 'Оновлено: 9 листопада 2026 року',
+        privacyIntro: 'Це повідомлення пояснює, як WebTools Utility працює з інформацією. Вміст файлів обробляється на вашому пристрої та передається лише після вашого явного вибору P2P-передавання. Запити до зовнішніх ресурсів можуть передавати їхнім постачальникам звичайні метадані з’єднання.',
+        privacy: [
+            ['Локальна обробка й доступ', 'Перегляд, конвертація та інші інструменти можуть локально читати дані файлу у браузері лише для виконання запитаної операції. Власники й розробники сайту не мають віддаленого доступу до ваших файлів, текстів чи даних, не отримують і не перевіряють їх. Дані залишаються на пристрої, якщо ви явно не надсилаєте вибраний вміст через QuickShare.'],
+            ['P2P-передавання; файли не зберігаються на серверах', 'QuickShare надсилає вибраний вами вміст безпосередньо обраному вами користувачу. Застосунок не завантажує, не зберігає, не кешує й не утримує передані файли на наших серверах. Служба сигналізації може допомагати встановити з’єднання та обробляти технічні метадані з’єднання, але не отримує вміст файлів у межах передавання. Отримувач одержує надісланий вами вміст.'],
+            ['Відсутність відстеження й телеметрії', 'Застосунок не відстежує поведінку, не створює профілі використання, не збирає персональну аналітику й не вбудовує сторонню телеметрію відстеження. Налаштування інтерфейсу можуть зберігатися локально у браузері. Необов’язкові мережеві служби та зовнішні бібліотеки можуть мати власні технічні журнали й правила конфіденційності.'],
+            ['Локальне сховище браузера', 'Додані до робочого простору файли можуть зберігатися в IndexedDB браузера, щоб залишатися доступними на цьому пристрої. Це локальне сховище браузера, а не серверне; воно підпорядковується налаштуванням вашого браузера й пристрою, доки ви не видалите файли або дані сайту. На спільному пристрої не зберігайте так конфіденційні файли.'],
+            ['Вміст сайту й приватні файли користувачів', 'Сайт і надані ним матеріали призначені для чистого й безпечного середовища утиліт; сайт не розміщує та не поширює контент для дорослих (18+), шкідливий або небезпечний вміст. Ми не контролюємо, не перевіряємо й не маємо доступу до файлів, які користувачі приватно передають одне одному, тому не можемо підтвердити їхній вміст чи відповідати за нього.'],
+            ['Безпека програмного забезпечення та обмеження', 'Основний код утиліт доступний для перевірки; ми свідомо не додаємо шкідливе ПЗ, бекдори чи трояни. Ми вживаємо розумних заходів безпеки, але жодне програмне забезпечення не можна гарантувати як цілком безпечне або позбавлене ризиків. Ризики можуть походити від браузера, пристрою, розширень або зовнішніх залежностей.'],
+            ['Сторонні служби, ваш вибір і оновлення', 'QuickShare може використовувати стороннього постачальника сигналізації, а деякі бібліотеки чи ресурси можуть надходити від зовнішніх постачальників. Вони можуть обробляти метадані з’єднання або запитів за власними правилами; ми не контролюємо їхні системи. Ви самі вирішуєте, чи користуватися цими функціями, можете очистити локальні файли та налаштування й маєте переглядати оновлення цього повідомлення.']
+        ],
+        termsIntro: 'Отримуючи доступ до WebTools Utility («Сервіс») або користуючись ним, ви погоджуєтеся з цими умовами. Якщо ви не погоджуєтеся, не користуйтеся Сервісом.',
+        terms: [
+            ['Прийняття та сфера дії', 'Ці умови поширюються на браузерні інструменти перегляду, аналізу, редагування й конвертації файлів, а також на необов’язкову функцію QuickShare. Ви маєте право погоджуватися з умовами відповідно до законодавства, яке на вас поширюється.'],
+            ['Обробка вмісту Сервісом', 'Інструменти обробляють файли локально у браузері. QuickShare надсилає лише вибрані вами файли або текст користувачу, якого ви обрали; стороння служба сигналізації може допомогти встановити з’єднання. Власники сайту не отримують і не перевіряють цей вміст та не зберігають передані файли на серверах.'],
+            ['Законне використання й відповідальність користувача', 'Ви самостійно вирішуєте, що відкривати, обробляти, надсилати й отримувати, та відповідаєте за ці рішення. Користуйтеся Сервісом лише відповідно до законодавства, зокрема норм про приватність, інтелектуальну власність і контент. Надсилайте матеріали лише за наявності прав і повноважень та належному отримувачу.'],
+            ['Вміст користувачів і відповідальність', 'Сам Сервіс призначений для чистого й безпечного використання та не розміщує й не поширює контент для дорослих (18+), шкідливі чи небезпечні матеріали. Приватний P2P-вміст обирають і надсилають користувачі; ми його не контролюємо й не модерувуємо та можемо його не бачити. Ми не відповідаємо за конкретний вміст обміну; відповідальність несуть відправники й отримувачі.'],
+            ['Безпека та заборонене використання', 'Основний код утиліт відкритий для перевірки; ми свідомо не додаємо шкідливе ПЗ, бекдори чи трояни. Це не гарантує відсутності ризику в кожному середовищі чи сторонньому компоненті. Не використовуйте Сервіс для поширення шкідливого ПЗ, зламу систем, порушення прав інших осіб або сприяння незаконній шкоді.'],
+            ['Сторонні служби, доступність і гарантії', 'Необов’язковими мережевими службами та зовнішніми залежностями керують відповідні постачальники; на них можуть поширюватися окремі умови й повідомлення про приватність. Сервіс надається «як є», може змінюватися або бути недоступним. У межах, дозволених законом, ми відмовляємося від непрямих гарантій і не відповідаємо за непрямі збитки від використання, перерв, вмісту користувачів або сторонніх служб. Умови не обмежують відповідальності, яку не можна виключити за законом.'],
+            ['Права, зміни й застосовне право', 'Ви зберігаєте права на власний вміст і відповідаєте за дотримання прав третіх осіб. Код і матеріали Сервісу регулюються відповідними ліцензіями та повідомленнями. Ми можемо оновлювати умови разом зі змінами Сервісу; під час користування застосовується поточна версія. До спорів застосовуються обов’язкові норми права та юрисдикція, визначені законом.']
+        ]
+    },
+    ru: {
+        updated: 'Обновлено: 9 ноября 2026 года',
+        privacyIntro: 'В этом уведомлении описано, как WebTools Utility обрабатывает информацию. Содержимое файлов обрабатывается на вашем устройстве и передается только при явно выбранной вами P2P-передаче. Запросы к внешним ресурсам могут раскрывать их поставщикам обычные метаданные соединения.',
+        privacy: [
+            ['Локальная обработка и доступ', 'Просмотр, конвертация и другие инструменты могут читать данные файла локально в браузере только для выполнения запрошенной операции. Владельцы и разработчики сайта не имеют удаленного доступа к вашим файлам, текстам или данным, не получают и не проверяют их. Данные остаются на устройстве, если вы явно не отправите выбранное содержимое через QuickShare.'],
+            ['P2P-передача; файлы не хранятся на серверах', 'QuickShare отправляет выбранное вами содержимое напрямую выбранному вами пользователю. Приложение не загружает, не хранит, не кэширует и не удерживает переданные файлы на наших серверах. Служба сигнализации может помогать устанавливать соединение и обрабатывать технические метаданные соединения, но в процессе передачи не получает содержимое файлов. Получатель получает отправленные вами данные.'],
+            ['Нет отслеживания и телеметрии', 'Приложение не отслеживает поведение, не создает профили использования, не собирает персональную аналитику и не встраивает стороннюю телеметрию отслеживания. Настройки интерфейса могут сохраняться локально в браузере. Необязательные сетевые службы и внешние библиотеки могут вести собственные технические журналы и иметь собственные правила конфиденциальности.'],
+            ['Локальное хранилище браузера', 'Добавленные в рабочее пространство файлы могут сохраняться в IndexedDB браузера, чтобы оставаться доступными на этом устройстве. Это локальное хранилище браузера, а не серверное; оно остается под контролем браузера и устройства, пока вы не удалите файлы или данные сайта. Не используйте постоянное хранилище для конфиденциальных файлов на общем устройстве.'],
+            ['Содержимое сайта и личные файлы пользователей', 'Сайт и предоставляемые им материалы предназначены для чистой и безопасной среды утилит; сайт не размещает и не распространяет контент для взрослых (18+), вредоносный или опасный контент. Мы не контролируем, не проверяем и не имеем доступа к файлам, которыми пользователи обмениваются напрямую, поэтому не можем подтвердить их содержимое или отвечать за него.'],
+            ['Безопасность ПО и ограничения', 'Основной код утилит доступен для проверки; мы сознательно не включаем вредоносное ПО, бэкдоры или трояны. Мы принимаем разумные меры, однако нельзя гарантировать абсолютную безопасность или отсутствие риска у любого ПО. Риски могут быть связаны с браузером, устройством, расширениями или внешними зависимостями.'],
+            ['Сторонние службы, выбор пользователя и обновления', 'QuickShare может использовать стороннего поставщика сигнализации, а некоторые библиотеки или ресурсы могут загружаться от внешних поставщиков. Они могут обрабатывать метаданные соединения или запросов согласно собственным правилам; мы не контролируем их системы. Вы сами решаете, использовать ли эти функции, можете удалить локальные файлы и настройки и должны проверять обновления этого уведомления.']
+        ],
+        termsIntro: 'Получая доступ к WebTools Utility («Сервис») или используя его, вы соглашаетесь с этими условиями. Если вы не согласны, не используйте Сервис.',
+        terms: [
+            ['Принятие и область действия', 'Эти условия применяются к браузерным средствам просмотра, анализа, редактирования и конвертации файлов, а также к дополнительной функции QuickShare. Вы должны иметь право принять эти условия согласно применимому к вам законодательству.'],
+            ['Обработка данных Сервисом', 'Инструменты обрабатывают файлы локально в браузере. QuickShare отправляет только выбранные вами файлы или текст выбранному вами пользователю; сторонняя служба сигнализации может помогать установить соединение. Владельцы сайта не получают и не проверяют это содержимое и не хранят переданные файлы на серверах.'],
+            ['Законное использование и ответственность пользователя', 'Вы самостоятельно решаете, что открывать, обрабатывать, отправлять и получать, и отвечаете за эти решения. Используйте Сервис только в соответствии с законом, включая нормы о конфиденциальности, интеллектуальной собственности и контенте. Отправляйте материалы только при наличии соответствующих прав и полномочий и надлежащему получателю.'],
+            ['Пользовательский контент и ответственность', 'Сам Сервис предназначен для чистого и безопасного использования и не размещает и не распространяет контент для взрослых (18+), вредоносные или опасные материалы. Частный P2P-контент выбирают и отправляют пользователи; мы его не контролируем и не модерируем и можем его не видеть. Мы не отвечаем за конкретный контент между пользователями; за него отвечают отправитель и получатель.'],
+            ['Безопасность и запрещенное использование', 'Основной код утилит открыт для проверки; мы сознательно не включаем вредоносное ПО, бэкдоры или трояны. Это не гарантирует отсутствия риска в любой среде или стороннем компоненте. Не используйте Сервис для распространения вредоносного ПО, взлома систем, нарушения прав других лиц или содействия незаконному причинению вреда.'],
+            ['Сторонние службы, доступность и гарантии', 'Необязательные сетевые службы и внешние зависимости обслуживаются соответствующими поставщиками и могут регулироваться отдельными условиями и политиками конфиденциальности. Сервис предоставляется «как есть», может изменяться или становиться недоступным. В пределах, разрешенных законом, мы исключаем подразумеваемые гарантии и не отвечаем за косвенный ущерб от использования, перерывов, пользовательского контента или сторонних служб. Это не исключает ответственность, которую нельзя исключить по закону.'],
+            ['Права, изменения и применимое право', 'Вы сохраняете права на собственный контент и отвечаете за соблюдение прав третьих лиц. На код и материалы Сервиса распространяются применимые лицензии и уведомления. Мы можем обновлять условия при изменении Сервиса; при использовании действует текущая версия. К спорам применяются обязательные нормы права и юрисдикция, предусмотренные законом.']
+        ]
+    },
+    pl: {
+        updated: 'Aktualizacja: 9 listopada 2026 r.',
+        privacyIntro: 'Niniejsza informacja wyjaśnia, jak WebTools Utility przetwarza informacje. Zawartość plików jest przetwarzana na Twoim urządzeniu i przesyłana wyłącznie po wyraźnym wybraniu transferu P2P. Żądania zasobów hostowanych zewnętrznie mogą ujawniać ich dostawcom zwykłe metadane połączenia.',
+        privacy: [
+            ['Przetwarzanie lokalne i dostęp', 'Podgląd, konwersja i pozostałe narzędzia mogą lokalnie odczytywać dane pliku w przeglądarce wyłącznie w celu wykonania żądanej operacji. Właściciele i twórcy witryny nie mają zdalnego dostępu do Twoich plików, tekstów ani danych, nie otrzymują ich ani nie sprawdzają. Dane pozostają na urządzeniu, chyba że wyraźnie wyślesz wybrane treści przez QuickShare.'],
+            ['Transfer P2P; brak przechowywania plików na serwerach', 'QuickShare wysyła wybrane przez Ciebie treści bezpośrednio do wskazanego przez Ciebie użytkownika. Aplikacja nie przesyła na nasze serwery, nie przechowuje, nie buforuje ani nie zachowuje przesłanych plików. Usługa sygnalizacyjna może pomagać w nawiązaniu połączenia i obsługiwać techniczne metadane połączenia, ale w ramach transferu nie otrzymuje zawartości plików. Odbiorca otrzymuje wysłaną treść.'],
+            ['Brak śledzenia i telemetrii', 'Aplikacja nie śledzi zachowań, nie tworzy profili użytkowania, nie gromadzi osobistych danych analitycznych ani nie osadza zewnętrznej telemetrii śledzącej. Preferencje interfejsu mogą być zapisywane lokalnie w przeglądarce. Opcjonalne usługi sieciowe i zewnętrzne biblioteki mogą prowadzić własne logi techniczne i podlegać własnym zasadom prywatności.'],
+            ['Lokalna pamięć przeglądarki', 'Pliki dodane do obszaru roboczego mogą być przechowywane w IndexedDB przeglądarki, aby pozostały dostępne na tym urządzeniu. Jest to lokalna pamięć przeglądarki, a nie serwerowa; pozostaje pod kontrolą przeglądarki i urządzenia do czasu usunięcia plików lub danych witryny. Nie przechowuj w ten sposób poufnych plików na urządzeniu współdzielonym.'],
+            ['Treści witryny i prywatne pliki użytkowników', 'Witryna i dostarczane przez nią materiały mają zapewniać czyste i bezpieczne środowisko narzędzi; witryna nie hostuje ani nie rozpowszechnia treści dla dorosłych (18+), złośliwych ani szkodliwych. Nie kontrolujemy, nie sprawdzamy ani nie mamy dostępu do plików przekazywanych prywatnie między użytkownikami, więc nie możemy potwierdzić ich zawartości ani brać za nią odpowiedzialności.'],
+            ['Bezpieczeństwo oprogramowania i ograniczenia', 'Podstawowy kod narzędzi jest dostępny do wglądu; świadomie nie umieszczamy w nim złośliwego oprogramowania, tylnych furtek ani trojanów. Zachowujemy należytą staranność, lecz nie można zagwarantować całkowitego bezpieczeństwa ani braku ryzyka w żadnym oprogramowaniu. Zagrożenia mogą wynikać z przeglądarki, urządzenia, rozszerzeń lub zewnętrznych zależności.'],
+            ['Usługi zewnętrzne, wybór i aktualizacje', 'QuickShare może korzystać z zewnętrznego dostawcy sygnalizacji, a niektóre biblioteki lub zasoby mogą pochodzić od zewnętrznych dostawców. Mogą oni przetwarzać metadane połączeń lub żądań na podstawie własnych zasad; nie kontrolujemy ich systemów. Samodzielnie decydujesz o korzystaniu z tych funkcji, możesz usunąć lokalne pliki i preferencje oraz powinieneś/powinnaś sprawdzać aktualizacje niniejszej informacji.']
+        ],
+        termsIntro: 'Uzyskując dostęp do WebTools Utility („Usługi”) lub korzystając z niej, akceptujesz niniejsze warunki. Jeśli ich nie akceptujesz, nie korzystaj z Usługi.',
+        terms: [
+            ['Akceptacja i zakres', 'Warunki dotyczą przeglądarkowych narzędzi do przeglądania, analizowania, edytowania i konwertowania plików oraz opcjonalnej funkcji QuickShare. Musisz mieć zdolność do zaakceptowania tych warunków zgodnie z prawem, które Cię obowiązuje.'],
+            ['Przetwarzanie treści przez Usługę', 'Narzędzia przetwarzają pliki lokalnie w przeglądarce. QuickShare wysyła wyłącznie wybrane przez Ciebie pliki lub tekst do wskazanego przez Ciebie użytkownika; zewnętrzna usługa sygnalizacyjna może ułatwiać nawiązanie połączenia. Właściciele witryny nie otrzymują ani nie sprawdzają tych treści i nie przechowują przesłanych plików na serwerach.'],
+            ['Zgodne z prawem użycie i odpowiedzialność', 'Samodzielnie decydujesz, co otwierasz, przetwarzasz, wysyłasz i odbierasz, oraz odpowiadasz za te decyzje. Korzystaj z Usługi zgodnie z prawem, w tym przepisami o prywatności, własności intelektualnej i treściach. Wysyłaj materiały tylko wtedy, gdy masz do tego prawa i upoważnienie, oraz do właściwego odbiorcy.'],
+            ['Treści użytkowników i odpowiedzialność', 'Sama Usługa ma zapewniać czyste i bezpieczne środowisko i nie hostuje ani nie rozpowszechnia treści dla dorosłych (18+), złośliwych lub szkodliwych. Prywatne treści P2P są wybierane i wysyłane przez użytkowników; nie kontrolujemy ich ani nie moderujemy i możemy ich nie widzieć. Nie odpowiadamy za konkretne treści wymieniane między użytkownikami; odpowiadają za nie nadawcy i odbiorcy.'],
+            ['Bezpieczeństwo i zakazane użycie', 'Podstawowy kod narzędzi jest otwarty do wglądu; świadomie nie umieszczamy w nim złośliwego oprogramowania, tylnych furtek ani trojanów. Nie gwarantuje to braku ryzyka w każdym środowisku ani w komponentach zewnętrznych. Nie używaj Usługi do rozpowszechniania złośliwego oprogramowania, naruszania systemów lub praw innych osób ani do wyrządzania bezprawnej szkody.'],
+            ['Usługi zewnętrzne, dostępność i gwarancje', 'Opcjonalne usługi sieciowe i zewnętrzne zależności są obsługiwane przez ich dostawców i mogą podlegać odrębnym warunkom oraz politykom prywatności. Usługa jest udostępniana „w stanie, w jakim się znajduje”, może ulec zmianie lub być niedostępna. W zakresie dozwolonym prawem wyłączamy dorozumiane gwarancje i odpowiedzialność za szkody pośrednie wynikające z korzystania, przerw, treści użytkowników lub usług zewnętrznych. Nie wyłącza to odpowiedzialności, której nie można prawnie wyłączyć.'],
+            ['Prawa, zmiany i prawo właściwe', 'Zachowujesz prawa do własnych treści i odpowiadasz za poszanowanie praw osób trzecich. Kod i materiały Usługi podlegają odpowiednim licencjom i informacjom prawnym. Możemy zmieniać warunki wraz ze zmianami Usługi; podczas korzystania obowiązuje aktualna wersja. Spory podlegają bezwzględnie obowiązującym przepisom i jurysdykcji właściwej zgodnie z prawem.']
+        ]
+    },
+    de: {
+        updated: 'Stand: 9. November 2026',
+        privacyIntro: 'Diese Hinweise erläutern, wie WebTools Utility mit Informationen umgeht. Dateiinhalte werden auf deinem Gerät verarbeitet und nur übertragen, wenn du ausdrücklich einen Peer-to-Peer-Transfer auswählst. Anfragen für extern gehostete Ressourcen können deren Anbietern übliche Verbindungsmetadaten offenlegen.',
+        privacy: [
+            ['Lokale Verarbeitung und Zugriff', 'Dateiansicht, Konvertierung und weitere Werkzeuge können Dateidaten lokal in deinem Browser lesen, soweit dies zur angeforderten Funktion erforderlich ist. Die Website-Betreiber und Entwickler haben keinen Fernzugriff auf deine Dateien, Texte oder Daten, erhalten oder prüfen sie nicht. Die Daten bleiben auf deinem Gerät, sofern du ausgewählte Inhalte nicht ausdrücklich über QuickShare sendest.'],
+            ['Peer-to-Peer-Übertragungen; keine Dateispeicherung auf Servern', 'QuickShare sendet die von dir ausgewählten Inhalte direkt an den von dir bestimmten Peer. Die Anwendung lädt übertragene Dateien nicht auf unsere Server hoch, speichert, zwischenspeichert oder behält sie dort nicht. Ein Signalisierungsdienst kann den Verbindungsaufbau unterstützen und technische Verbindungsmetadaten verarbeiten, erhält im Übertragungsablauf jedoch nicht den Dateiinhalt. Der empfangende Peer erhält die von dir gesendeten Inhalte.'],
+            ['Kein Tracking und keine Telemetrie', 'Die Anwendung verfolgt kein Nutzerverhalten, erstellt keine Nutzungsprofile, erhebt keine personenbezogenen Analysedaten und bindet keine Tracking-Telemetrie Dritter ein. Oberflächeneinstellungen können lokal im Browser gespeichert werden. Optionale Netzwerkdienste und extern bereitgestellte Bibliotheken können eigene technische Protokolle und Datenschutzregeln haben.'],
+            ['Lokaler Browserspeicher', 'Dateien, die du zum Arbeitsbereich hinzufügst, können in der IndexedDB deines Browsers gespeichert werden, damit sie auf diesem Gerät verfügbar bleiben. Dies ist lokaler Browserspeicher und keine Serverspeicherung; er unterliegt deinem Browser und Gerät, bis du Dateien oder Websitedaten löschst. Speichere sensible Dateien nicht dauerhaft auf gemeinsam genutzten Geräten.'],
+            ['Website-Inhalte und private Nutzerdateien', 'Die Website und ihre bereitgestellten Materialien sollen eine saubere und sichere Werkzeugumgebung bieten; die Website hostet oder verbreitet keine Inhalte für Erwachsene (18+), schädlichen oder bösartigen Inhalte. Wir kontrollieren, prüfen oder sehen keine Dateien, die Nutzer privat untereinander übertragen, und können deren Inhalt daher weder verifizieren noch dafür Verantwortung übernehmen.'],
+            ['Softwaresicherheit und Grenzen', 'Der Kerncode der Werkzeuge kann eingesehen werden; wir fügen wissentlich keine Schadsoftware, Hintertüren oder Trojaner hinzu. Wir treffen angemessene Vorkehrungen, aber keine Software kann als vollständig sicher oder risikofrei garantiert werden. Risiken können durch Browser, Geräte, Erweiterungen oder externe Abhängigkeiten entstehen.'],
+            ['Drittanbieter, Wahlmöglichkeiten und Aktualisierungen', 'QuickShare kann einen externen Signalisierungsanbieter verwenden; einige Bibliotheken oder Ressourcen können ebenfalls von externen Anbietern stammen. Diese können Verbindungs- oder Anfragemetadaten nach eigenen Regeln verarbeiten; wir kontrollieren ihre Systeme nicht. Du entscheidest selbst über die Nutzung dieser Funktionen, kannst lokale Dateien und Einstellungen löschen und solltest diese Hinweise auf Aktualisierungen prüfen.']
+        ],
+        termsIntro: 'Mit dem Zugriff auf WebTools Utility („Dienst“) oder dessen Nutzung stimmst du diesen Bedingungen zu. Wenn du nicht zustimmst, darfst du den Dienst nicht nutzen.',
+        terms: [
+            ['Zustimmung und Geltungsbereich', 'Diese Bedingungen gelten für die browserbasierten Werkzeuge zum Anzeigen, Analysieren, Bearbeiten und Konvertieren von Dateien sowie für die optionale QuickShare-Funktion. Du musst nach dem für dich geltenden Recht berechtigt sein, diesen Bedingungen zuzustimmen.'],
+            ['Umgang des Dienstes mit Inhalten', 'Die Werkzeuge verarbeiten Dateien lokal in deinem Browser. QuickShare sendet nur die von dir ausgewählten Dateien oder Texte an den von dir bestimmten Peer; ein externer Signalisierungsdienst kann beim Verbindungsaufbau helfen. Die Website-Betreiber erhalten oder prüfen diese Inhalte nicht und speichern übertragene Dateien nicht auf Servern.'],
+            ['Rechtmäßige Nutzung und Verantwortung', 'Du entscheidest, was du öffnest, verarbeitest, sendest und empfängst, und trägst die Verantwortung für diese Entscheidungen. Nutze den Dienst nur im Einklang mit geltendem Recht, einschließlich Datenschutz-, Urheber- und Inhaltsrecht. Sende Inhalte nur, wenn du dazu berechtigt bist und der Empfänger geeignet ist.'],
+            ['Nutzerinhalte und Verantwortung', 'Der Dienst selbst soll eine saubere und sichere Umgebung bieten und hostet oder verbreitet keine Inhalte für Erwachsene (18+), schädlichen oder bösartigen Inhalte. Private P2P-Inhalte werden von Nutzern ausgewählt und gesendet; wir kontrollieren oder moderieren sie nicht und können sie möglicherweise nicht sehen. Für konkrete zwischen Nutzern ausgetauschte Inhalte übernehmen wir keine Verantwortung; dafür sind Sender und Empfänger verantwortlich.'],
+            ['Sicherheit und unzulässige Nutzung', 'Der Kerncode der Werkzeuge ist einsehbar; wir fügen wissentlich keine Schadsoftware, Hintertüren oder Trojaner hinzu. Dies garantiert nicht, dass jede Ausführungsumgebung oder Drittanbieterkomponente risikofrei ist. Nutze den Dienst nicht, um Schadsoftware zu verbreiten, Systeme zu kompromittieren, Rechte anderer zu verletzen oder rechtswidrigen Schaden zu fördern.'],
+            ['Drittanbieter, Verfügbarkeit und Gewährleistung', 'Optionale Netzwerkdienste und externe Abhängigkeiten werden von ihren jeweiligen Anbietern betrieben und können eigenen Bedingungen und Datenschutzhinweisen unterliegen. Der Dienst wird „wie besehen“ bereitgestellt, kann geändert werden oder ausfallen. Soweit gesetzlich zulässig, schließen wir stillschweigende Gewährleistungen und die Haftung für mittelbare Schäden aus Nutzung, Ausfällen, Nutzerinhalten oder Drittanbieterdiensten aus. Unabdingbare gesetzliche Haftung bleibt unberührt.'],
+            ['Rechte, Änderungen und anwendbares Recht', 'Du behältst die Rechte an deinen Inhalten und bist für die Achtung von Rechten Dritter verantwortlich. Für Code und Materialien des Dienstes gelten die jeweiligen Lizenzen und Hinweise. Wir können diese Bedingungen bei Änderungen des Dienstes aktualisieren; bei der Nutzung gilt die aktuelle Fassung. Streitigkeiten unterliegen zwingendem Recht und der gesetzlich zuständigen Gerichtsbarkeit.']
+        ]
+    },
+    es: {
+        updated: 'Actualizado: 9 de noviembre de 2026',
+        privacyIntro: 'Este aviso explica cómo WebTools Utility trata la información. El contenido de los archivos se procesa en tu dispositivo y solo se transmite cuando eliges expresamente una transferencia entre pares. Las solicitudes de recursos alojados externamente pueden revelar metadatos de conexión habituales a sus proveedores.',
+        privacy: [
+            ['Procesamiento local y acceso', 'La visualización, conversión y demás herramientas pueden leer datos del archivo localmente en tu navegador solo para realizar la operación solicitada. Los propietarios y desarrolladores del sitio no acceden remotamente, reciben, leen ni inspeccionan tus archivos, textos o datos. Estos permanecen en tu dispositivo salvo que envíes expresamente contenido seleccionado mediante QuickShare.'],
+            ['Transferencias P2P; sin almacenamiento de archivos en servidores', 'QuickShare envía el contenido que eliges directamente al par que indicas. La aplicación no carga, almacena, guarda en caché ni conserva los archivos transferidos en nuestros servidores. Un servicio de señalización puede ayudar a establecer la conexión y tratar metadatos técnicos de conexión, pero el flujo de transferencia de la aplicación no le proporciona el contenido de los archivos. El par receptor recibe lo que envías.'],
+            ['Sin seguimiento ni telemetría', 'La aplicación no rastrea el comportamiento, no crea perfiles de uso, no recopila analítica personal ni incorpora telemetría de seguimiento de terceros. Las preferencias de interfaz pueden guardarse localmente en el navegador. Los servicios de red opcionales y las bibliotecas externas pueden tener sus propios registros técnicos y prácticas de privacidad.'],
+            ['Almacenamiento local del navegador', 'Los archivos que añadas al espacio de trabajo pueden guardarse en IndexedDB de tu navegador para que sigan disponibles en ese dispositivo. Es almacenamiento local del navegador, no almacenamiento en servidores, y permanece bajo los controles del navegador y del dispositivo hasta que elimines los archivos o los datos del sitio. Evita guardar archivos sensibles de forma persistente en dispositivos compartidos.'],
+            ['Contenido del sitio y archivos privados de usuarios', 'El sitio y los materiales que proporciona están pensados para ofrecer un entorno de utilidades limpio y seguro; el sitio no aloja ni distribuye contenido para adultos (18+), malicioso o dañino. No controlamos, revisamos ni tenemos acceso a los archivos que los usuarios se transfieren en privado, por lo que no podemos verificar su contenido ni asumir responsabilidad por él.'],
+            ['Seguridad del software y límites', 'El código principal de las utilidades está disponible para su revisión y no incluimos deliberadamente malware, puertas traseras ni troyanos. Adoptamos medidas razonables, pero ningún software puede garantizarse como completamente seguro o libre de riesgos. El navegador, el dispositivo, las extensiones y las dependencias externas pueden introducir riesgos.'],
+            ['Terceros, decisiones y actualizaciones', 'QuickShare puede utilizar un proveedor externo de señalización y algunas bibliotecas o recursos pueden proceder de terceros. Estos pueden tratar metadatos de conexión o solicitudes según sus propias políticas; no controlamos sus sistemas. Tú decides si utilizas estas funciones, puedes borrar los archivos y preferencias locales y debes consultar este aviso para conocer sus actualizaciones.']
+        ],
+        termsIntro: 'Al acceder a WebTools Utility («el Servicio») o utilizarlo, aceptas estas condiciones. Si no las aceptas, no utilices el Servicio.',
+        terms: [
+            ['Aceptación y alcance', 'Estas condiciones se aplican a las herramientas del navegador para visualizar, analizar, editar y convertir archivos, así como a la función opcional QuickShare. Debes tener capacidad para aceptar estas condiciones conforme a la legislación aplicable.'],
+            ['Tratamiento del contenido por el Servicio', 'Las herramientas procesan archivos localmente en tu navegador. QuickShare envía únicamente los archivos o textos que seleccionas al par que eliges; un servicio externo de señalización puede facilitar la conexión. Los propietarios del sitio no reciben ni inspeccionan ese contenido y no almacenan en servidores los archivos transferidos.'],
+            ['Uso legal y responsabilidad del usuario', 'Tú decides qué abrir, procesar, enviar y recibir, y eres responsable de esas decisiones. Utiliza el Servicio de conformidad con la legislación aplicable, incluidas las normas de privacidad, propiedad intelectual y contenido. Envía material solo si tienes derecho y autorización para hacerlo y al destinatario previsto.'],
+            ['Contenido de usuarios y responsabilidad', 'El Servicio en sí está concebido como un entorno limpio y seguro y no aloja ni distribuye contenido para adultos (18+), malicioso o dañino. Los usuarios eligen y envían el contenido privado P2P; no lo controlamos ni moderamos y puede que no podamos verlo. No asumimos responsabilidad por el contenido concreto intercambiado entre usuarios; remitentes y destinatarios son responsables de él.'],
+            ['Seguridad y usos prohibidos', 'El código principal de las utilidades puede inspeccionarse y no incluimos deliberadamente malware, puertas traseras ni troyanos. Esto no garantiza que todos los entornos o componentes de terceros estén libres de riesgos. No utilices el Servicio para distribuir malware, comprometer sistemas, infringir derechos ajenos o facilitar daños ilícitos.'],
+            ['Terceros, disponibilidad y garantías', 'Los servicios de red opcionales y las dependencias externas son operados por sus proveedores y pueden estar sujetos a condiciones y avisos de privacidad propios. El Servicio se proporciona «tal cual» y puede cambiar o dejar de estar disponible. En la medida permitida por la ley, excluimos garantías implícitas y responsabilidad por daños indirectos derivados del uso, las interrupciones, el contenido de usuarios o servicios de terceros. Nada excluye la responsabilidad que la ley no permita excluir.'],
+            ['Derechos, cambios y normas aplicables', 'Conservas los derechos sobre tu contenido y eres responsable de respetar los derechos de terceros. El código y los materiales del Servicio se rigen por sus licencias y avisos aplicables. Podemos revisar estas condiciones cuando cambie el Servicio; se aplicará la versión vigente al utilizarlo. Los conflictos se rigen por las normas imperativas y la jurisdicción que establezca la ley.']
+        ]
+    },
+    it: {
+        updated: 'Ultimo aggiornamento: 9 novembre 2026',
+        privacyIntro: 'Questa informativa spiega come WebTools Utility gestisce le informazioni. I contenuti dei file vengono elaborati sul tuo dispositivo e trasmessi solo quando scegli esplicitamente un trasferimento peer-to-peer. Le richieste di risorse ospitate esternamente possono rivelare ai rispettivi fornitori i normali metadati di connessione.',
+        privacy: [
+            ['Elaborazione locale e accesso', 'La visualizzazione, la conversione e gli altri strumenti possono leggere localmente i dati dei file nel browser solo per eseguire l’operazione richiesta. I proprietari e gli sviluppatori del sito non accedono da remoto ai tuoi file, testi o dati, non li ricevono né li esaminano. I dati restano sul tuo dispositivo, salvo che tu invii esplicitamente contenuti selezionati tramite QuickShare.'],
+            ['Trasferimenti P2P; nessun archivio dei file sui server', 'QuickShare invia i contenuti selezionati direttamente al peer da te indicato. L’applicazione non carica, archivia, memorizza nella cache né conserva i file trasferiti sui nostri server. Un servizio di segnalazione può facilitare la connessione e trattare metadati tecnici della connessione, ma il flusso di trasferimento dell’applicazione non gli fornisce i contenuti dei file. Il peer destinatario riceve ciò che invii.'],
+            ['Nessun tracciamento o telemetria', 'L’applicazione non traccia il comportamento, non crea profili di utilizzo, non raccoglie analisi personali e non incorpora telemetria di tracciamento di terzi. Le preferenze dell’interfaccia possono essere salvate localmente nel browser. I servizi di rete facoltativi e le librerie esterne possono avere propri registri tecnici e pratiche di privacy.'],
+            ['Archiviazione locale del browser', 'I file aggiunti all’area di lavoro possono essere conservati nell’IndexedDB del browser per restare disponibili su quel dispositivo. Si tratta di archiviazione locale del browser, non di archiviazione su server, ed è soggetta ai controlli del browser e del dispositivo finché non elimini i file o i dati del sito. Evita di conservare file sensibili su dispositivi condivisi.'],
+            ['Contenuti del sito e file privati degli utenti', 'Il sito e i materiali forniti sono destinati a offrire un ambiente di utilità pulito e sicuro; il sito non ospita né distribuisce contenuti per adulti (18+), dannosi o malevoli. Non controlliamo, esaminiamo né accediamo ai file trasferiti privatamente tra utenti e quindi non possiamo verificarne il contenuto né assumerne la responsabilità.'],
+            ['Sicurezza del software e limiti', 'Il codice principale delle utilità è disponibile per l’ispezione e non includiamo consapevolmente malware, backdoor o trojan. Adottiamo misure ragionevoli, ma nessun software può essere garantito completamente sicuro o privo di rischi. Browser, dispositivi, estensioni e dipendenze esterne possono introdurre rischi.'],
+            ['Terze parti, scelte e aggiornamenti', 'QuickShare può utilizzare un fornitore esterno di segnalazione e alcune librerie o risorse possono provenire da fornitori esterni. Questi possono trattare metadati di connessione o richieste secondo le proprie regole; non controlliamo i loro sistemi. Decidi tu se utilizzare queste funzioni, puoi cancellare file e preferenze locali e dovresti consultare questa informativa per eventuali aggiornamenti.']
+        ],
+        termsIntro: 'Accedendo a WebTools Utility («il Servizio») o utilizzandolo, accetti queste condizioni. Se non le accetti, non utilizzare il Servizio.',
+        terms: [
+            ['Accettazione e ambito', 'Queste condizioni si applicano agli strumenti nel browser per visualizzare, analizzare, modificare e convertire file e alla funzione opzionale QuickShare. Devi poter accettare queste condizioni in base alla legge applicabile.'],
+            ['Gestione dei contenuti da parte del Servizio', 'Gli strumenti elaborano i file localmente nel browser. QuickShare invia solo i file o i testi che selezioni al peer che scegli; un servizio esterno di segnalazione può facilitare la connessione. I proprietari del sito non ricevono né esaminano tali contenuti e non conservano i file trasferiti sui server.'],
+            ['Uso legale e autonomia dell’utente', 'Decidi tu cosa aprire, elaborare, inviare e ricevere e sei responsabile di tali decisioni. Usa il Servizio nel rispetto della legge applicabile, comprese le norme su privacy, proprietà intellettuale e contenuti. Invia materiale solo se ne hai il diritto e l’autorizzazione e al destinatario appropriato.'],
+            ['Contenuti degli utenti e responsabilità', 'Il Servizio è concepito come ambiente pulito e sicuro e non ospita né distribuisce contenuti per adulti (18+), dannosi o malevoli. I contenuti privati P2P sono scelti e inviati dagli utenti; non li controlliamo né moderiamo e potremmo non vederli. Non assumiamo responsabilità per i contenuti specifici scambiati tra utenti; mittenti e destinatari ne sono responsabili.'],
+            ['Sicurezza e usi vietati', 'Il codice principale delle utilità è consultabile e non includiamo consapevolmente malware, backdoor o trojan. Ciò non garantisce che ogni ambiente o componente di terzi sia privo di rischi. Non usare il Servizio per distribuire malware, compromettere sistemi, violare i diritti altrui o agevolare danni illeciti.'],
+            ['Terze parti, disponibilità e garanzie', 'I servizi di rete facoltativi e le dipendenze esterne sono gestiti dai rispettivi fornitori e possono essere soggetti a condizioni e informative privacy separate. Il Servizio è fornito «così com’è», può cambiare o non essere disponibile. Nei limiti consentiti dalla legge, escludiamo le garanzie implicite e la responsabilità per danni indiretti derivanti dall’uso, da interruzioni, contenuti degli utenti o servizi di terzi. Restano ferme le responsabilità che non possono essere escluse per legge.'],
+            ['Diritti, modifiche e legge applicabile', 'Mantieni i diritti sui tuoi contenuti e sei responsabile del rispetto dei diritti di terzi. Il codice e i materiali del Servizio sono soggetti alle rispettive licenze e note. Possiamo aggiornare queste condizioni quando il Servizio cambia; durante l’uso si applica la versione vigente. Le controversie sono disciplinate dalle norme inderogabili e dalla giurisdizione competente secondo legge.']
+        ]
+    },
+    fr: {
+        updated: 'Dernière mise à jour : 9 novembre 2026',
+        privacyIntro: 'La présente notice explique comment WebTools Utility traite les informations. Le contenu des fichiers est traité sur votre appareil et transmis uniquement lorsque vous choisissez explicitement un transfert de pair à pair. Les requêtes vers des ressources hébergées à l’extérieur peuvent révéler à leurs fournisseurs des métadonnées de connexion courantes.',
+        privacy: [
+            ['Traitement local et accès', 'L’affichage, la conversion et les autres outils peuvent lire localement les données des fichiers dans votre navigateur uniquement pour effectuer l’opération demandée. Les propriétaires et développeurs du site n’accèdent pas à distance à vos fichiers, textes ou données, ne les reçoivent ni ne les inspectent. Ces données restent sur votre appareil, sauf si vous envoyez explicitement le contenu sélectionné avec QuickShare.'],
+            ['Transferts P2P ; aucun stockage des fichiers sur nos serveurs', 'QuickShare envoie le contenu sélectionné directement au pair que vous désignez. L’application ne téléverse, ne stocke, ne met en cache et ne conserve pas les fichiers transférés sur nos serveurs. Un service de signalisation peut aider à établir la connexion et traiter des métadonnées techniques de connexion, mais le flux de transfert de l’application ne lui fournit pas le contenu des fichiers. Le pair destinataire reçoit le contenu que vous envoyez.'],
+            ['Aucun suivi ni télémétrie', 'L’application ne suit pas le comportement, ne crée pas de profils d’utilisation, ne collecte pas d’analyses personnelles et n’intègre pas de télémétrie de suivi tierce. Les préférences d’interface peuvent être enregistrées localement dans le navigateur. Les services réseau facultatifs et les bibliothèques externes peuvent avoir leurs propres journaux techniques et pratiques de confidentialité.'],
+            ['Stockage local du navigateur', 'Les fichiers ajoutés à l’espace de travail peuvent être conservés dans IndexedDB de votre navigateur afin de rester disponibles sur cet appareil. Il s’agit d’un stockage local du navigateur, et non d’un stockage serveur ; il reste soumis aux contrôles de votre navigateur et appareil jusqu’à la suppression des fichiers ou des données du site. Évitez de conserver des fichiers sensibles sur un appareil partagé.'],
+            ['Contenu du site et fichiers privés des utilisateurs', 'Le site et les éléments qu’il fournit visent à offrir un environnement d’outils propre et sûr ; le site n’héberge ni ne distribue de contenu pour adultes (18+), malveillant ou nuisible. Nous ne contrôlons, n’examinons ni n’accédons aux fichiers échangés en privé entre utilisateurs ; nous ne pouvons donc ni vérifier leur contenu ni en assumer la responsabilité.'],
+            ['Sécurité logicielle et limites', 'Le code principal des outils est consultable et nous n’y incluons sciemment aucun logiciel malveillant, porte dérobée ou cheval de Troie. Nous prenons des précautions raisonnables, mais aucun logiciel ne peut être garanti totalement sûr ou sans risque. Le navigateur, l’appareil, les extensions et les dépendances externes peuvent présenter des risques.'],
+            ['Tiers, choix et mises à jour', 'QuickShare peut faire appel à un fournisseur de signalisation tiers et certaines bibliothèques ou ressources peuvent provenir de fournisseurs externes. Ceux-ci peuvent traiter des métadonnées de connexion ou de requête selon leurs propres règles ; nous ne contrôlons pas leurs systèmes. Vous choisissez d’utiliser ou non ces fonctions, pouvez supprimer les fichiers et préférences locaux et devriez consulter cette notice pour ses mises à jour.']
+        ],
+        termsIntro: 'En accédant à WebTools Utility (« le Service ») ou en l’utilisant, vous acceptez les présentes conditions. Si vous ne les acceptez pas, n’utilisez pas le Service.',
+        terms: [
+            ['Acceptation et portée', 'Les présentes conditions s’appliquent aux outils de navigateur permettant d’afficher, d’analyser, de modifier et de convertir des fichiers, ainsi qu’à la fonction facultative QuickShare. Vous devez être habilité à accepter ces conditions au regard du droit qui vous est applicable.'],
+            ['Traitement du contenu par le Service', 'Les outils traitent les fichiers localement dans votre navigateur. QuickShare n’envoie que les fichiers ou textes que vous sélectionnez au pair que vous choisissez ; un service de signalisation tiers peut faciliter la connexion. Les propriétaires du site ne reçoivent ni n’inspectent ce contenu et ne stockent pas les fichiers transférés sur des serveurs.'],
+            ['Utilisation licite et responsabilité de l’utilisateur', 'Vous décidez ce que vous ouvrez, traitez, envoyez et recevez et êtes responsable de ces choix. Utilisez le Service conformément au droit applicable, notamment aux règles relatives à la vie privée, à la propriété intellectuelle et aux contenus. N’envoyez du contenu que si vous en avez le droit et l’autorisation, et à un destinataire approprié.'],
+            ['Contenu des utilisateurs et responsabilité', 'Le Service lui-même vise à fournir un environnement propre et sûr et n’héberge ni ne distribue de contenu pour adultes (18+), malveillant ou nuisible. Les contenus P2P privés sont choisis et envoyés par les utilisateurs ; nous ne les contrôlons ni ne les modérons et pouvons ne pas les voir. Nous n’assumons aucune responsabilité concernant le contenu précis échangé entre utilisateurs ; expéditeurs et destinataires en restent responsables.'],
+            ['Sécurité et usages interdits', 'Le code principal des outils est consultable et nous n’y incluons sciemment aucun logiciel malveillant, porte dérobée ou cheval de Troie. Cela ne garantit pas l’absence de risque dans tous les environnements ou composants tiers. N’utilisez pas le Service pour diffuser des logiciels malveillants, compromettre des systèmes, enfreindre les droits d’autrui ou faciliter un préjudice illégal.'],
+            ['Tiers, disponibilité et garanties', 'Les services réseau facultatifs et dépendances externes sont exploités par leurs fournisseurs respectifs et peuvent être soumis à des conditions et notices de confidentialité distinctes. Le Service est fourni « en l’état », peut évoluer ou devenir indisponible. Dans la mesure permise par la loi, nous excluons les garanties implicites et la responsabilité pour les dommages indirects résultant de l’utilisation, d’interruptions, de contenus d’utilisateurs ou de services tiers. Rien n’exclut une responsabilité qui ne peut l’être légalement.'],
+            ['Droits, modifications et droit applicable', 'Vous conservez les droits sur votre contenu et êtes responsable du respect des droits de tiers. Le code et les éléments du Service sont soumis à leurs licences et mentions applicables. Nous pouvons réviser ces conditions à mesure que le Service évolue ; la version en vigueur s’applique lors de son utilisation. Les litiges relèvent des règles impératives et de la juridiction compétente prévues par la loi.']
+        ]
+    }
+};
+
+function renderLegalDocuments() {
+    const copy = legalDocumentTranslations[activeLanguage] || legalDocumentTranslations.en;
+    const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
+    const render = (title, intro, sections) => `<div class="legal-doc"><div class="legal-updated">${escapeHtml(copy.updated)}</div><h2>${escapeHtml(title)}</h2><p>${escapeHtml(intro)}</p>${sections.map(([heading, body], index) => `<h3>${index + 1}. ${escapeHtml(heading)}</h3><p>${escapeHtml(body)}</p>`).join('')}</div>`;
+    const dictionary = uiTranslations[activeLanguage] || uiTranslations.en;
+    document.getElementById('privacyContent').innerHTML = render(dictionary.privacy, copy.privacyIntro, copy.privacy);
+    document.getElementById('termsContent').innerHTML = render(dictionary.terms, copy.termsIntro, copy.terms);
+}
+
+renderLegalDocuments();
 
 document.getElementById('openPrivacyBtn').addEventListener('click', () => document.getElementById('privacyModal').classList.add('active'));
 document.getElementById('openTermsBtn').addEventListener('click',   () => document.getElementById('termsModal').classList.add('active'));
@@ -4145,7 +4982,7 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
         converterConvertBtn.style.opacity = '';
         
         let targets = [];
-        const isImage = ['png', 'jpg', 'jpeg', 'webp', 'bmp'].includes(ext);
+        const isImage = ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif', 'avif', 'tif', 'tiff', 'ico'].includes(ext);
         const isJSON = ext === 'json';
         const isCSV = ext === 'csv';
         const isTSV = ext === 'tsv';
@@ -4157,8 +4994,7 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
             targets = [
                 { val: 'png', label: 'PNG Image (.png)' },
                 { val: 'jpg', label: 'JPEG Image (.jpg)' },
-                { val: 'webp', label: 'WebP Image (.webp)' },
-                { val: 'bmp', label: 'BMP Bitmap (.bmp)' }
+                { val: 'webp', label: 'WebP Image (.webp)' }
             ];
         } else if (isJSON) {
             targets = [
@@ -4210,6 +5046,16 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
                 { val: 'tsv', label: 'TSV File (.tsv)' },
                 { val: 'base64', label: 'Base64 Encoded Text (.txt)' },
                 { val: 'hex', label: 'Hexadecimal Text (.txt)' },
+                { val: 'h', label: 'C Header text (.h)' },
+                { val: 'hpp', label: 'C++ Header text (.hpp)' },
+                { val: 'c', label: 'C Source text (.c)' },
+                { val: 'cpp', label: 'C++ Source text (.cpp)' },
+                { val: 'm', label: 'Objective-C Source text (.m)' },
+                { val: 'mm', label: 'Objective-C++ Source text (.mm)' },
+                { val: 'toml', label: 'TOML Text (.toml)' },
+                { val: 'yaml', label: 'YAML Text (.yaml)' },
+                { val: 'xml', label: 'XML Text (.xml)' },
+                { val: 'md', label: 'Markdown Text (.md)' },
                 { val: 'custom', label: 'Custom Extension...' }
             ];
             
@@ -4229,6 +5075,9 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
             targets = [
                 { val: 'base64', label: 'Encode to Base64 Text (.txt)' },
                 { val: 'hex', label: 'Encode to Hexadecimal Text (.txt)' },
+                { val: 'bin', label: 'Raw byte copy (.bin; no transcoding)' },
+                { val: 'dat', label: 'Raw byte copy (.dat; no transcoding)' },
+                { val: 'mmo', label: 'Raw byte copy (.mmo; no transcoding)' },
                 { val: 'custom', label: 'Custom Extension...' }
             ];
         }
@@ -4405,7 +5254,7 @@ document.getElementById('termsModal').addEventListener('click',   e => { if(e.ta
             const origExt = origName.split('.').pop().toLowerCase();
             const isVideo = ['mp4', 'avi', 'webm', 'mkv', 'mov'].includes(origExt) || ['mp4', 'avi', 'webm', 'mkv', 'mov', 'gif'].includes(newExt);
             const isAudio = ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a'].includes(origExt) || ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a'].includes(newExt);
-            const isImage = ['png', 'jpg', 'jpeg', 'webp', 'bmp'].includes(origExt);
+            const isImage = ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif', 'avif', 'tif', 'tiff', 'ico'].includes(origExt);
             
             if ((isAudio || isVideo) && targetFormat !== 'custom' && !targetFormat.startsWith('decode_')) {
                 // Audio/Video conversion — temporarily under maintenance
